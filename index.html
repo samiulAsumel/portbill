@@ -1331,7 +1331,7 @@
     </div>
 
     <!-- MAIN -->
-    <div class="wrap">
+    <main class="wrap">
       <div class="pgtitle">CAR Wharfrent BILL</div>
       <div class="pgsub">Port Authority — Wharfrent &amp; Payable Charges</div>
 
@@ -1365,8 +1365,8 @@
                 <input
                   type="date"
                   id="cld"
-                  id="datePicker"
                   oninput="refresh()"
+                  aria-label="Common Landing Date"
                 />
               </div>
               <div class="fg">
@@ -1421,7 +1421,12 @@
             <div class="r2">
               <div class="fg">
                 <label class="lbl">Delivery Date</label>
-                <input type="date" id="delivery" oninput="refresh()" />
+                <input
+                  type="date"
+                  id="delivery"
+                  oninput="refresh()"
+                  aria-label="Delivery Date"
+                />
               </div>
               <div class="fg">
                 <label class="lbl">Weight (Tons) — max 3</label>
@@ -1433,6 +1438,7 @@
                   max="3"
                   step="1"
                   oninput="onWeightChange()"
+                  aria-label="Weight in tons"
                 />
                 <div class="weight-warn" id="weightWarn">
                   ⚠ Max 3 tons for this module
@@ -1756,7 +1762,9 @@
               </svg>
               GENERATE BILL
             </button>
-            <button class="btn bg" onclick="resetAll()">↻ Reset</button>
+            <button class="btn bg" onclick="resetAll()" aria-label="Reset form">
+              ↻ Reset
+            </button>
           </div>
 
           <div
@@ -1812,7 +1820,7 @@
           be billed under this module.
         </div>
       </div>
-    </div>
+    </main>
     <!-- /wrap -->
 
     <script>
@@ -2530,11 +2538,6 @@
 
       // INIT
       refresh();
-    </script>
-
-    <script>
-      // Set the value of the input to today's date
-      document.getElementById("datePicker").valueAsDate = new Date();
     </script>
 
     <footer class="copyright-footer">
