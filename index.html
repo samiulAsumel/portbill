@@ -125,7 +125,7 @@
         white-space: nowrap;
       }
       .admin-btn {
-        display: flex;
+        display: none;
         align-items: center;
         gap: clamp(4px, 1.5vw, 8px);
         background: var(--s2);
@@ -1855,7 +1855,7 @@
       const CUT = pd("2024-07-23");
       const CUT_OLD = pd("2024-07-22");
 
-      // ── WEIGHT CHANGE ──
+      // ── WEIGHT CHANGE// VALIDATION
       function onWeightChange() {
         const w = parseFloat(document.getElementById("weight").value);
         const warn = document.getElementById("weightWarn");
@@ -1865,6 +1865,19 @@
           warn.classList.remove("show");
         }
         refresh();
+      }
+
+      function validateDates() {
+        const cld = pd(document.getElementById("cld").value);
+        const delivery = pd(document.getElementById("delivery").value);
+
+        if (delivery < cld) {
+          alert("Delivery date cannot be before CLD date!");
+          document.getElementById("delivery").value = "";
+          return false;
+        }
+
+        return true;
       }
 
       // ── ADMIN ──
@@ -2020,6 +2033,11 @@
 
       // ── COMPUTE ──
       function compute() {
+        // Validate dates before calculation
+        if (!validateDates()) {
+          return null;
+        }
+
         const cld = pd(document.getElementById("cld").value);
         const freeDays =
           parseInt(document.getElementById("freeDays").value) || 4;
@@ -2195,6 +2213,11 @@
       // ── REFRESH ──
       function refresh() {
         try {
+          // Validate dates before refresh
+          if (!validateDates()) {
+            return;
+          }
+
           const cld_ = pd(document.getElementById("cld").value);
           const fd_ = parseInt(document.getElementById("freeDays").value) || 4;
           // Free time INCLUDES CLD as day 1:
@@ -2249,6 +2272,8 @@
               : '<div class="rbadge rb-split">⚡ SPLIT BILLING — Old + New rates</div>';
 
           const b = compute();
+          if (!b) return; // Validation failed
+
           const pv = document.getElementById("preview");
           if (b.hasWharfrent) {
             pv.innerHTML = `
@@ -2391,6 +2416,8 @@
         }
 
         const b = compute();
+        if (!b) return; // Validation failed
+
         document.getElementById("results").style.display = "block";
 
         // INFO BAR
