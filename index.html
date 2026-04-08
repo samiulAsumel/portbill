@@ -1,0 +1,2524 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <title>Port Car Billing</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0d12;
+        --surface: #12151d;
+        --s2: #181c27;
+        --border: #232838;
+        --b2: #2e3548;
+        --gold: #f5a623;
+        --blue: #4f8ef7;
+        --purple: #a78bfa;
+        --green: #3ecf8e;
+        --red: #f17070;
+        --text: #e8eaf2;
+        --m1: #8892a4;
+        --m2: #606880;
+        --r: 12px;
+      }
+      @media (max-width: 360px) {
+        :root {
+          --r: 10px;
+        }
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+        font-size: clamp(12px, 2vw, 16px);
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "DM Sans", sans-serif;
+        font-size: inherit;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      @media (max-width: 360px) {
+        html {
+          font-size: 13px;
+        }
+      }
+
+      /* HEADER */
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0 clamp(12px, 4vw, 24px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: clamp(48px, 12vw, 64px);
+        position: sticky;
+        top: 0;
+        z-index: 200;
+        flex-shrink: 0;
+      }
+      @media (max-width: 360px) {
+        header {
+          padding: 0 12px;
+          height: 52px;
+        }
+      }
+      .logo {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: clamp(18px, 5vw, 28px);
+        letter-spacing: 2px;
+        color: var(--gold);
+        display: flex;
+        align-items: center;
+        gap: clamp(6px, 2vw, 12px);
+        white-space: nowrap;
+      }
+      .logo-sub {
+        color: var(--m1);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(8px, 2vw, 11px);
+        letter-spacing: 2px;
+      }
+      @media (max-width: 480px) {
+        .logo-sub {
+          display: none;
+        }
+      }
+      @media (max-width: 360px) {
+        .logo {
+          font-size: 16px;
+          gap: 6px;
+        }
+      }
+      .hright {
+        display: flex;
+        align-items: center;
+        gap: clamp(6px, 2vw, 12px);
+        flex-shrink: 0;
+      }
+      .hbadge {
+        background: var(--gold) 18;
+        border: 1px solid var(--gold) 33;
+        color: var(--gold);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(8px, 2vw, 11px);
+        padding: clamp(3px, 1vw, 5px) clamp(8px, 2vw, 12px);
+        border-radius: 20px;
+        letter-spacing: 1px;
+        white-space: nowrap;
+      }
+      .admin-btn {
+        display: flex;
+        align-items: center;
+        gap: clamp(4px, 1.5vw, 8px);
+        background: var(--s2);
+        border: 1px solid var(--border);
+        color: var(--m1);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(8px, 2vw, 11px);
+        padding: clamp(6px, 1.5vw, 9px) clamp(10px, 2.5vw, 14px);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        letter-spacing: 0.5px;
+        min-height: 40px;
+        min-width: 40px;
+      }
+      @media (max-width: 360px) {
+        .admin-btn span:last-child {
+          display: none;
+        }
+      }
+      .admin-btn:hover {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+      .admin-btn.active {
+        background: var(--gold) 18;
+        border-color: var(--gold) 44;
+        color: var(--gold);
+      }
+      .adot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--m2);
+        transition: background 0.3s;
+        flex-shrink: 0;
+      }
+      .admin-btn.active .adot {
+        background: var(--gold);
+      }
+
+      /* MODAL */
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: #000c;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(12px, 4vw, 20px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s;
+      }
+      .overlay.open {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .modal {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: clamp(20px, 5vw, 32px) clamp(18px, 4vw, 26px);
+        width: 100%;
+        max-width: 95vw;
+        width: clamp(280px, 90vw, 400px);
+        animation: mup 0.3s ease;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      @media (max-width: 360px) {
+        .modal {
+          width: calc(100vw - 24px);
+        }
+      }
+      @keyframes mup {
+        from {
+          transform: translateY(16px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .modal-title {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: clamp(22px, 5vw, 32px);
+        letter-spacing: 2px;
+        color: var(--gold);
+        margin-bottom: clamp(2px, 1vw, 6px);
+      }
+      .modal-sub {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(10px, 2.5vw, 13px);
+        color: var(--m2);
+        margin-bottom: clamp(16px, 4vw, 24px);
+      }
+      .mfg {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+      .mlbl {
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--m1);
+      }
+      .minput {
+        background: var(--s2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(13px, 2.5vw, 15px);
+        padding: clamp(10px, 2.5vw, 14px) clamp(11px, 2.5vw, 15px);
+        width: 100%;
+        outline: none;
+        transition: border-color 0.2s;
+        min-height: 44px;
+      }
+      .minput:focus {
+        border-color: var(--gold);
+      }
+      .merr {
+        background: var(--red) 18;
+        border: 1px solid var(--red) 33;
+        color: var(--red);
+        font-family: "DM Mono", monospace;
+        font-size: 11px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        display: none;
+      }
+      .merr.show {
+        display: block;
+      }
+      .mbtns {
+        display: flex;
+        gap: 10px;
+        margin-top: 4px;
+      }
+
+      /* WRAP */
+      .wrap {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: clamp(14px, 4vw, 32px) clamp(12px, 3vw, 28px)
+          clamp(60px, 10vw, 100px);
+        width: 100%;
+        box-sizing: border-box;
+        flex: 1;
+      }
+      @media (max-width: 360px) {
+        .wrap {
+          padding: 12px 12px 70px;
+        }
+      }
+      @media (max-width: 480px) {
+        .wrap {
+          padding: 14px 12px 80px;
+        }
+      }
+      @media (min-width: 1024px) {
+        .wrap {
+          padding: clamp(20px, 5vw, 40px) clamp(20px, 4vw, 40px)
+            clamp(80px, 12vw, 120px);
+        }
+      }
+
+      .pgtitle {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: clamp(28px, 7vw, 56px);
+        letter-spacing: 2px;
+        line-height: 1.1;
+        background: linear-gradient(120deg, var(--text), var(--m1));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: clamp(4px, 2vw, 8px);
+      }
+      @media (max-width: 360px) {
+        .pgtitle {
+          font-size: 26px;
+          letter-spacing: 1px;
+        }
+      }
+      .pgsub {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(9px, 2.5vw, 12px);
+        color: var(--m2);
+        letter-spacing: clamp(1px, 0.5vw, 2px);
+        text-transform: uppercase;
+        margin: clamp(2px, 1vw, 4px) 0 clamp(16px, 4vw, 24px);
+      }
+
+      /* WEIGHT NOTE */
+      .weight-note {
+        background: var(--red) 0d;
+        border: 1px solid var(--red) 33;
+        border-radius: 10px;
+        padding: clamp(9px, 2vw, 14px) clamp(13px, 3vw, 18px);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(10px, 2.5vw, 12px);
+        color: var(--red);
+        margin-bottom: clamp(14px, 4vw, 22px);
+        line-height: 1.7;
+      }
+
+      /* LAYOUT */
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: clamp(12px, 3vw, 20px);
+        align-items: start;
+      }
+      @media (min-width: 768px) {
+        .layout {
+          grid-template-columns: 1fr 300px;
+          gap: clamp(14px, 3vw, 24px);
+        }
+      }
+      @media (min-width: 1024px) {
+        .layout {
+          grid-template-columns: 1fr 340px;
+          gap: clamp(16px, 3vw, 28px);
+        }
+      }
+      @media (min-width: 1200px) {
+        .layout {
+          grid-template-columns: 1fr 380px;
+          gap: 20px;
+        }
+      }
+
+      /* CARD */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        padding: clamp(13px, 3vw, 22px);
+        margin-bottom: clamp(12px, 3vw, 18px);
+      }
+      @media (max-width: 360px) {
+        .card {
+          padding: 13px;
+          margin-bottom: 12px;
+        }
+      }
+      .ctitle {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(9px, 2.5vw, 11px);
+        letter-spacing: clamp(1px, 0.5vw, 2px);
+        text-transform: uppercase;
+        color: var(--m2);
+        margin-bottom: clamp(12px, 3vw, 18px);
+        display: flex;
+        align-items: center;
+        gap: clamp(6px, 2vw, 10px);
+        flex-wrap: wrap;
+      }
+      .ctitle::before {
+        content: "";
+        width: 3px;
+        height: 13px;
+        background: var(--gold);
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+      .cnote {
+        font-family: "DM Mono", monospace;
+        font-size: 9px;
+        color: var(--m2);
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        opacity: 0.8;
+      }
+
+      /* FORM */
+      .r2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(8px, 2vw, 14px);
+        margin-bottom: clamp(8px, 2vw, 12px);
+      }
+      @media (max-width: 480px) {
+        .r2 {
+          grid-template-columns: 1fr;
+          gap: clamp(8px, 3vw, 10px);
+        }
+      }
+      .fg {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(4px, 1.5vw, 7px);
+      }
+      .lbl {
+        font-size: clamp(9px, 2.5vw, 11px);
+        font-family: "DM Mono", monospace;
+        text-transform: uppercase;
+        letter-spacing: clamp(0.5px, 0.5vw, 1px);
+        color: var(--m1);
+        display: flex;
+        align-items: center;
+        gap: clamp(3px, 1.5vw, 6px);
+        flex-wrap: wrap;
+      }
+      .lck {
+        font-size: 9px;
+        opacity: 0.45;
+      }
+
+      input[type="date"],
+      input[type="number"],
+      input[type="password"],
+      input[type="text"] {
+        background: var(--s2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(12px, 2.5vw, 14px);
+        padding: clamp(9px, 2.5vw, 13px) clamp(10px, 2.5vw, 14px);
+        width: 100%;
+        outline: none;
+        transition: border-color 0.2s;
+        -webkit-appearance: none;
+        appearance: none;
+        min-height: 44px;
+      }
+      @media (max-width: 360px) {
+        input[type="date"],
+        input[type="number"],
+        input[type="password"],
+        input[type="text"] {
+          font-size: 13px;
+          padding: 10px 12px;
+        }
+      }
+      input:focus {
+        border-color: var(--gold);
+      }
+      input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.4);
+      }
+      .ro {
+        opacity: 0.52;
+        cursor: not-allowed;
+        background: var(--bg) !important;
+      }
+      .ro:focus {
+        border-color: var(--border) !important;
+      }
+      .ae {
+        border-color: var(--gold) 22 !important;
+        background: var(--s2) !important;
+        opacity: 1 !important;
+        cursor: text !important;
+      }
+      .ae:focus {
+        border-color: var(--gold) !important;
+      }
+      .date-display {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: clamp(9px, 2.5vw, 13px) clamp(10px, 2.5vw, 14px);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(12px, 2.5vw, 14px);
+        color: var(--m1);
+        opacity: 0.7;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+      }
+
+      /* WEIGHT WARNING */
+      .weight-warn {
+        background: var(--red) 18;
+        border: 1px solid var(--red) 44;
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        color: var(--red);
+        margin-top: 6px;
+        display: none;
+      }
+      .weight-warn.show {
+        display: block;
+      }
+
+      /* RATE BADGE */
+      .rbadge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-top: 10px;
+      }
+      .rb-new {
+        background: var(--green) 18;
+        border: 1px solid var(--green) 33;
+        color: var(--green);
+      }
+      .rb-old {
+        background: var(--red) 18;
+        border: 1px solid var(--red) 33;
+        color: var(--red);
+      }
+      .rb-split {
+        background: var(--gold) 18;
+        border: 1px solid var(--gold) 33;
+        color: var(--gold);
+      }
+
+      /* PAYABLE TABLE */
+      .ptw {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 clamp(-8px, -2vw, -4px);
+        padding: 0 clamp(8px, 2vw, 8px);
+      }
+      .ptbl {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 280px;
+      }
+      .ptbl th {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(9px, 2.5vw, 11px);
+        text-transform: uppercase;
+        letter-spacing: clamp(0.5px, 0.5vw, 1px);
+        color: var(--m2);
+        text-align: left;
+        padding: clamp(6px, 2vw, 10px) clamp(8px, 2vw, 12px);
+        border-bottom: 1px solid var(--border);
+      }
+      .ptbl td {
+        padding: clamp(7px, 2vw, 11px) clamp(8px, 2vw, 12px);
+        border-bottom: 1px solid var(--border) 44;
+        font-family: "DM Mono", monospace;
+        font-size: clamp(10px, 2.5vw, 13px);
+        color: var(--m1);
+        vertical-align: middle;
+      }
+      .ptbl tr:last-child td {
+        border-bottom: none;
+      }
+      .ptbl td input[type="number"] {
+        width: clamp(60px, 15vw, 80px);
+        padding: clamp(4px, 1.5vw, 7px) clamp(6px, 1.5vw, 10px);
+        font-size: clamp(11px, 2.5vw, 13px);
+        min-height: 36px;
+      }
+      .ptbl td input[type="checkbox"] {
+        width: clamp(16px, 5vw, 20px);
+        height: clamp(16px, 5vw, 20px);
+        accent-color: var(--gold);
+        cursor: pointer;
+        min-width: 16px;
+        min-height: 16px;
+      }
+      .ckcell {
+        width: clamp(32px, 8vw, 48px);
+        text-align: center;
+      }
+      .ntcell {
+        font-size: 10px;
+        white-space: nowrap;
+      }
+
+      /* RATES */
+      .rg {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: clamp(12px, 3vw, 18px);
+      }
+      @media (min-width: 640px) {
+        .rg {
+          grid-template-columns: 1fr 1fr;
+          gap: clamp(12px, 3vw, 20px);
+        }
+      }
+      .rst {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(9px, 2.5vw, 11px);
+        text-transform: uppercase;
+        letter-spacing: clamp(0.5px, 0.5vw, 1px);
+        margin-bottom: clamp(7px, 2vw, 11px);
+        padding: clamp(3px, 1.5vw, 5px) clamp(8px, 2vw, 12px);
+        border-radius: 6px;
+        display: inline-block;
+      }
+      .rn {
+        background: var(--green) 18;
+        color: var(--green);
+        border: 1px solid var(--green) 33;
+      }
+      .ro2 {
+        background: var(--red) 18;
+        color: var(--red);
+        border: 1px solid var(--red) 33;
+      }
+      .rt {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .rt th {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(9px, 2.5vw, 11px);
+        text-transform: uppercase;
+        letter-spacing: clamp(0.5px, 0.5vw, 1px);
+        color: var(--m2);
+        text-align: left;
+        padding: clamp(6px, 2vw, 10px) clamp(8px, 2vw, 12px);
+        border-bottom: 1px solid var(--border);
+      }
+      .rt td {
+        padding: clamp(7px, 2vw, 11px) clamp(8px, 2vw, 12px);
+        border-bottom: 1px solid var(--border) 55;
+        font-family: "DM Mono", monospace;
+        font-size: clamp(11px, 2.5vw, 13px);
+        color: var(--m1);
+      }
+      .rt tr:last-child td {
+        border-bottom: none;
+      }
+      .rt td input {
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid var(--border);
+        border-radius: 0;
+        color: var(--gold);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(12px, 2.5vw, 14px);
+        padding: clamp(2px, 1vw, 4px) clamp(3px, 1vw, 5px);
+        width: clamp(60px, 20vw, 90px);
+        outline: none;
+        min-height: 32px;
+      }
+      .rt td input:focus {
+        border-bottom-color: var(--gold);
+      }
+      .rspan {
+        color: var(--m1);
+        font-family: "DM Mono", monospace;
+        font-size: 13px;
+      }
+
+      /* VAT ROW */
+      .vatr {
+        display: flex;
+        align-items: center;
+        gap: clamp(8px, 2vw, 14px);
+        margin-top: clamp(10px, 2vw, 16px);
+        flex-wrap: wrap;
+      }
+      .vatr label {
+        font-size: clamp(9px, 2.5vw, 11px);
+        font-family: "DM Mono", monospace;
+        text-transform: uppercase;
+        letter-spacing: clamp(0.5px, 0.5vw, 1px);
+        color: var(--m1);
+        white-space: nowrap;
+      }
+      .vatr input {
+        max-width: clamp(70px, 20vw, 100px);
+        min-height: 44px;
+      }
+
+      /* STICKY PANEL */
+      .sp {
+        background: linear-gradient(160deg, #1a1f30, var(--surface));
+        border: 1px solid var(--gold) 22;
+        border-radius: var(--r);
+        padding: clamp(13px, 3vw, 22px);
+        margin-bottom: clamp(12px, 3vw, 18px);
+      }
+      @media (min-width: 768px) {
+        .sp {
+          position: sticky;
+          top: clamp(48px, 12vw, 72px);
+          z-index: 100;
+        }
+      }
+      @media (max-width: 767px) {
+        .sp {
+          position: static;
+        }
+      }
+
+      #preview {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(11px, 2.5vw, 13px);
+        color: var(--m2);
+        line-height: 2.3;
+        padding: clamp(10px, 2.5vw, 16px);
+        background: var(--bg);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        margin-bottom: clamp(10px, 2vw, 16px);
+      }
+      .pvr {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      /* BUTTONS */
+      .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(6px, 2vw, 10px);
+        background: var(--gold);
+        color: #000;
+        font-family: "DM Mono", monospace;
+        font-size: clamp(11px, 2.5vw, 13px);
+        font-weight: 500;
+        letter-spacing: clamp(1px, 0.5vw, 1.5px);
+        text-transform: uppercase;
+        padding: clamp(11px, 2.5vw, 15px) clamp(16px, 3vw, 24px);
+        border: none;
+        border-radius: 9px;
+        cursor: pointer;
+        transition:
+          opacity 0.2s,
+          transform 0.1s;
+        width: 100%;
+        min-height: 44px;
+        touch-action: manipulation;
+      }
+      @media (max-width: 360px) {
+        .btn {
+          font-size: 11px;
+          padding: 11px 16px;
+        }
+      }
+      .btn:hover {
+        opacity: 0.88;
+      }
+      .btn:active {
+        transform: scale(0.98);
+      }
+      .bg {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--m1);
+        margin-top: 8px;
+      }
+      .bg:hover {
+        border-color: var(--b2);
+        color: var(--text);
+        opacity: 1;
+      }
+      .bsm {
+        font-size: clamp(10px, 2.5vw, 12px);
+        padding: clamp(7px, 2vw, 11px) clamp(13px, 2.5vw, 18px);
+        border-radius: 7px;
+        min-height: 40px;
+      }
+
+      /* GUIDE */
+      .guide {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(10px, 2.5vw, 12px);
+        color: var(--m2);
+        line-height: 2.3;
+      }
+
+      /* DIVIDER */
+      hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: clamp(18px, 4vw, 36px) 0;
+      }
+
+      /* RESULTS */
+      #results {
+        display: none;
+        animation: fup 0.4s ease;
+      }
+      @keyframes fup {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .rh {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: clamp(14px, 4vw, 24px);
+        gap: clamp(8px, 2vw, 14px);
+        flex-wrap: wrap;
+      }
+      .rtitle {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: clamp(28px, 6vw, 48px);
+        letter-spacing: 2px;
+        color: var(--gold);
+      }
+
+      /* INFO BAR */
+      .ibar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        overflow: hidden;
+        margin-bottom: clamp(14px, 4vw, 24px);
+      }
+      @media (min-width: 600px) {
+        .ibar {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      @media (min-width: 900px) {
+        .ibar {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+      @media (min-width: 1200px) {
+        .ibar {
+          grid-template-columns: repeat(7, 1fr);
+        }
+      }
+      .ii {
+        padding: clamp(9px, 2vw, 14px) clamp(10px, 2.5vw, 16px);
+        border-right: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+      .ii:nth-child(2n) {
+        border-right: none;
+      }
+      @media (min-width: 600px) {
+        .ii:nth-child(2n) {
+          border-right: 1px solid var(--border);
+        }
+        .ii:nth-child(3n) {
+          border-right: none;
+        }
+      }
+      @media (min-width: 900px) {
+        .ii:nth-child(3n) {
+          border-right: 1px solid var(--border);
+        }
+        .ii:nth-child(4n) {
+          border-right: none;
+        }
+      }
+      @media (min-width: 1200px) {
+        .ii {
+          border-bottom: none !important;
+          border-right: 1px solid var(--border) !important;
+        }
+        .ii:last-child {
+          border-right: none !important;
+        }
+      }
+      .il {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(8px, 2vw, 10px);
+        text-transform: uppercase;
+        letter-spacing: clamp(1px, 0.5vw, 1.5px);
+        color: var(--m2);
+        margin-bottom: clamp(2px, 1vw, 6px);
+      }
+      .iv {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(10px, 2.5vw, 12px);
+        color: var(--text);
+      }
+
+      /* STATS */
+      .sr {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: clamp(9px, 2.5vw, 14px);
+        margin-bottom: clamp(14px, 4vw, 24px);
+      }
+      @media (min-width: 640px) {
+        .sr {
+          grid-template-columns: 1fr 1fr;
+          gap: clamp(10px, 2.5vw, 14px);
+        }
+      }
+      @media (min-width: 900px) {
+        .sr {
+          grid-template-columns: repeat(3, 1fr);
+          gap: clamp(10px, 2.5vw, 16px);
+        }
+      }
+      .sc {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        padding: clamp(12px, 3vw, 20px);
+        position: relative;
+        overflow: hidden;
+      }
+      .sc::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+      }
+      .cg::after {
+        background: var(--gold);
+      }
+      .cb::after {
+        background: var(--blue);
+      }
+      .cp::after {
+        background: var(--purple);
+      }
+      .cv::after {
+        background: var(--green);
+      }
+      .sc .sl {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(8px, 2vw, 10px);
+        text-transform: uppercase;
+        letter-spacing: clamp(1px, 0.5vw, 1.5px);
+        color: var(--m2);
+        margin-bottom: clamp(5px, 1.5vw, 9px);
+      }
+      .sc .sv {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: clamp(20px, 5vw, 32px);
+        letter-spacing: 1px;
+        line-height: 1;
+      }
+      .cg .sv {
+        color: var(--gold);
+      }
+      .cb .sv {
+        color: var(--blue);
+      }
+      .cp .sv {
+        color: var(--purple);
+      }
+      .cv .sv {
+        color: var(--green);
+      }
+      .sc .ss {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(8px, 2vw, 10px);
+        color: var(--m2);
+        margin-top: clamp(2px, 1vw, 6px);
+      }
+
+      /* SECTION LABEL */
+      .slbl {
+        display: inline-flex;
+        align-items: center;
+        gap: clamp(6px, 2vw, 10px);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(9px, 2.5vw, 11px);
+        text-transform: uppercase;
+        letter-spacing: clamp(1px, 0.5vw, 2px);
+        padding: clamp(3px, 1.5vw, 6px) clamp(10px, 3vw, 15px);
+        border-radius: 20px;
+        margin-bottom: clamp(10px, 2.5vw, 16px);
+      }
+      .sl-in {
+        background: var(--blue) 18;
+        border: 1px solid var(--blue) 33;
+        color: var(--blue);
+      }
+      .sl-out {
+        background: var(--purple) 18;
+        border: 1px solid var(--purple) 33;
+        color: var(--purple);
+      }
+
+      /* UNIFIED BILL TABLE — same for inside and outside */
+      .btw {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .bt {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 360px;
+      }
+      .bt th {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(9px, 2.5vw, 11px);
+        text-transform: uppercase;
+        letter-spacing: clamp(0.5px, 0.5vw, 1px);
+        color: var(--m2);
+        text-align: right;
+        padding: clamp(8px, 2vw, 12px) clamp(10px, 2.5vw, 16px);
+        border-bottom: 1px solid var(--border);
+        background: var(--s2);
+        white-space: nowrap;
+      }
+      .bt th:first-child {
+        text-align: left;
+      }
+      .bt td {
+        padding: clamp(8px, 2vw, 12px) clamp(10px, 2.5vw, 16px);
+        border-bottom: 1px solid var(--border) 44;
+        text-align: right;
+        font-family: "DM Mono", monospace;
+        font-size: clamp(10px, 2.5vw, 13px);
+      }
+      .bt td:first-child {
+        text-align: left;
+        color: var(--m1);
+      }
+      .bt tr:last-child td {
+        border-bottom: none;
+      }
+      .bt .sep td {
+        background: var(--s2);
+        padding: 5px 14px;
+        font-size: 10px;
+        color: var(--m2);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border) 44;
+      }
+      .bt .sub td {
+        background: var(--s2);
+        color: var(--m1);
+        font-size: 11px;
+      }
+      .bt .tot td {
+        background: var(--s2);
+        color: var(--gold);
+        font-size: 13px;
+        border-top: 1px solid var(--border);
+      }
+      .bt .grand td {
+        background: var(--gold) 0d;
+        color: var(--gold);
+        font-size: 14px;
+        font-weight: 600;
+        border-top: 2px solid var(--gold) 33;
+      }
+      .bt .vrow td {
+        color: var(--m1);
+        font-size: 11px;
+      }
+      .bt .lrow td {
+        color: var(--green);
+        font-size: 11px;
+      }
+
+      /* DAY PILL */
+      .dp {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--blue) 18;
+        border: 1px solid var(--blue) 33;
+        color: var(--blue);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(9px, 2.5vw, 11px);
+        min-width: clamp(30px, 7vw, 40px);
+        height: clamp(18px, 4vw, 24px);
+        border-radius: 4px;
+        padding: 0 clamp(4px, 1vw, 7px);
+      }
+      .dpg {
+        background: var(--gold) 18;
+        border-color: var(--gold) 33;
+        color: var(--gold);
+      }
+
+      /* WARN */
+      .warn {
+        background: var(--gold) 0d;
+        border: 1px solid var(--gold) 22;
+        border-radius: 10px;
+        padding: clamp(7px, 2.5vw, 12px) clamp(10px, 3vw, 16px);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(10px, 2.5vw, 12px);
+        color: var(--gold);
+        margin-bottom: clamp(10px, 2.5vw, 16px);
+        display: flex;
+        align-items: center;
+        gap: clamp(6px, 2vw, 10px);
+      }
+      .info-note {
+        background: var(--blue) 0d;
+        border: 1px solid var(--blue) 22;
+        border-radius: 10px;
+        padding: clamp(7px, 2.5vw, 12px) clamp(10px, 3vw, 16px);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(10px, 2.5vw, 12px);
+        color: var(--m1);
+        margin-top: clamp(10px, 2.5vw, 16px);
+        line-height: 1.7;
+      }
+      .no-stor-note {
+        background: var(--green) 0d;
+        border: 1px solid var(--green) 22;
+        border-radius: 10px;
+        padding: clamp(9px, 2.5vw, 14px) clamp(10px, 3vw, 16px);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(10px, 2.5vw, 12px);
+        color: var(--green);
+        margin-bottom: clamp(12px, 3vw, 20px);
+      }
+
+      /* GRAND BOX */
+      .gbox {
+        background: linear-gradient(135deg, var(--gold) 0a, var(--gold) 05);
+        border: 1px solid var(--gold) 44;
+        border-radius: var(--r);
+        padding: clamp(14px, 3vw, 28px) clamp(14px, 3vw, 28px);
+        margin-top: clamp(4px, 1.5vw, 10px);
+      }
+      .ginn {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: clamp(12px, 3vw, 18px);
+        align-items: center;
+      }
+      @media (min-width: 640px) {
+        .ginn {
+          grid-template-columns: 1fr 1fr;
+          gap: clamp(12px, 3vw, 20px);
+        }
+      }
+      @media (min-width: 900px) {
+        .ginn {
+          grid-template-columns: 1fr 1fr 1.1fr;
+          gap: clamp(14px, 3vw, 22px);
+        }
+      }
+      .glbl {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(8px, 2vw, 10px);
+        text-transform: uppercase;
+        letter-spacing: clamp(1px, 0.5vw, 2px);
+        color: var(--m2);
+        margin-bottom: clamp(4px, 1.5vw, 8px);
+      }
+      .gval {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: clamp(20px, 5vw, 36px);
+        letter-spacing: 1px;
+        line-height: 1;
+      }
+      .gsub {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(8px, 2vw, 10px);
+        color: var(--m2);
+        margin-top: clamp(2px, 1vw, 4px);
+      }
+      .gfin {
+        border-top: 1px solid var(--gold) 33;
+        padding-top: clamp(12px, 3vw, 18px);
+        grid-column: 1/-1;
+      }
+      @media (min-width: 640px) {
+        .gfin {
+          border-top: none;
+          padding-top: 0;
+          border-left: 1px solid var(--gold) 33;
+          padding-left: clamp(14px, 3vw, 22px);
+          grid-column: auto;
+        }
+      }
+      .gfin .glbl {
+        color: var(--gold);
+      }
+      .gfin .gval {
+        font-size: clamp(24px, 6vw, 44px);
+        color: var(--gold);
+      }
+
+      /* DISCLAIMER */
+      .disclaimer {
+        background: var(--s2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: clamp(10px, 2.5vw, 16px) clamp(12px, 3vw, 20px);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(9px, 2.5vw, 11px);
+        color: var(--m2);
+        margin-top: clamp(16px, 4vw, 28px);
+        line-height: 1.8;
+        text-align: center;
+      }
+      .disclaimer strong {
+        color: var(--m1);
+      }
+
+      /* COPYRIGHT FOOTER */
+      .copyright-footer {
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        padding: clamp(16px, 3vw, 24px) clamp(12px, 3vw, 28px);
+        text-align: center;
+        margin-top: auto;
+        position: relative;
+        width: 100%;
+        flex-shrink: 0;
+      }
+      .copyright-footer p {
+        font-family: "DM Mono", monospace;
+        font-size: clamp(10px, 2.5vw, 13px);
+        color: var(--m1);
+        letter-spacing: clamp(0.5px, 0.5vw, 0.8px);
+        margin: 0;
+        line-height: 1.6;
+      }
+      .copyright-footer p strong {
+        color: var(--gold);
+        font-weight: 500;
+      }
+      @media (max-width: 360px) {
+        .copyright-footer {
+          padding: 14px 12px;
+        }
+        .copyright-footer p {
+          font-size: 11px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header>
+      <div class="logo">PORT<span class="logo-sub"> / CAR BILLING</span></div>
+      <div class="hright">
+        <div class="hbadge" id="modeBadge">USER</div>
+        <button class="admin-btn" id="adminBtn" onclick="toggleAdmin()">
+          <span class="adot" id="adot"></span>
+          <span id="adminTxt">Admin</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ADMIN MODAL -->
+    <div
+      class="overlay"
+      id="overlay"
+      onclick="if (event.target === this) closeModal();"
+    >
+      <div class="modal">
+        <div class="modal-title">ADMIN LOGIN</div>
+        <div class="modal-sub">Enter credentials to unlock all fields</div>
+        <div class="merr" id="merr">Incorrect username or password.</div>
+        <div class="mfg">
+          <label class="mlbl">Username</label>
+          <input
+            class="minput"
+            type="text"
+            id="muser"
+            placeholder="admin"
+            autocomplete="username"
+          />
+        </div>
+        <div class="mfg">
+          <label class="mlbl">Password</label>
+          <input
+            class="minput"
+            type="password"
+            id="mpass"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            onkeydown="if (event.key === 'Enter') doLogin();"
+          />
+        </div>
+        <div class="mbtns">
+          <button class="btn bsm" style="flex: 1" onclick="doLogin()">
+            LOGIN
+          </button>
+          <button
+            class="btn bsm bg"
+            style="flex: 1; margin-top: 0"
+            onclick="closeModal()"
+          >
+            CANCEL
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="wrap">
+      <div class="pgtitle">CAR Wharfrent BILL</div>
+      <div class="pgsub">Port Authority — Wharfrent &amp; Payable Charges</div>
+
+      <!-- Weight module note -->
+      <div class="weight-note">
+        ⚠ <strong>Module Limitation:</strong> This module covers billing for
+        vehicles up to <strong>3 tons</strong>. Any vehicle with a weight of
+        <strong>4 tons or more</strong> will not be billed under this module.
+      </div>
+
+      <div class="layout" id="inputSection">
+        <!-- LEFT -->
+        <div>
+          <!-- Wharfrent DETAILS -->
+          <div class="card">
+            <div class="ctitle">
+              Wharfrent Details
+              <span class="cnote"
+                ><span style="opacity: 0.4">🔒</span> CLD &amp; Delivery always
+                editable</span
+              >
+            </div>
+            <div class="r2">
+              <div class="fg">
+                <label class="lbl"
+                  >CLD
+                  <span style="font-size: 9px; color: var(--m2)"
+                    >(Common Landing Day)</span
+                  ></label
+                >
+                <input
+                  type="date"
+                  id="cld"
+                  id="datePicker"
+                  oninput="refresh()"
+                />
+              </div>
+              <div class="fg">
+                <label class="lbl"
+                  >Free Time
+                  <span style="font-size: 9px; color: var(--m2)"
+                    >(days incl. CLD)</span
+                  >
+                  <span class="lck">🔒</span></label
+                >
+                <input
+                  type="number"
+                  id="freeDays"
+                  value="4"
+                  class="ro"
+                  readonly
+                />
+              </div>
+            </div>
+            <!-- Free time breakdown strip -->
+            <div
+              id="ftStrip"
+              style="
+                background: var(--s2);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 10px 14px;
+                margin-bottom: 10px;
+                font-family: &quot;DM Mono&quot;, monospace;
+                font-size: 11px;
+                color: var(--m1);
+                line-height: 1.9;
+                display: none;
+              "
+            >
+              <span id="ftDays" style="color: var(--gold)"></span>
+            </div>
+            <div class="r2">
+              <div class="fg">
+                <label class="lbl"
+                  >Free Time Ends <span class="lck">🔒</span></label
+                >
+                <div class="date-display" id="freeEnd">—</div>
+              </div>
+              <div class="fg">
+                <label class="lbl"
+                  >Wharfrent Starts <span class="lck">🔒</span></label
+                >
+                <div class="date-display" id="storStart">—</div>
+              </div>
+            </div>
+            <div class="r2">
+              <div class="fg">
+                <label class="lbl">Delivery Date</label>
+                <input
+                  type="date"
+                  id="delivery"
+                  id="datePicker"
+                  oninput="refresh()"
+                />
+              </div>
+              <div class="fg">
+                <label class="lbl">Weight (Tons) — max 3</label>
+                <input
+                  type="number"
+                  id="weight"
+                  value="2"
+                  min="1"
+                  max="3"
+                  step="1"
+                  oninput="onWeightChange()"
+                />
+                <div class="weight-warn" id="weightWarn">
+                  ⚠ Max 3 tons for this module
+                </div>
+              </div>
+            </div>
+            <div id="rbadge"></div>
+          </div>
+
+          <!-- PAYABLE CHARGES -->
+          <div class="card">
+            <div class="ctitle">Payable Charges</div>
+            <div class="ptw">
+              <table class="ptbl">
+                <thead>
+                  <tr>
+                    <th class="ckcell">Pay</th>
+                    <th>Charge Name</th>
+                    <th>Rate (Tk/ton)</th>
+                    <th class="ntcell">VAT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="ckcell">
+                      <input
+                        type="checkbox"
+                        id="chkRiver"
+                        checked
+                        oninput="refresh()"
+                      />
+                    </td>
+                    <td>River Dues</td>
+                    <td>
+                      <input
+                        type="number"
+                        id="rRiver"
+                        value="33"
+                        class="ro"
+                        readonly
+                        oninput="refresh()"
+                      />
+                    </td>
+                    <td class="ntcell" style="color: var(--gold)">Yes</td>
+                  </tr>
+                  <tr>
+                    <td class="ckcell">
+                      <input
+                        type="checkbox"
+                        id="chkLanding"
+                        checked
+                        oninput="refresh()"
+                      />
+                    </td>
+                    <td>Landing Charge</td>
+                    <td>
+                      <input
+                        type="number"
+                        id="rLanding"
+                        value="175"
+                        class="ro"
+                        readonly
+                        oninput="refresh()"
+                      />
+                    </td>
+                    <td class="ntcell" style="color: var(--gold)">Yes</td>
+                  </tr>
+                  <tr>
+                    <td class="ckcell">
+                      <input
+                        type="checkbox"
+                        id="chkRemoval"
+                        checked
+                        oninput="refresh()"
+                      />
+                    </td>
+                    <td>Removal Charge</td>
+                    <td>
+                      <input
+                        type="number"
+                        id="rRemoval"
+                        value="350"
+                        class="ro"
+                        readonly
+                        oninput="refresh()"
+                      />
+                    </td>
+                    <td class="ntcell" style="color: var(--gold)">Yes</td>
+                  </tr>
+                  <tr>
+                    <td class="ckcell">
+                      <input
+                        type="checkbox"
+                        id="chkWeighment"
+                        checked
+                        oninput="refresh()"
+                      />
+                    </td>
+                    <td>Weighment Charge</td>
+                    <td>
+                      <input
+                        type="number"
+                        id="rWeighment"
+                        value="2.5"
+                        step="0.5"
+                        class="ro"
+                        readonly
+                        oninput="refresh()"
+                      />
+                    </td>
+                    <td class="ntcell" style="color: var(--gold)">Yes</td>
+                  </tr>
+                  <tr>
+                    <td class="ckcell">
+                      <input
+                        type="checkbox"
+                        id="chkLevy"
+                        checked
+                        oninput="refresh()"
+                      />
+                    </td>
+                    <td>Levy Charge</td>
+                    <td>
+                      <input
+                        type="number"
+                        id="rLevy"
+                        value="1.5"
+                        step="0.5"
+                        class="ro"
+                        readonly
+                        oninput="refresh()"
+                      />
+                    </td>
+                    <td class="ntcell" style="color: var(--green)">No VAT</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="vatr">
+              <label class="lbl"
+                >VAT Rate (%) <span class="lck">🔒</span></label
+              >
+              <input
+                type="number"
+                id="vatRate"
+                value="15"
+                min="0"
+                max="100"
+                step="0.5"
+                class="ro"
+                readonly
+                oninput="refresh()"
+              />
+            </div>
+          </div>
+
+          <!-- Wharfrent RATES -->
+          <div class="card">
+            <div class="ctitle">
+              Wharfrent Rates — Tk per ton per day
+              <span class="cnote"
+                ><span style="opacity: 0.4">🔒</span> Admin only</span
+              >
+            </div>
+            <div class="rg">
+              <div>
+                <div class="rst rn">▲ New (From 23/07/2024)</div>
+                <table class="rt">
+                  <thead>
+                    <tr>
+                      <th>Slab</th>
+                      <th>Rate (Tk)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>1st 7 days</td>
+                      <td>
+                        <span class="rspan" id="dnr1">70</span
+                        ><input
+                          type="number"
+                          id="nr1"
+                          value="70"
+                          style="display: none"
+                          class="ro"
+                          readonly
+                          oninput="
+                            syncSpan('nr1', 'dnr1');
+                            refresh();
+                          "
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>8th – 14th day</td>
+                      <td>
+                        <span class="rspan" id="dnr2">185</span
+                        ><input
+                          type="number"
+                          id="nr2"
+                          value="185"
+                          style="display: none"
+                          class="ro"
+                          readonly
+                          oninput="
+                            syncSpan('nr2', 'dnr2');
+                            refresh();
+                          "
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>15th day onwards</td>
+                      <td>
+                        <span class="rspan" id="dnr3">295</span
+                        ><input
+                          type="number"
+                          id="nr3"
+                          value="295"
+                          style="display: none"
+                          class="ro"
+                          readonly
+                          oninput="
+                            syncSpan('nr3', 'dnr3');
+                            refresh();
+                          "
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <div class="rst ro2">▼ Old (Up to 22/07/2024)</div>
+                <table class="rt">
+                  <thead>
+                    <tr>
+                      <th>Slab</th>
+                      <th>Rate (Tk)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>1st 7 days</td>
+                      <td>
+                        <span class="rspan" id="dor1">40</span
+                        ><input
+                          type="number"
+                          id="or1"
+                          value="40"
+                          style="display: none"
+                          class="ro"
+                          readonly
+                          oninput="
+                            syncSpan('or1', 'dor1');
+                            refresh();
+                          "
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>8th – 14th day</td>
+                      <td>
+                        <span class="rspan" id="dor2">115</span
+                        ><input
+                          type="number"
+                          id="or2"
+                          value="115"
+                          style="display: none"
+                          class="ro"
+                          readonly
+                          oninput="
+                            syncSpan('or2', 'dor2');
+                            refresh();
+                          "
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>15th day onwards</td>
+                      <td>
+                        <span class="rspan" id="dor3">185</span
+                        ><input
+                          type="number"
+                          id="or3"
+                          value="185"
+                          style="display: none"
+                          class="ro"
+                          readonly
+                          oninput="
+                            syncSpan('or3', 'dor3');
+                            refresh();
+                          "
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- /left -->
+
+        <!-- RIGHT PANEL -->
+        <div>
+          <div class="sp">
+            <div class="ctitle">Quick Preview</div>
+            <div id="preview">Enter shipment details…</div>
+            <button class="btn" onclick="calculate()">
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <path d="M8 21h8M12 17v4" />
+              </svg>
+              GENERATE BILL
+            </button>
+            <button class="btn bg" onclick="resetAll()">↺ Reset</button>
+          </div>
+
+          <div
+            class="card"
+            style="border-style: dashed; background: transparent"
+          >
+            <div class="ctitle">Billing Rules</div>
+            <div class="guide">
+              <div>① Free Time = CLD + 3 days (4 days incl. CLD)</div>
+              <div>② Wharfrent starts day after free time ends</div>
+              <div>③ Rate: Tk × ton × day (slab-wise)</div>
+              <div>
+                ④ CLD ≤ 22/07/2024 →
+                <span style="color: var(--red)">split billing</span>
+              </div>
+              <div>
+                ⑤ <span style="color: var(--blue)">Inside</span> = Wharfrent +
+                payable + VAT + levy
+              </div>
+              <div>
+                ⑥ <span style="color: var(--purple)">Outside</span> = ½
+                Wharfrent + payable + VAT + levy
+              </div>
+              <div>⑦ Payable charges always apply</div>
+              <div>⑧ Levy added without VAT</div>
+              <div>⑨ 🔒 Rates editable by Admin only</div>
+              <div>⑩ Max weight: 3 tons</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /layout -->
+
+      <!-- ════ RESULTS ════ -->
+      <div id="results">
+        <hr />
+        <div class="rh">
+          <div class="rtitle">BILL STATEMENT</div>
+        </div>
+        <div id="ibar"></div>
+        <div class="sr" id="srow"></div>
+        <div id="insideSec"></div>
+        <div id="outsideSec"></div>
+        <div id="grandSec"></div>
+
+        <!-- DISCLAIMER at bottom of results -->
+        <div class="disclaimer">
+          <strong>⚠ Disclaimer:</strong> This bill cannot be used as an official
+          reference; it is provided for
+          <strong>informational purposes only</strong>.<br />
+          This module covers billing for vehicles up to <strong>3 tons</strong>.
+          Any vehicle with a weight of <strong>4 tons or more</strong> will not
+          be billed under this module.
+        </div>
+      </div>
+    </div>
+    <!-- /wrap -->
+
+    <script>
+      // ── STATE ──
+      let isAdmin = false;
+      const AU = "admin",
+        AP = "admin";
+
+      // ── UTILS ──
+      const pd = (s) => new Date(s + "T00:00:00");
+      const iso = (d) => d.toISOString().split("T")[0];
+      const fd = (d) =>
+        d.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+      const addD = (d, n) => {
+        const r = new Date(d);
+        r.setDate(r.getDate() + n);
+        return r;
+      };
+      const diffD = (a, b) => Math.round((b - a) / 86400000);
+      const gn = (id) => parseFloat(document.getElementById(id).value) || 0;
+      const gb = (id) => document.getElementById(id).checked;
+
+      // Format with Tk prefix, always 2 decimal places
+      const fmt = (n) =>
+        "Tk " +
+        Number(n).toLocaleString("en-BD", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+      const fmtN = (n) =>
+        Number(n).toLocaleString("en-BD", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+
+      const CUT = pd("2024-07-23");
+      const CUT_OLD = pd("2024-07-22");
+
+      // ── WEIGHT CHANGE ──
+      function onWeightChange() {
+        const w = parseFloat(document.getElementById("weight").value);
+        const warn = document.getElementById("weightWarn");
+        if (w >= 4) {
+          warn.classList.add("show");
+        } else {
+          warn.classList.remove("show");
+        }
+        refresh();
+      }
+
+      // ── ADMIN ──
+      function toggleAdmin() {
+        if (isAdmin) {
+          isAdmin = false;
+          applyAdmin();
+          return;
+        }
+        document.getElementById("muser").value = "";
+        document.getElementById("mpass").value = "";
+        document.getElementById("merr").classList.remove("show");
+        document.getElementById("overlay").classList.add("open");
+        setTimeout(() => document.getElementById("muser").focus(), 200);
+      }
+      function closeModal() {
+        document.getElementById("overlay").classList.remove("open");
+      }
+      function doLogin() {
+        const u = document.getElementById("muser").value.trim();
+        const p = document.getElementById("mpass").value;
+        if (u === AU && p === AP) {
+          isAdmin = true;
+          closeModal();
+          applyAdmin();
+        } else {
+          document.getElementById("merr").classList.add("show");
+          document.getElementById("mpass").value = "";
+          document.getElementById("mpass").focus();
+        }
+      }
+
+      function applyAdmin() {
+        const ab = document.getElementById("adminBtn");
+        document.getElementById("adot").style.background = isAdmin
+          ? "var(--gold)"
+          : "var(--m2)";
+        document.getElementById("adminTxt").textContent = isAdmin
+          ? "Logout"
+          : "Admin";
+        document.getElementById("modeBadge").textContent = isAdmin
+          ? "ADMIN"
+          : "USER";
+        isAdmin ? ab.classList.add("active") : ab.classList.remove("active");
+
+        // Fields only admin can edit (not weight/CLD/delivery — those are always editable)
+        const adminFields = [
+          "freeDays",
+          "rRiver",
+          "rLanding",
+          "rRemoval",
+          "rWeighment",
+          "rLevy",
+          "vatRate",
+        ];
+        adminFields.forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          if (isAdmin) {
+            el.removeAttribute("readonly");
+            el.classList.remove("ro");
+            el.classList.add("ae");
+          } else {
+            el.setAttribute("readonly", "");
+            el.classList.add("ro");
+            el.classList.remove("ae");
+          }
+        });
+
+        // Rate inputs toggle (show input vs span)
+        ["nr1", "nr2", "nr3", "or1", "or2", "or3"].forEach((id) => {
+          const inp = document.getElementById(id);
+          const spn = document.getElementById("d" + id);
+          if (isAdmin) {
+            inp.style.display = "inline-block";
+            inp.classList.remove("ro");
+            inp.removeAttribute("readonly");
+            if (spn) spn.style.display = "none";
+          } else {
+            inp.style.display = "none";
+            inp.classList.add("ro");
+            inp.setAttribute("readonly", "");
+            if (spn) {
+              spn.style.display = "inline";
+              spn.textContent = inp.value;
+            }
+          }
+        });
+        refresh();
+      }
+
+      function syncSpan(inputId, spanId) {
+        const sp = document.getElementById(spanId);
+        if (sp) sp.textContent = document.getElementById(inputId).value;
+      }
+
+      // ── SLAB CALC ──
+      function calcSlabs(
+        totalDays,
+        r1,
+        r2,
+        r3,
+        weight,
+        blockStart,
+        endDate,
+        daysOffset,
+      ) {
+        const slabs = [];
+        let offset = daysOffset,
+          remaining = totalDays;
+        let cur = new Date(blockStart);
+
+        if (offset < 7 && remaining > 0) {
+          const use = Math.min(7 - offset, remaining);
+          slabs.push({
+            label: "1st 7 days",
+            rate: r1,
+            days: use,
+            from: new Date(cur),
+            to: addD(cur, use - 1),
+            amt: r1 * use * weight,
+          });
+          cur = addD(cur, use);
+          offset += use;
+          remaining -= use;
+        }
+        if (offset < 14 && remaining > 0) {
+          const use = Math.min(14 - offset, remaining);
+          slabs.push({
+            label: "8th to 14th day",
+            rate: r2,
+            days: use,
+            from: new Date(cur),
+            to: addD(cur, use - 1),
+            amt: r2 * use * weight,
+          });
+          cur = addD(cur, use);
+          offset += use;
+          remaining -= use;
+        }
+        if (remaining > 0) {
+          slabs.push({
+            label: "15th day onwards",
+            rate: r3,
+            days: remaining,
+            from: new Date(cur),
+            to: new Date(endDate),
+            amt: r3 * remaining * weight,
+          });
+        }
+        return slabs;
+      }
+
+      // ── COMPUTE ──
+      function compute() {
+        const cld = pd(document.getElementById("cld").value);
+        const freeDays =
+          parseInt(document.getElementById("freeDays").value) || 4;
+        // Free time includes CLD: ends at CLD + (freeDays-1)
+        const freeEnd = addD(cld, freeDays - 1);
+        const storStart = addD(freeEnd, 1);
+        const delivery = pd(document.getElementById("delivery").value);
+        const weight = Math.min(
+          3,
+          Math.max(
+            1,
+            Math.round(
+              parseFloat(document.getElementById("weight").value) || 2,
+            ),
+          ),
+        );
+        const vatRate = gn("vatRate") / 100;
+
+        const nr1 = gn("nr1"),
+          nr2 = gn("nr2"),
+          nr3 = gn("nr3");
+        const or1 = gn("or1"),
+          or2 = gn("or2"),
+          or3 = gn("or3");
+
+        const cldBeforeCut = cld < CUT;
+        const deliveryCrossCut = delivery >= CUT;
+        const hasWharfrent = delivery > freeEnd;
+        let slabs = [],
+          totalDays = 0,
+          isSplit = false;
+
+        if (hasWharfrent) {
+          totalDays = diffD(freeEnd, delivery); // storStart..delivery inclusive
+
+          if (!cldBeforeCut) {
+            slabs = calcSlabs(
+              totalDays,
+              nr1,
+              nr2,
+              nr3,
+              weight,
+              storStart,
+              delivery,
+              0,
+            );
+          } else if (!deliveryCrossCut) {
+            slabs = calcSlabs(
+              totalDays,
+              or1,
+              or2,
+              or3,
+              weight,
+              storStart,
+              delivery,
+              0,
+            );
+          } else {
+            isSplit = true;
+            // oldDays = storStart → 22/07/2024 inclusive = CUT_OLD - freeEnd
+            // newDays = 23/07/2024 → delivery inclusive  = delivery - CUT_OLD
+            // Together: oldDays + newDays = (CUT_OLD - freeEnd) + (delivery - CUT_OLD) = delivery - freeEnd = totalDays ✓
+            const oldDays = diffD(freeEnd, CUT_OLD); // storStart..22Jul inclusive
+            const newDays = diffD(CUT_OLD, delivery); // 23Jul..delivery inclusive
+            const oldSlabs = calcSlabs(
+              oldDays,
+              or1,
+              or2,
+              or3,
+              weight,
+              storStart,
+              CUT_OLD,
+              0,
+            );
+            const newSlabs = calcSlabs(
+              newDays,
+              nr1,
+              nr2,
+              nr3,
+              weight,
+              CUT,
+              delivery,
+              oldDays,
+            );
+            oldSlabs.forEach((s) => (s.group = "old"));
+            newSlabs.forEach((s) => (s.group = "new"));
+            slabs = [...oldSlabs, ...newSlabs];
+          }
+        }
+
+        const insideStor = slabs.reduce((a, s) => a + s.amt, 0);
+        const outsideHalf = insideStor / 2;
+
+        // Payable charges (always apply)
+        const payables = [];
+        if (gb("chkRiver"))
+          payables.push({
+            label: "River Dues",
+            rate: gn("rRiver"),
+            amt: gn("rRiver") * weight,
+          });
+        if (gb("chkLanding"))
+          payables.push({
+            label: "Landing Charge",
+            rate: gn("rLanding"),
+            amt: gn("rLanding") * weight,
+          });
+        if (gb("chkRemoval"))
+          payables.push({
+            label: "Removal Charge",
+            rate: gn("rRemoval"),
+            amt: gn("rRemoval") * weight,
+          });
+        if (gb("chkWeighment"))
+          payables.push({
+            label: "Weighment Charge",
+            rate: gn("rWeighment"),
+            amt: gn("rWeighment") * weight,
+          });
+        const levyAmt = gb("chkLevy") ? gn("rLevy") * weight : 0;
+        const paySub = payables.reduce((a, p) => a + p.amt, 0);
+
+        // INSIDE: (insideStor + paySub) → VAT → + levy
+        const iBase = insideStor + paySub;
+        const iVat = iBase * vatRate;
+        const iLevy = levyAmt;
+        const iTotal = iBase + iVat + iLevy;
+
+        // OUTSIDE: (outsideHalf + paySub) → VAT → + levy
+        const oBase = outsideHalf + paySub;
+        const oVat = oBase * vatRate;
+        const oLevy = levyAmt;
+        const oTotal = oBase + oVat + oLevy;
+
+        // No Wharfrent: payable only
+        const nBase = paySub;
+        const nVat = nBase * vatRate;
+        const nLevy = levyAmt;
+        const nTotal = nBase + nVat + nLevy;
+
+        return {
+          cld,
+          freeEnd,
+          storStart,
+          delivery,
+          weight,
+          vatRate,
+          cldBeforeCut,
+          isSplit,
+          hasWharfrent,
+          totalDays,
+          slabs,
+          insideStor,
+          outsideHalf,
+          payables,
+          paySub,
+          levyAmt,
+          iBase,
+          iVat,
+          iLevy,
+          iTotal,
+          oBase,
+          oVat,
+          oLevy,
+          oTotal,
+          nBase,
+          nVat,
+          nLevy,
+          nTotal,
+        };
+      }
+
+      // ── REFRESH ──
+      function refresh() {
+        try {
+          const cld_ = pd(document.getElementById("cld").value);
+          const fd_ = parseInt(document.getElementById("freeDays").value) || 4;
+          // Free time INCLUDES CLD as day 1:
+          // e.g. CLD=26/03, fd_=4 → free days: 26,27,28,29 → ends 29/03 → Wharfrent starts 30/03
+          const freeEnd = addD(cld_, fd_ - 1);
+          const storStartDate = addD(freeEnd, 1);
+          document.getElementById("freeEnd").textContent = fd(freeEnd);
+          document.getElementById("storStart").textContent = fd(storStartDate);
+
+          // Build free-time day strip
+          const strip = document.getElementById("ftStrip");
+          const ftDaysEl = document.getElementById("ftDays");
+          if (strip && ftDaysEl) {
+            const dayLabels = [];
+            for (let i = 0; i < fd_; i++) {
+              const d = addD(cld_, i);
+              dayLabels.push(
+                d.toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "2-digit",
+                }),
+              );
+            }
+            ftDaysEl.innerHTML =
+              '<span style="color:var(--m2)">Free: </span>' +
+              dayLabels
+                .map(
+                  (d) =>
+                    `<span style="background:var(--gold)22;border:1px solid var(--gold)33;color:var(--gold);border-radius:4px;padding:1px 7px;margin:0 2px;">${d}</span>`,
+                )
+                .join("") +
+              `<span style="color:var(--m2)"> → Wharfrent starts </span>` +
+              `<span style="color:var(--green);font-weight:600;">${storStartDate.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}</span>`;
+            strip.style.display = "block";
+          }
+
+          // Sync rate display spans
+          ["nr1", "nr2", "nr3", "or1", "or2", "or3"].forEach((id) => {
+            const sp = document.getElementById("d" + id);
+            if (sp) sp.textContent = document.getElementById(id).value;
+          });
+
+          // Rate badge
+          const before = cld_ < CUT;
+          const del = pd(document.getElementById("delivery").value);
+          const cross = del >= CUT;
+          document.getElementById("rbadge").innerHTML = !before
+            ? '<div class="rbadge rb-new">● NEW RATES (From 23/07/2024)</div>'
+            : !cross
+              ? '<div class="rbadge rb-old">● OLD RATES (Up to 22/07/2024)</div>'
+              : '<div class="rbadge rb-split">⚡ SPLIT BILLING — Old + New rates</div>';
+
+          const b = compute();
+          const pv = document.getElementById("preview");
+          if (b.hasWharfrent) {
+            pv.innerHTML = `
+        <div class="pvr"><span style="color:var(--m2)">Wharfrent Days</span><span style="color:var(--gold);font-weight:600">${b.totalDays} days</span></div>
+        <div class="pvr"><span style="color:var(--m2)">Inside Total Bill</span><span style="color:var(--blue)">${fmt(b.iTotal)}</span></div>
+        <div class="pvr"><span style="color:var(--m2)">Outside Total Bill</span><span style="color:var(--purple)">${fmt(b.oTotal)}</span></div>
+        <div class="pvr" style="border-top:1px solid var(--border);margin-top:8px;padding-top:9px;">
+          <span style="color:var(--m2)">Grand Total</span>
+          <span style="color:var(--gold);font-size:15px;font-weight:700">${fmt(b.iTotal + b.oTotal)}</span>
+        </div>`;
+          } else {
+            pv.innerHTML = `
+        <div class="pvr"><span style="color:var(--m2)">Wharfrent</span><span style="color:var(--green)">Within Free Time ✓</span></div>
+        <div class="pvr"><span style="color:var(--m2)">Payable Charges</span><span>${fmt(b.paySub)}</span></div>
+        <div class="pvr" style="border-top:1px solid var(--border);margin-top:8px;padding-top:9px;">
+          <span style="color:var(--m2)">Total</span>
+          <span style="color:var(--gold);font-size:15px;">${fmt(b.nTotal)}</span>
+        </div>`;
+          }
+        } catch (e) {
+          document.getElementById("preview").innerHTML = "Enter valid dates…";
+        }
+      }
+
+      // ── BUILD BILL TABLE (unified for inside & outside) ──
+      function buildBillTable(b, side) {
+        // side: 'inside' | 'outside' | 'noWharfrent'
+        let rows = "";
+
+        if (side === "inside" || side === "outside") {
+          const storAmt = side === "inside" ? b.insideStor : b.outsideHalf;
+          const baseAmt = side === "inside" ? b.iBase : b.oBase;
+          const vatAmt = side === "inside" ? b.iVat : b.oVat;
+          const levyAmt = side === "inside" ? b.iLevy : b.oLevy;
+          const totalAmt = side === "inside" ? b.iTotal : b.oTotal;
+          const storLabel =
+            side === "inside"
+              ? "Wharfrent Wharfrent"
+              : "Wharfrent Wharfrent (½ of Inside)";
+
+          if (b.hasWharfrent) {
+            // Slab rows
+            if (b.isSplit) {
+              const oldS = b.slabs.filter((s) => s.group === "old");
+              const newS = b.slabs.filter((s) => s.group === "new");
+              if (oldS.length) {
+                rows += `<tr class="sep"><td colspan="6">◀ OLD RATES — Up to 22/07/2024</td></tr>`;
+                oldS.forEach((s) => {
+                  const dispAmt = side === "inside" ? s.amt : s.amt / 2;
+                  rows += `<tr>
+              <td>${s.label}</td>
+              <td style="color:var(--red)">${fmtN(side === "inside" ? s.rate : s.rate / 2)}/t/d</td>
+              <td>${fd(s.from)}</td><td>${fd(s.to)}</td>
+              <td><span class="dp">${s.days}</span></td>
+              <td>${fmt(dispAmt)}</td></tr>`;
+                });
+              }
+              if (newS.length) {
+                rows += `<tr class="sep"><td colspan="6">▶ NEW RATES — From 23/07/2024</td></tr>`;
+                newS.forEach((s) => {
+                  const dispAmt = side === "inside" ? s.amt : s.amt / 2;
+                  rows += `<tr>
+              <td>${s.label}</td>
+              <td style="color:var(--green)">${fmtN(side === "inside" ? s.rate : s.rate / 2)}/t/d</td>
+              <td>${fd(s.from)}</td><td>${fd(s.to)}</td>
+              <td><span class="dp">${s.days}</span></td>
+              <td>${fmt(dispAmt)}</td></tr>`;
+                });
+              }
+            } else {
+              b.slabs.forEach((s) => {
+                const dispAmt = side === "inside" ? s.amt : s.amt / 2;
+                rows += `<tr>
+            <td>${s.label}</td>
+            <td>${fmtN(side === "inside" ? s.rate : s.rate / 2)}/t/d</td>
+            <td>${fd(s.from)}</td><td>${fd(s.to)}</td>
+            <td><span class="dp">${s.days}</span></td>
+            <td>${fmt(dispAmt)}</td></tr>`;
+              });
+            }
+
+            rows += `<tr class="sub">
+        <td colspan="4">${storLabel} Sub Total</td>
+        <td><span class="dp dpg">${b.totalDays}</span></td>
+        <td>${fmt(storAmt)}</td>
+      </tr>`;
+          }
+
+          // Payable charge rows
+          if (b.payables.length > 0) {
+            rows += `<tr class="sep"><td colspan="6">Payable Charges</td></tr>`;
+            b.payables.forEach((p) => {
+              rows += `<tr class="sub">
+          <td>${p.label}</td>
+          <td>${fmtN(p.rate)}/ton</td>
+          <td colspan="2">${b.weight} ton(s)</td>
+          <td></td>
+          <td>${fmt(p.amt)}</td></tr>`;
+            });
+          }
+
+          rows += `
+      <tr class="tot"><td colspan="5">Total Bill (Base for VAT)</td><td>${fmt(baseAmt)}</td></tr>
+      <tr class="vrow"><td colspan="5">VAT (${(b.vatRate * 100).toFixed(1)}%)</td><td>${fmt(vatAmt)}</td></tr>
+      <tr class="lrow"><td colspan="5">Levy Charge (no VAT)</td><td>${fmt(levyAmt)}</td></tr>
+      <tr class="grand"><td colspan="5">Grand Total</td><td>${fmt(totalAmt)}</td></tr>`;
+        } else {
+          // No Wharfrent — payable only
+          if (b.payables.length > 0) {
+            b.payables.forEach((p) => {
+              rows += `<tr class="sub">
+          <td>${p.label}</td>
+          <td>${fmtN(p.rate)}/ton</td>
+          <td colspan="2">${b.weight} ton(s)</td>
+          <td></td>
+          <td>${fmt(p.amt)}</td></tr>`;
+            });
+          }
+          rows += `
+      <tr class="tot"><td colspan="5">Total Payable (Base for VAT)</td><td>${fmt(b.nBase)}</td></tr>
+      <tr class="vrow"><td colspan="5">VAT (${(b.vatRate * 100).toFixed(1)}%)</td><td>${fmt(b.nVat)}</td></tr>
+      <tr class="lrow"><td colspan="5">Levy Charge (no VAT)</td><td>${fmt(b.nLevy)}</td></tr>
+      <tr class="grand"><td colspan="5">Grand Total</td><td>${fmt(b.nTotal)}</td></tr>`;
+        }
+
+        return `<div class="btw"><table class="bt">
+    <thead><tr><th>Description</th><th>Rate</th><th>From</th><th>To</th><th>Days</th><th>Amount</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+      }
+
+      // ── CALCULATE & RENDER ──
+      function calculate() {
+        const rawW = parseFloat(document.getElementById("weight").value) || 2;
+        if (rawW >= 4) {
+          alert(
+            "⚠ This module only handles vehicles up to 3 tons. Weight of 4 tons or more cannot be billed here.",
+          );
+          return;
+        }
+
+        const b = compute();
+        document.getElementById("results").style.display = "block";
+
+        // INFO BAR
+        document.getElementById("ibar").innerHTML = `
+    <div class="ibar">
+      <div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div>
+      <div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div>
+      <div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${b.hasWharfrent ? fd(b.storStart) : "—"}</div></div>
+      <div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div>
+      <div class="ii"><div class="il">Weight</div><div class="iv">${b.weight} ton(s)</div></div>
+      <div class="ii"><div class="il">Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.hasWharfrent ? b.totalDays + " days" : "In free time"}</div></div>
+      <div class="ii"><div class="il">Rate Mode</div><div class="iv" style="color:${b.isSplit ? "var(--gold)" : b.cldBeforeCut ? "var(--red)" : "var(--green)"}">${b.isSplit ? "Split" : b.cldBeforeCut ? "Old Rates" : "New Rates"}</div></div>
+    </div>`;
+
+        // STATS
+        if (b.hasWharfrent) {
+          document.getElementById("srow").innerHTML = `
+      <div class="sc cg"><div class="sl">Grand Total</div><div class="sv">${fmtN(b.iTotal + b.oTotal)}</div><div class="ss">Inside + Outside</div></div>
+      <div class="sc cb"><div class="sl">Inside Bill</div><div class="sv">${fmtN(b.iTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div>
+      <div class="sc cp"><div class="sl">Outside Bill</div><div class="sv">${fmtN(b.oTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div>`;
+        } else {
+          document.getElementById("srow").innerHTML = `
+      <div class="sc cg"><div class="sl">Total</div><div class="sv">${fmtN(b.nTotal)}</div><div class="ss">Payable + VAT + Levy</div></div>
+      <div class="sc cv"><div class="sl">Payable Charges</div><div class="sv">${fmtN(b.paySub)}</div><div class="ss">VAT applicable</div></div>
+      <div class="sc cv"><div class="sl">VAT + Levy</div><div class="sv">${fmtN(b.nVat + b.nLevy)}</div><div class="ss">${(b.vatRate * 100).toFixed(1)}% + levy</div></div>`;
+        }
+
+        // INSIDE
+        if (b.hasWharfrent) {
+          document.getElementById("insideSec").innerHTML = `
+      <div style="margin-bottom:20px;">
+        ${b.isSplit ? '<div class="warn">⚡ Split billing — old rates up to 22/07/2024, new rates from 23/07/2024</div>' : ""}
+        <div class="slbl sl-in">▪ Wharfrent Charge — INSIDE</div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          ${buildBillTable(b, "inside")}
+        </div>
+      </div>`;
+        } else {
+          document.getElementById("insideSec").innerHTML =
+            `<div class="no-stor-note">✓ Delivery within free time — no Wharfrent Wharfrent charge applies.</div>`;
+        }
+
+        // OUTSIDE
+        if (b.hasWharfrent) {
+          document.getElementById("outsideSec").innerHTML = `
+      <div style="margin-bottom:20px;">
+        <div class="slbl sl-out">▪ Wharfrent Charge — OUTSIDE</div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          ${buildBillTable(b, "outside")}
+        </div>
+      </div>`;
+        } else {
+          // No Wharfrent — show payable-only table under outside heading
+          document.getElementById("outsideSec").innerHTML = `
+      <div style="margin-bottom:20px;">
+        <div class="slbl sl-out">▪ Only Payable Charge — INSIDE/OUTSIDE</div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          ${buildBillTable(b, "noWharfrent")}
+        </div>
+      </div>`;
+        }
+
+        // GRAND
+        const grand = b.hasWharfrent ? b.iTotal + b.oTotal : b.nTotal;
+        document.getElementById("grandSec").innerHTML = `
+    <div class="gbox">
+      <div class="ginn">
+        ${
+          b.hasWharfrent
+            ? `
+        <div>
+          <div class="glbl">Inside Grand Total</div>
+          <div class="gval" style="color:var(--blue)">${fmt(b.iTotal)}</div>
+          <div class="gsub">Incl. VAT &amp; Levy</div>
+        </div>
+        <div>
+          <div class="glbl">Outside Grand Total</div>
+          <div class="gval" style="color:var(--purple)">${fmt(b.oTotal)}</div>
+          <div class="gsub">Incl. VAT &amp; Levy</div>
+        </div>`
+            : `
+        <div>
+          <div class="glbl">Payable Charges</div>
+          <div class="gval" style="color:var(--green)">${fmt(b.nBase)}</div>
+          <div class="gsub">No Wharfrent — flat only</div>
+        </div>
+        <div></div>`
+        }
+        <div class="gfin">
+          <div class="glbl">GRAND TOTAL</div>
+          <div class="gval">${fmt(grand)}</div>
+          <div class="gsub">Tk — All inclusive</div>
+        </div>
+      </div>
+    </div>`;
+
+        setTimeout(
+          () =>
+            document
+              .getElementById("results")
+              .scrollIntoView({ behavior: "smooth", block: "start" }),
+          80,
+        );
+      }
+
+      function resetAll() {
+        document.getElementById("results").style.display = "none";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // INIT
+      refresh();
+    </script>
+
+    <script>
+      // Set the value of the input to today's date
+      document.getElementById("datePicker").valueAsDate = new Date();
+    </script>
+
+    <footer class="copyright-footer">
+      <p>&copy; <span id="year"></span> samiulAsumel. All rights reserved.</p>
+    </footer>
+
+    <script>
+      // Set current year dynamically
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
