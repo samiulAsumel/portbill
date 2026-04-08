@@ -7,6 +7,9 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
     />
     <title>Port Car Billing</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="apple-touch-icon" href="favicon.png" />
     <link
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap"
       rel="stylesheet"
@@ -40,7 +43,7 @@
       }
       html {
         scroll-behavior: smooth;
-        font-size: clamp(12px, 2vw, 16px);
+        font-size: clamp(15px, 2.5vw, 20px);
       }
       body {
         background: var(--bg);
@@ -53,7 +56,7 @@
       }
       @media (max-width: 360px) {
         html {
-          font-size: 13px;
+          font-size: 16.25px;
         }
       }
 
@@ -1276,7 +1279,7 @@
         <div class="hbadge" id="modeBadge">USER</div>
         <button class="admin-btn" id="adminBtn" onclick="toggleAdmin()">
           <span class="adot" id="adot"></span>
-          <span id="adminTxt">Admin</span>
+          <span id="adminTxt">🔒 Admin</span>
         </button>
       </div>
     </header>
@@ -1314,7 +1317,7 @@
         </div>
         <div class="mbtns">
           <button class="btn bsm" style="flex: 1" onclick="doLogin()">
-            LOGIN
+            🔑 LOGIN
           </button>
           <button
             class="btn bsm bg"
@@ -1418,12 +1421,7 @@
             <div class="r2">
               <div class="fg">
                 <label class="lbl">Delivery Date</label>
-                <input
-                  type="date"
-                  id="delivery"
-                  id="datePicker"
-                  oninput="refresh()"
-                />
+                <input type="date" id="delivery" oninput="refresh()" />
               </div>
               <div class="fg">
                 <label class="lbl">Weight (Tons) — max 3</label>
@@ -1596,7 +1594,7 @@
             <div class="ctitle">
               Wharfrent Rates — Tk per ton per day
               <span class="cnote"
-                ><span style="opacity: 0.4">🔒</span> Admin only</span
+                ><span style="opacity: 0.8">🔒</span> Admin only</span
               >
             </div>
             <div class="rg">
@@ -1758,7 +1756,7 @@
               </svg>
               GENERATE BILL
             </button>
-            <button class="btn bg" onclick="resetAll()">↺ Reset</button>
+            <button class="btn bg" onclick="resetAll()">↻ Reset</button>
           </div>
 
           <div
