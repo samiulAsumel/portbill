@@ -538,19 +538,19 @@
         margin-top: 10px;
       }
       .rb-new {
-        background: var(--green) 18;
-        border: 1px solid var(--green) 33;
+        background: transparent;
+        border: 1px solid var(--border);
         color: var(--green);
       }
       .rb-old {
-        background: var(--red) 18;
-        border: 1px solid var(--red) 33;
+        background: transparent;
+        border: 1px solid var(--border);
         color: var(--red);
       }
       .rb-split {
-        background: var(--gold) 18;
-        border: 1px solid var(--gold) 33;
-        color: var(--gold);
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
       }
 
       /* PAYABLE TABLE */
@@ -632,14 +632,14 @@
         display: inline-block;
       }
       .rn {
-        background: var(--green) 18;
+        background: transparent;
         color: var(--green);
-        border: 1px solid var(--green) 33;
+        border: 1px solid var(--border);
       }
       .ro2 {
-        background: var(--red) 18;
+        background: transparent;
         color: var(--red);
-        border: 1px solid var(--red) 33;
+        border: 1px solid var(--border);
       }
       .rt {
         width: 100%;
@@ -711,7 +711,7 @@
       /* STICKY PANEL */
       .sp {
         background: linear-gradient(160deg, #1a1f30, var(--surface));
-        border: 1px solid var(--gold) 22;
+        border: 1px solid var(--gold) 22%;
         border-radius: var(--r);
         padding: clamp(13px, 3vw, 22px);
         margin-bottom: clamp(12px, 3vw, 18px);
@@ -1012,14 +1012,19 @@
         margin-bottom: clamp(10px, 2.5vw, 16px);
       }
       .sl-in {
-        background: var(--blue) 18;
-        border: 1px solid var(--blue) 33;
-        color: var(--blue);
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--gold);
       }
       .sl-out {
-        background: var(--purple) 18;
-        border: 1px solid var(--purple) 33;
-        color: var(--purple);
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--gold);
+      }
+      .sl-payable {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--cyan);
       }
 
       /* UNIFIED BILL TABLE — same for inside and outside */
@@ -1101,8 +1106,8 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: var(--blue) 18;
-        border: 1px solid var(--blue) 33;
+        background: transparent;
+        border: none;
         color: var(--blue);
         font-family: "DM Mono", monospace;
         font-size: clamp(9px, 2.5vw, 11px);
@@ -1112,8 +1117,8 @@
         padding: 0 clamp(4px, 1vw, 7px);
       }
       .dpg {
-        background: var(--gold) 18;
-        border-color: var(--gold) 33;
+        background: transparent;
+        border: none;
         color: var(--gold);
       }
 
@@ -1156,7 +1161,7 @@
       /* GRAND BOX */
       .gbox {
         background: linear-gradient(135deg, var(--gold) 0a, var(--gold) 05);
-        border: 1px solid var(--gold) 44;
+        border: 1px solid var(--gold) 44%;
         border-radius: var(--r);
         padding: clamp(14px, 3vw, 28px) clamp(14px, 3vw, 28px);
         margin-top: clamp(4px, 1.5vw, 10px);
@@ -1876,15 +1881,7 @@
       }
 
       function validateDates() {
-        const cld = pd(document.getElementById("cld").value);
-        const delivery = pd(document.getElementById("delivery").value);
-
-        if (delivery < cld) {
-          alert("Delivery date cannot be before CLD date!");
-          document.getElementById("delivery").value = "";
-          return false;
-        }
-
+        // Date validation disabled - always return true
         return true;
       }
 
@@ -2481,7 +2478,7 @@
           // No Wharfrent — show payable-only table under outside heading
           document.getElementById("outsideSec").innerHTML = `
       <div style="margin-bottom:20px;">
-        <div class="slbl sl-out">▪ Only Payable Charge — INSIDE/OUTSIDE</div>
+        <div class="slbl sl-payable">▪ Only Payable Charge — INSIDE/OUTSIDE</div>
         <div class="card" style="padding:0;overflow:hidden;">
           ${buildBillTable(b, "noWharfrent")}
         </div>
