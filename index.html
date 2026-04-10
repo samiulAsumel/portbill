@@ -77,7 +77,6 @@
         --r-sm: 8px;
         --r-lg: 16px;
 
-
         /* Semantic Color Tokens */
         --blue: #4fa3e0;
         --purple: #c084fc;
@@ -89,7 +88,8 @@
         /* Gold Effect Tokens */
         --gold-shimmer: rgba(212, 175, 55, 0.18);
         --gold-glow: rgba(212, 175, 55, 0.12);
-        --shadow-glow: 0 0 20px rgba(212, 175, 55, 0.25), 0 0 40px rgba(212, 175, 55, 0.12);
+        --shadow-glow:
+          0 0 20px rgba(212, 175, 55, 0.25), 0 0 40px rgba(212, 175, 55, 0.12);
 
         /* Transition Tokens */
         --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -110,7 +110,6 @@
         padding: 0;
       }
       html {
-        scroll-behavior: smooth;
         font-size: clamp(17px, 2.8vw, 22px);
       }
       body {
@@ -240,7 +239,8 @@
           filter: brightness(1) drop-shadow(0 0 8px rgba(212, 175, 55, 0.28));
         }
         100% {
-          filter: brightness(1.15) drop-shadow(0 0 18px rgba(212, 175, 55, 0.52));
+          filter: brightness(1.15)
+            drop-shadow(0 0 18px rgba(212, 175, 55, 0.52));
         }
       }
       .logo::after {
@@ -430,8 +430,12 @@
         animation: overlayPulse 0.6s ease-out;
       }
       @keyframes overlayPulse {
-        0% { opacity: 0; }
-        100% { opacity: 1; }
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
       }
       .overlay.open {
         opacity: 1;
@@ -559,8 +563,8 @@
         transform: translateY(-1px);
       }
       .merr {
-        background: rgba(248,113,113,0.07);
-        border: 1px solid rgba(248,113,113,0.20);
+        background: rgba(248, 113, 113, 0.07);
+        border: 1px solid rgba(248, 113, 113, 0.2);
         color: var(--red);
         font-family: "DM Mono", monospace;
         font-size: 14px;
@@ -1089,7 +1093,7 @@
         transform: translateY(-1px) scale(1.01) !important;
       }
       .ae {
-        border-color: rgba(212,175,55,0.13) !important;
+        border-color: rgba(212, 175, 55, 0.13) !important;
         background: var(--s2) !important;
         opacity: 1 !important;
         cursor: text !important;
@@ -1171,8 +1175,8 @@
 
       /* WEIGHT WARNING */
       .weight-warn {
-        background: rgba(248,113,113,0.07);
-        border: 1px solid rgba(248,113,113,0.27);
+        background: rgba(248, 113, 113, 0.07);
+        border: 1px solid rgba(248, 113, 113, 0.27);
         border-radius: 6px;
         padding: 6px 10px;
         font-family: "DM Mono", monospace;
@@ -1242,7 +1246,7 @@
       }
       .ptbl td {
         padding: clamp(8px, 2vw, 12px) clamp(10px, 2vw, 14px);
-        border-bottom: 1px solid rgba(212,175,55,0.05);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.05);
         font-family: "DM Mono", monospace;
         font-size: clamp(13px, 2.5vw, 15px);
         color: var(--m1);
@@ -1326,7 +1330,7 @@
       }
       .rt td {
         padding: clamp(7px, 2vw, 11px) clamp(8px, 2vw, 12px);
-        border-bottom: 1px solid rgba(212,175,55,0.07);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.07);
         font-family: "DM Mono", monospace;
         font-size: clamp(14px, 2.5vw, 16px);
         color: var(--m1);
@@ -1380,7 +1384,7 @@
       /* STICKY PANEL */
       .sp {
         background: linear-gradient(135deg, var(--surface) 0%, var(--s2) 100%);
-        border: 1px solid rgba(212,175,55,0.27)%;
+        border: 1px solid rgba(212, 175, 55, 0.27) %;
         border-radius: var(--r);
         padding: clamp(13px, 3vw, 22px);
         margin-bottom: clamp(12px, 3vw, 18px);
@@ -1892,7 +1896,7 @@
       }
       .bt td {
         padding: clamp(8px, 2vw, 12px) clamp(10px, 2.5vw, 16px);
-        border-bottom: 1px solid rgba(212,175,55,0.05);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.05);
         text-align: right;
         font-family: "DM Mono", monospace;
         font-size: clamp(13px, 2.5vw, 15px);
@@ -1910,7 +1914,7 @@
         font-size: 14px;
         color: var(--m2);
         border-top: 1px solid var(--border);
-        border-bottom: 1px solid rgba(212,175,55,0.05);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.05);
       }
       .bt .sub td {
         background: var(--s2);
@@ -1924,11 +1928,11 @@
         border-top: 1px solid var(--border);
       }
       .bt .grand td {
-        background: rgba(212,175,55,0.05);
+        background: rgba(212, 175, 55, 0.05);
         color: var(--gold);
         font-size: 14px;
         font-weight: 600;
-        border-top: 2px solid rgba(212,175,55,0.20);
+        border-top: 2px solid rgba(212, 175, 55, 0.2);
       }
       .bt .vrow td {
         color: var(--m1);
@@ -1962,8 +1966,8 @@
 
       /* WARN */
       .warn {
-        background: rgba(212,175,55,0.05);
-        border: 1px solid rgba(212,175,55,0.13);
+        background: rgba(212, 175, 55, 0.05);
+        border: 1px solid rgba(212, 175, 55, 0.13);
         border-radius: 10px;
         padding: clamp(7px, 2.5vw, 12px) clamp(10px, 3vw, 16px);
         font-family: "DM Mono", monospace;
@@ -1975,8 +1979,8 @@
         gap: clamp(6px, 2vw, 10px);
       }
       .info-note {
-        background: rgba(79,163,224,0.05);
-        border: 1px solid rgba(79,163,224,0.13);
+        background: rgba(79, 163, 224, 0.05);
+        border: 1px solid rgba(79, 163, 224, 0.13);
         border-radius: 10px;
         padding: clamp(7px, 2.5vw, 12px) clamp(10px, 3vw, 16px);
         font-family: "DM Mono", monospace;
@@ -1986,8 +1990,8 @@
         line-height: 1.7;
       }
       .no-stor-note {
-        background: rgba(74,222,128,0.05);
-        border: 1px solid rgba(74,222,128,0.13);
+        background: rgba(74, 222, 128, 0.05);
+        border: 1px solid rgba(74, 222, 128, 0.13);
         border-radius: 10px;
         padding: clamp(9px, 2.5vw, 14px) clamp(10px, 3vw, 16px);
         font-family: "DM Mono", monospace;
@@ -1998,8 +2002,12 @@
 
       /* GRAND BOX */
       .gbox {
-        background: linear-gradient(135deg, rgba(212,175,55,0.04) 0%, rgba(212,175,55,0.02) 100%);
-        border: 1px solid rgba(212,175,55,0.27)%;
+        background: linear-gradient(
+          135deg,
+          rgba(212, 175, 55, 0.04) 0%,
+          rgba(212, 175, 55, 0.02) 100%
+        );
+        border: 1px solid rgba(212, 175, 55, 0.27) %;
         border-radius: var(--r);
         padding: clamp(14px, 3vw, 28px) clamp(14px, 3vw, 28px);
         margin-top: clamp(4px, 1.5vw, 10px);
@@ -2043,7 +2051,7 @@
         margin-top: clamp(2px, 1vw, 4px);
       }
       .gfin {
-        border-top: 1px solid rgba(212,175,55,0.20);
+        border-top: 1px solid rgba(212, 175, 55, 0.2);
         padding-top: clamp(12px, 3vw, 18px);
         grid-column: 1/-1;
       }
@@ -2051,7 +2059,7 @@
         .gfin {
           border-top: none;
           padding-top: 0;
-          border-left: 1px solid rgba(212,175,55,0.20);
+          border-left: 1px solid rgba(212, 175, 55, 0.2);
           padding-left: clamp(14px, 3vw, 22px);
           grid-column: auto;
         }
@@ -2155,7 +2163,7 @@
             0 0 36px rgba(212, 175, 55, 0.26),
             0 0 72px rgba(212, 175, 55, 0.13),
             inset 0 0 48px rgba(212, 175, 55, 0.07);
-          border-color: rgba(212, 175, 55, 0.40);
+          border-color: rgba(212, 175, 55, 0.4);
         }
       }
 
@@ -2176,7 +2184,7 @@
           box-shadow:
             0 0 18px rgba(212, 175, 55, 0.08),
             inset 0 0 18px rgba(212, 175, 55, 0.03);
-          border-color: rgba(212, 175, 55, 0.10);
+          border-color: rgba(212, 175, 55, 0.1);
         }
         100% {
           box-shadow:
@@ -2194,7 +2202,7 @@
         position: relative;
         overflow: hidden;
         box-shadow:
-          0 0 16px rgba(212, 175, 55, 0.10),
+          0 0 16px rgba(212, 175, 55, 0.1),
           inset 0 0 16px rgba(212, 175, 55, 0.02);
         animation: statsCardGlow 3s ease-in-out infinite alternate;
         animation-delay: calc(var(--card-index, 0) * 0.2s);
@@ -2203,7 +2211,7 @@
       @keyframes statsCardGlow {
         0% {
           box-shadow:
-            0 0 16px rgba(212, 175, 55, 0.10),
+            0 0 16px rgba(212, 175, 55, 0.1),
             inset 0 0 16px rgba(212, 175, 55, 0.02);
           border-color: rgba(212, 175, 55, 0.14);
         }
@@ -2254,15 +2262,15 @@
         background: rgba(212, 175, 55, 0.07) !important;
         color: var(--gold) !important;
         font-weight: 700;
-        text-shadow: 0 0 8px rgba(212, 175, 55, 0.50);
+        text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
         animation: totalRowGlow 2.5s ease-in-out infinite alternate;
       }
       @keyframes totalRowGlow {
         0% {
-          text-shadow: 0 0 6px rgba(212, 175, 55, 0.40);
+          text-shadow: 0 0 6px rgba(212, 175, 55, 0.4);
         }
         100% {
-          text-shadow: 0 0 14px rgba(212, 175, 55, 0.70);
+          text-shadow: 0 0 14px rgba(212, 175, 55, 0.7);
         }
       }
 
@@ -2301,12 +2309,16 @@
 
       /* ── REDUCED MOTION — accessibility ── */
       @media (prefers-reduced-motion: reduce) {
-        *, *::before, *::after {
+        *,
+        *::before,
+        *::after {
           animation-duration: 0.01ms !important;
           animation-iteration-count: 1 !important;
           transition-duration: 0.01ms !important;
         }
-        .floating-particle { display: none !important; }
+        .floating-particle {
+          display: none !important;
+        }
       }
     </style>
   </head>
@@ -2389,8 +2401,8 @@
             <div class="ctitle">
               Wharfrent Details
               <span class="cnote"
-                ><span style="opacity: 0.4">🔒</span> CLD &amp; Delivery always
-                editable</span
+                ><span style="opacity: 0.4">🔒</span> CLD, Delivery &amp; WEIGHT
+                are editable</span
               >
             </div>
             <div class="r2">
@@ -2402,10 +2414,16 @@
                   ></label
                 >
                 <input
-                  type="date"
+                  type="text"
                   id="cld"
                   class="cyan-glow"
-                  oninput="refresh()"
+                  placeholder="DD/MM/YYYY"
+                  pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
+                  maxlength="10"
+                  oninput="
+                    formatDate(this);
+                    refresh();
+                  "
                   aria-label="Common Landing Date"
                 />
               </div>
@@ -2462,10 +2480,16 @@
               <div class="fg">
                 <label class="lbl">Delivery Date</label>
                 <input
-                  type="date"
+                  type="text"
                   id="delivery"
                   class="cyan-glow"
-                  oninput="refresh()"
+                  placeholder="DD/MM/YYYY"
+                  pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
+                  maxlength="10"
+                  oninput="
+                    formatDate(this);
+                    refresh();
+                  "
                   aria-label="Delivery Date"
                 />
               </div>
@@ -2872,14 +2896,238 @@
         AP = "admin";
 
       // ── UTILS ──
-      const pd = (s) => new Date(s + "T00:00:00");
+      // Format date input as DD/MM/YYYY
+      function formatDate(input) {
+        let value = input.value.replace(/\D/g, "");
+        if (value.length >= 2) {
+          value = value.slice(0, 2) + "/" + value.slice(2);
+        }
+        if (value.length >= 5) {
+          value = value.slice(0, 5) + "/" + value.slice(5, 9);
+        }
+        input.value = value;
+      }
+
+      // Custom Calendar Picker
+      class CalendarPicker {
+        constructor(inputId) {
+          this.input = document.getElementById(inputId);
+          this.inputId = inputId;
+          this.isOpen = false;
+          this.currentDate = new Date();
+          this.selectedDate = null;
+          this.init();
+        }
+
+        init() {
+          // Add calendar icon
+          const wrapper = document.createElement("div");
+          wrapper.style.position = "relative";
+          wrapper.style.display = "inline-block";
+          wrapper.style.width = "100%";
+
+          this.input.parentNode.insertBefore(wrapper, this.input);
+          wrapper.appendChild(this.input);
+
+          const icon = document.createElement("span");
+          icon.innerHTML = "📅";
+          icon.style.cssText = `
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 18px;
+            z-index: 10;
+            pointer-events: auto;
+            background: transparent;
+            border: none;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+          `;
+          icon.onmouseover = () => {
+            icon.style.background = "var(--glass-bg)";
+            icon.style.transform = "translateY(-50%) scale(1.1)";
+          };
+          icon.onmouseout = () => {
+            icon.style.background = "transparent";
+            icon.style.transform = "translateY(-50%) scale(1)";
+          };
+          icon.onclick = () => this.toggle();
+          wrapper.appendChild(icon);
+
+          // Create calendar
+          this.calendar = document.createElement("div");
+          this.calendar.style.cssText = `
+            position: fixed;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            display: none;
+            min-width: 280px;
+          `;
+          document.body.appendChild(this.calendar);
+
+          // Close on outside click
+          document.addEventListener("click", (e) => {
+            if (
+              !wrapper.contains(e.target) &&
+              !this.calendar.contains(e.target)
+            ) {
+              this.close();
+            }
+          });
+        }
+
+        toggle() {
+          this.isOpen ? this.close() : this.open();
+        }
+
+        open() {
+          this.isOpen = true;
+          this.calendar.style.display = "block";
+          this.positionCalendar();
+          this.render();
+        }
+
+        positionCalendar() {
+          const rect = this.input.getBoundingClientRect();
+          const calendarHeight = 300; // Approximate height
+          const calendarWidth = 280;
+
+          let top = rect.bottom + window.scrollY + 5;
+          let left = rect.left + window.scrollX;
+
+          // Adjust if calendar goes below viewport
+          if (top + calendarHeight > window.innerHeight + window.scrollY) {
+            top = rect.top + window.scrollY - calendarHeight - 5;
+          }
+
+          // Adjust if calendar goes right of viewport
+          if (left + calendarWidth > window.innerWidth + window.scrollX) {
+            left = rect.right + window.scrollX - calendarWidth;
+          }
+
+          this.calendar.style.top = top + "px";
+          this.calendar.style.left = left + "px";
+        }
+
+        close() {
+          this.isOpen = false;
+          this.calendar.style.display = "none";
+        }
+
+        render() {
+          const year = this.currentDate.getFullYear();
+          const month = this.currentDate.getMonth();
+
+          let html = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <button onclick="event.stopPropagation(); calendarPickers['${this.inputId}'].previousMonth()" style="background: var(--gold); border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer;">‹</button>
+              <span style="color: var(--text); font-weight: 600;">${new Date(year, month).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
+              <button onclick="event.stopPropagation(); calendarPickers['${this.inputId}'].nextMonth()" style="background: var(--gold); border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer;">›</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center;">
+          `;
+
+          // Day headers
+          const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+          days.forEach((day) => {
+            html += `<div style="color: var(--m2); font-size: 12px; padding: 4px;">${day}</div>`;
+          });
+
+          // Calendar days
+          const firstDay = new Date(year, month, 1).getDay();
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+          for (let i = 0; i < firstDay; i++) {
+            html += "<div></div>";
+          }
+
+          for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const isSelected =
+              this.selectedDate &&
+              date.getDate() === this.selectedDate.getDate() &&
+              date.getMonth() === this.selectedDate.getMonth() &&
+              date.getFullYear() === this.selectedDate.getFullYear();
+
+            html += `
+              <div onclick="calendarPickers['${this.inputId}'].selectDate(${year}, ${month}, ${day})" 
+                   style="padding: 6px; cursor: pointer; border-radius: 4px; 
+                          ${isSelected ? "background: var(--gold); color: var(--bg);" : "color: var(--text);"}
+                          &:hover { background: var(--glass-bg); }">
+                ${day}
+              </div>
+            `;
+          }
+
+          html += "</div>";
+          this.calendar.innerHTML = html;
+        }
+
+        previousMonth() {
+          this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+          this.render();
+        }
+
+        nextMonth() {
+          this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+          this.render();
+        }
+
+        selectDate(year, month, day) {
+          this.selectedDate = new Date(year, month, day);
+          const formattedDate = this.formatDateForInput(this.selectedDate);
+          this.input.value = formattedDate;
+          this.input.dispatchEvent(new Event("input"));
+          this.close();
+        }
+
+        formatDateForInput(date) {
+          const d = String(date.getDate()).padStart(2, "0");
+          const m = String(date.getMonth() + 1).padStart(2, "0");
+          const y = date.getFullYear();
+          return `${d}/${m}/${y}`;
+        }
+      }
+
+      // Global calendar pickers storage
+      window.calendarPickers = {};
+
+      // Parse DD/MM/YYYY to Date object
+      const pd = (s) => {
+        if (!s || s.trim() === "") return new Date(); // Return today if empty
+
+        // Handle DD/MM/YYYY format
+        if (s.includes("/")) {
+          const parts = s.split("/");
+          if (parts.length === 3) {
+            const day = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
+            const year = parseInt(parts[2]);
+            const d = new Date(year, month, day);
+            if (!isNaN(d.getTime())) return d;
+          }
+        }
+
+        // Fallback to original parsing
+        const d = new Date(s + "T00:00:00");
+        return isNaN(d.getTime()) ? new Date() : d; // Return today if invalid
+      };
       const iso = (d) => d.toISOString().split("T")[0];
       const fd = (d) =>
-        d.toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        });
+        d
+          .toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })
+          .replace(/\//g, "/");
       const addD = (d, n) => {
         const r = new Date(d);
         r.setDate(r.getDate() + n);
@@ -3253,6 +3501,7 @@
       }
 
       // ── REFRESH ──
+      let isInitialLoad = true;
       function refresh() {
         try {
           // Validate dates before refresh
@@ -3277,11 +3526,13 @@
             for (let i = 0; i < fd_; i++) {
               const d = addD(cld_, i);
               dayLabels.push(
-                d.toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "2-digit",
-                }),
+                d
+                  .toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "2-digit",
+                  })
+                  .replace(/\//g, "/"),
               );
             }
             ftDaysEl.innerHTML =
@@ -3559,13 +3810,16 @@
         // Enhance bill results with glowing animations
         enhanceBillResults();
 
-        setTimeout(
-          () =>
-            document
-              .getElementById("results")
-              .scrollIntoView({ behavior: "smooth", block: "start" }),
-          80,
-        );
+        // Only scroll to results if not initial load
+        if (!isInitialLoad) {
+          setTimeout(
+            () =>
+              document
+                .getElementById("results")
+                .scrollIntoView({ behavior: "smooth", block: "start" }),
+            80,
+          );
+        }
       }
 
       function resetAll() {
@@ -3678,7 +3932,8 @@
         if (results) {
           results.style.opacity = "0";
           results.style.transform = "translateY(20px)";
-          results.style.transition = "opacity 0.55s cubic-bezier(0.22,1,0.36,1), transform 0.55s cubic-bezier(0.22,1,0.36,1)";
+          results.style.transition =
+            "opacity 0.55s cubic-bezier(0.22,1,0.36,1), transform 0.55s cubic-bezier(0.22,1,0.36,1)";
           requestAnimationFrame(() => {
             results.style.opacity = "1";
             results.style.transform = "translateY(0)";
@@ -3709,15 +3964,49 @@
       document.head.appendChild(style);
 
       // INIT
+      // Force scroll to top on page load
+      window.scrollTo(0, 0);
+      history.scrollRestoration = "manual";
+
+      // Initialize calendar pickers after DOM is ready
+      setTimeout(() => {
+        try {
+          console.log("Initializing calendar pickers...");
+          window.calendarPickers["cld"] = new CalendarPicker("cld");
+          window.calendarPickers["delivery"] = new CalendarPicker("delivery");
+          console.log("Calendar pickers initialized successfully");
+        } catch (error) {
+          console.error("Error initializing calendar pickers:", error);
+        }
+      }, 100);
+
+      // Set default dates if empty (in DD/MM/YYYY format)
+      const formatDateForInput = (date) => {
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      };
+
+      const today = new Date();
+      // Always set both fields to current date by default
+      document.getElementById("cld").value = formatDateForInput(today);
+      document.getElementById("delivery").value = formatDateForInput(today);
+
       refresh();
+      isInitialLoad = false; // Set after initial load
       addStaggeredAnimations();
-      createFloatingParticles();
       enhanceFormInteractions();
 
       // Add parallax only on desktop
       if (window.innerWidth > 768) {
         addParallaxEffect();
       }
+
+      // Additional scroll prevention after everything loads
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+      }, 100);
     </script>
 
     <footer class="copyright-footer">
