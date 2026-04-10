@@ -737,37 +737,37 @@
       .weight-note {
         background: linear-gradient(
           145deg,
-          rgba(245, 158, 11, 0.08) 0%,
-          rgba(245, 158, 11, 0.15) 100%
+          rgba(239, 68, 68, 0.08) 0%,
+          rgba(239, 68, 68, 0.15) 100%
         );
-        border: 1.5px solid rgba(245, 158, 11, 0.6);
+        border: 1.5px solid rgba(239, 68, 68, 0.6);
         border-radius: 10px;
         padding: clamp(10px, 2vw, 16px) clamp(14px, 3vw, 20px);
         font-family: "DM Mono", monospace;
         font-size: clamp(13px, 2.5vw, 15px);
-        color: #fcd34d;
+        color: #ef4444;
         margin-bottom: clamp(14px, 4vw, 22px);
         line-height: 1.8;
         position: relative;
         overflow: hidden;
         box-shadow:
-          0 0 18px rgba(245, 158, 11, 0.15),
-          inset 0 0 20px rgba(245, 158, 11, 0.04);
+          0 0 18px rgba(239, 68, 68, 0.2),
+          inset 0 0 20px rgba(239, 68, 68, 0.05);
         animation: warningPulse 2.5s ease-in-out infinite;
       }
       @keyframes warningPulse {
         0%,
         100% {
           box-shadow:
-            0 0 18px rgba(245, 158, 11, 0.15),
-            inset 0 0 20px rgba(245, 158, 11, 0.04);
-          border-color: rgba(245, 158, 11, 0.6);
+            0 0 18px rgba(239, 68, 68, 0.2),
+            inset 0 0 20px rgba(239, 68, 68, 0.05);
+          border-color: rgba(239, 68, 68, 0.6);
         }
         50% {
           box-shadow:
-            0 0 28px rgba(245, 158, 11, 0.3),
-            inset 0 0 24px rgba(245, 158, 11, 0.08);
-          border-color: rgba(245, 158, 11, 0.9);
+            0 0 28px rgba(239, 68, 68, 0.4),
+            inset 0 0 24px rgba(239, 68, 68, 0.1);
+          border-color: rgba(239, 68, 68, 0.9);
         }
       }
       .weight-note::before {
@@ -777,16 +777,16 @@
         left: 0;
         right: 0;
         height: 2px;
-        background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+        background: linear-gradient(90deg, transparent, #ef4444, transparent);
         animation: pulse 2s infinite;
       }
       @keyframes pulse {
         0%,
         100% {
-          opacity: 0.3;
+          opacity: 0.4;
         }
         50% {
-          opacity: 0.8;
+          opacity: 1;
         }
       }
 
@@ -2072,29 +2072,6 @@
         color: var(--gold);
       }
 
-      /* DISCLAIMER */
-      .disclaimer {
-        background: linear-gradient(
-          145deg,
-          rgba(245, 158, 11, 0.06) 0%,
-          rgba(212, 175, 55, 0.1) 100%
-        );
-        border: 1.5px solid rgba(212, 175, 55, 0.45);
-        border-radius: 10px;
-        padding: clamp(12px, 2.5vw, 18px) clamp(14px, 3vw, 22px);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-        color: #e5c97a;
-        margin-top: clamp(16px, 4vw, 28px);
-        line-height: 1.9;
-        text-align: center;
-        box-shadow: 0 0 14px rgba(212, 175, 55, 0.1);
-      }
-      .disclaimer strong {
-        color: #ffd700;
-        font-weight: 700;
-      }
-
       /* BILL RESULTS — animated via JS transition */
       #results {
         /* animation managed by enhanceBillResults() in JS */
@@ -2391,6 +2368,12 @@
         ⚠ <strong>Module Limitation:</strong> This module covers billing for
         vehicles up to <strong>3 tons</strong>. Any vehicle with a weight of
         <strong>4 tons or more</strong> will not be billed under this module.
+        <strong>
+          <br />
+          ⚠ Disclaimer:</strong
+        >
+        This bill cannot be used as an official reference; it is provided for
+        <strong>informational purposes only</strong>.
       </div>
 
       <div class="layout" id="inputSection">
@@ -2875,16 +2858,6 @@
         <div id="insideSec"></div>
         <div id="outsideSec"></div>
         <div id="grandSec"></div>
-
-        <!-- DISCLAIMER at bottom of results -->
-        <div class="disclaimer">
-          <strong>⚠ Disclaimer:</strong> This bill cannot be used as an official
-          reference; it is provided for
-          <strong>informational purposes only</strong>.<br />
-          This module covers billing for vehicles up to <strong>3 tons</strong>.
-          Any vehicle with a weight of <strong>4 tons or more</strong> will not
-          be billed under this module.
-        </div>
       </div>
     </main>
     <!-- /wrap -->
@@ -2964,11 +2937,12 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 10px;
+            padding: 9px;
             box-shadow: var(--shadow-lg);
             z-index: 1000;
             display: none;
-            min-width: 280px;
+            min-width: 276px;
+            font-size: 14px;
           `;
           document.body.appendChild(this.calendar);
 
@@ -2996,8 +2970,8 @@
 
         positionCalendar() {
           const rect = this.input.getBoundingClientRect();
-          const calendarHeight = 300; // Approximate height
-          const calendarWidth = 280;
+          const calendarHeight = 299; // Approximate height
+          const calendarWidth = 276;
 
           let top = rect.bottom + window.scrollY + 5;
           let left = rect.left + window.scrollX;
@@ -3026,18 +3000,18 @@
           const month = this.currentDate.getMonth();
 
           let html = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <button onclick="event.stopPropagation(); calendarPickers['${this.inputId}'].previousMonth()" style="background: var(--gold); border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer;">‹</button>
-              <span style="color: var(--text); font-weight: 600;">${new Date(year, month).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
-              <button onclick="event.stopPropagation(); calendarPickers['${this.inputId}'].nextMonth()" style="background: var(--gold); border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer;">›</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px;">
+              <button onclick="event.stopPropagation(); calendarPickers['${this.inputId}'].previousMonth()" style="background: var(--gold); border: none; border-radius: 3px; padding: 4px 7px; cursor: pointer; font-size: 13px;">‹</button>
+              <span style="color: var(--text); font-weight: 600; font-size: 14px;">${new Date(year, month).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
+              <button onclick="event.stopPropagation(); calendarPickers['${this.inputId}'].nextMonth()" style="background: var(--gold); border: none; border-radius: 3px; padding: 4px 7px; cursor: pointer; font-size: 13px;">›</button>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center;">
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; text-align: center;">
           `;
 
           // Day headers
           const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
           days.forEach((day) => {
-            html += `<div style="color: var(--m2); font-size: 12px; padding: 4px;">${day}</div>`;
+            html += `<div style="color: var(--m2); font-size: 12px; padding: 3px;">${day}</div>`;
           });
 
           // Calendar days
@@ -3058,7 +3032,7 @@
 
             html += `
               <div onclick="calendarPickers['${this.inputId}'].selectDate(${year}, ${month}, ${day})" 
-                   style="padding: 6px; cursor: pointer; border-radius: 4px; 
+                   style="padding: 5px; cursor: pointer; border-radius: 3px; font-size: 13px;
                           ${isSelected ? "background: var(--gold); color: var(--bg);" : "color: var(--text);"}
                           &:hover { background: var(--glass-bg); }">
                 ${day}
