@@ -16,33 +16,72 @@
     />
     <style>
       :root {
-        --bg: #0a0b0f;
-        --surface: #111319;
-        --s2: #1a1d26;
-        --border: #252936;
-        --b2: #2f3545;
-        --gold: #f59e0b;
-        --gold-light: #fbbf24;
-        --gold-dark: #d97706;
-        --blue: #3b82f6;
-        --blue-light: #60a5fa;
-        --purple: #8b5cf6;
-        --purple-light: #a78bfa;
-        --green: #10b981;
-        --green-light: #34d399;
-        --red: #ef4444;
-        --red-light: #f87171;
-        --text: #f1f5f9;
-        --m1: #94a3b8;
-        --m2: #64748b;
-        --accent: #f59e0b;
-        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        --shadow-md:
-          0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        --shadow-lg:
-          0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-        --shadow-glow: 0 0 20px rgb(245 158 11 / 0.15);
+        /* Multi-layer Background System — Pure Dark */
+        --bg-base: #000000;
+        --bg-mid: #050505;
+        --bg-surface: #0a0a0a;
+        --bg: var(--bg-base);
+        --surface: var(--bg-surface);
+        --s2: var(--bg-mid);
+        --border: rgba(212, 175, 55, 0.1);
+        --b2: rgba(212, 175, 55, 0.15);
+
+        /* Premium Gold Accent System */
+        --accent-primary: #D4AF37;
+        --accent-secondary: #B8860B;
+        --accent-highlight: #FFD700;
+
+        /* Gold Variants */
+        --cyan-light: #FFD700;
+        --cyan-dark: #B8860B;
+        --purple-light: #F5C518;
+        --purple-dark: #996515;
+        --gold-light: #FFD700;
+        --gold-dark: #B8860B;
+        --gold: #D4AF37;
+
+        /* Premium Gold Glow System */
+        --glow-cyan: rgba(212, 175, 55, 0.25);
+        --glow-cyan-intense: rgba(212, 175, 55, 0.45);
+        --glow-purple: rgba(184, 134, 11, 0.15);
+        --glow-purple-intense: rgba(184, 134, 11, 0.3);
+        --glow-gold: rgba(212, 175, 55, 0.3);
+
+        /* Premium Text System */
+        --text-primary: #F0EAD6;
+        --text-secondary: #C8AA6E;
+        --text-muted: #8A7A60;
+        --m1: var(--text-secondary);
+        --m2: var(--text-muted);
+        --m3: #6A5A42;
+
+        /* Glass Surface System */
+        --glass-bg: rgba(8, 6, 2, 0.85);
+        --glass-border: rgba(212, 175, 55, 0.12);
+        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+        /* Premium Shadows */
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
+        --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.7);
+
+        /* Premium Gold Glow Combinations */
+        --shadow-glow-cyan:
+          0 0 20px var(--glow-cyan), 0 0 40px var(--glow-gold);
+        --shadow-glow-cyan-intense:
+          0 0 30px var(--glow-cyan-intense), 0 0 60px var(--glow-purple-intense);
+
+        /* Border Radius */
         --r: 12px;
+        --r-sm: 8px;
+        --r-lg: 16px;
+
+        /* Premium Transitions */
+        --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-luxury: 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       }
       @media (max-width: 360px) {
         :root {
@@ -56,11 +95,27 @@
       }
       html {
         scroll-behavior: smooth;
-        font-size: clamp(15px, 2.5vw, 20px);
+        font-size: clamp(17px, 2.8vw, 22px);
       }
       body {
-        background: linear-gradient(135deg, var(--bg) 0%, #0f1419 100%);
-        color: var(--text);
+        background:
+          radial-gradient(
+            circle at 20% 30%,
+            rgba(212, 175, 55, 0.06),
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 80% 70%,
+            rgba(184, 134, 11, 0.05),
+            transparent 40%
+          ),
+          linear-gradient(
+            135deg,
+            var(--bg-base) 0%,
+            var(--bg-mid) 50%,
+            var(--bg-surface) 100%
+          );
+        color: var(--text-primary);
         font-family: "DM Sans", sans-serif;
         font-size: inherit;
         min-height: 100vh;
@@ -90,12 +145,12 @@
         background:
           radial-gradient(
             circle at 20% 50%,
-            rgb(245 158 11 / 0.03) 0%,
+            rgb(212 175 55 / 0.04) 0%,
             transparent 50%
           ),
           radial-gradient(
             circle at 80% 80%,
-            rgb(59 130 246 / 0.03) 0%,
+            rgb(184 134 11 / 0.03) 0%,
             transparent 50%
           );
         pointer-events: none;
@@ -103,7 +158,7 @@
       }
       @media (max-width: 360px) {
         html {
-          font-size: 16.25px;
+          font-size: 17px;
         }
         .wrap {
           padding: 10px 8px 60px;
@@ -191,7 +246,7 @@
       .logo-sub {
         color: var(--m1);
         font-family: "DM Mono", monospace;
-        font-size: clamp(8px, 2vw, 11px);
+        font-size: clamp(12px, 2vw, 14px);
         letter-spacing: 2px;
       }
       @media (max-width: 480px) {
@@ -220,41 +275,41 @@
         flex-shrink: 0;
       }
       .hbadge {
-        background: linear-gradient(
-          135deg,
-          var(--gold) 15%,
-          var(--gold-dark) 100%
-        );
-        border: 1px solid var(--gold-dark);
-        color: var(--bg);
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        color: var(--accent-primary);
         font-family: "DM Mono", monospace;
-        font-size: clamp(8px, 2vw, 11px);
+        font-size: clamp(12px, 2vw, 14px);
         padding: clamp(3px, 1vw, 5px) clamp(8px, 2vw, 12px);
         border-radius: 20px;
         letter-spacing: 1px;
         white-space: nowrap;
         font-weight: 600;
-        box-shadow: 0 0 10px rgb(245 158 11 / 0.2);
+        box-shadow: var(--shadow-glow-cyan);
+        text-transform: uppercase;
       }
       .admin-btn {
         display: none;
         align-items: center;
         gap: clamp(4px, 1.5vw, 8px);
-        background: linear-gradient(135deg, var(--s2) 0%, var(--surface) 100%);
-        border: 1px solid var(--border);
-        color: var(--m1);
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        color: var(--text-secondary);
         font-family: "DM Mono", monospace;
-        font-size: clamp(8px, 2vw, 11px);
+        font-size: clamp(12px, 2vw, 14px);
         padding: clamp(6px, 1.5vw, 9px) clamp(10px, 2.5vw, 14px);
         border-radius: 8px;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all var(--transition-base);
         white-space: nowrap;
         letter-spacing: 0.5px;
         min-height: 40px;
         min-width: 40px;
         position: relative;
         overflow: hidden;
+        transform-origin: center;
       }
       .admin-btn::before {
         content: "";
@@ -266,13 +321,34 @@
         background: linear-gradient(
           90deg,
           transparent,
-          rgba(245, 158, 11, 0.1),
+          var(--gold-shimmer),
           transparent
         );
-        transition: left 0.5s;
+        transition: left var(--transition-slow);
+      }
+      .admin-btn::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: radial-gradient(
+          circle,
+          var(--gold-glow) 0%,
+          transparent 70%
+        );
+        transform: translate(-50%, -50%);
+        transition: all var(--transition-bounce);
+        pointer-events: none;
       }
       .admin-btn:hover::before {
         left: 100%;
+      }
+      .admin-btn:hover::after {
+        width: 120%;
+        height: 120%;
+        opacity: 0.8;
       }
       @media (max-width: 360px) {
         .admin-btn span:last-child {
@@ -280,16 +356,17 @@
         }
       }
       .admin-btn:hover {
-        border-color: var(--gold);
-        color: var(--gold);
-        transform: translateY(-2px) scale(1.05);
-        box-shadow:
-          0 6px 20px rgba(245, 158, 11, 0.3),
-          inset 0 1px 0 rgba(245, 158, 11, 0.2);
+        border-color: var(--accent-primary);
+        color: var(--text-primary);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-glow-cyan);
+        background: rgba(12, 9, 2, 0.92);
+        backdrop-filter: blur(16px);
       }
       .admin-btn:active {
-        transform: translateY(0) scale(1.02);
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+        transition: all var(--transition-fast);
       }
       .admin-btn.active {
         background: linear-gradient(
@@ -418,7 +495,7 @@
           font-size: clamp(20px, 5vw, 28px);
         }
         .modal-sub {
-          font-size: clamp(9px, 2.5vw, 12px);
+          font-size: clamp(13px, 2.5vw, 15px);
         }
         .minput {
           min-height: 48px;
@@ -434,7 +511,7 @@
       }
       .modal-sub {
         font-family: "DM Mono", monospace;
-        font-size: clamp(10px, 2.5vw, 13px);
+        font-size: clamp(13px, 2.5vw, 15px);
         color: var(--m2);
         margin-bottom: clamp(16px, 4vw, 24px);
       }
@@ -446,7 +523,7 @@
       }
       .mlbl {
         font-family: "DM Mono", monospace;
-        font-size: 10px;
+        font-size: 14px;
         text-transform: uppercase;
         letter-spacing: 1px;
         color: var(--m1);
@@ -465,14 +542,19 @@
         min-height: 44px;
       }
       .minput:focus {
-        border-color: var(--gold);
+        border-color: var(--accent-primary);
+        box-shadow:
+          0 0 0 3px var(--glow-cyan),
+          var(--shadow-md),
+          var(--shadow-glow-cyan);
+        transform: translateY(-1px);
       }
       .merr {
         background: var(--red) 18;
         border: 1px solid var(--red) 33;
         color: var(--red);
         font-family: "DM Mono", monospace;
-        font-size: 11px;
+        font-size: 14px;
         padding: 8px 12px;
         border-radius: 6px;
         margin-bottom: 12px;
@@ -528,50 +610,82 @@
       .pgtitle {
         font-family: "Bebas Neue", sans-serif;
         font-size: clamp(28px, 7vw, 56px);
-        letter-spacing: 2px;
+        letter-spacing: 6px;
         line-height: 1.1;
         background: linear-gradient(
-          135deg,
-          var(--gold-light) 0%,
-          var(--gold) 50%,
-          var(--text) 100%
+          110deg,
+          #7A5C10 0%,
+          #D4AF37 20%,
+          #FFD700 35%,
+          #FFF8DC 50%,
+          #FFD700 65%,
+          #D4AF37 80%,
+          #7A5C10 100%
         );
+        background-size: 250% auto;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         margin-bottom: clamp(4px, 2vw, 8px);
         position: relative;
         animation:
-          titleGlow 3s ease-in-out 0.6s infinite alternate,
-          titleSlide 0.8s ease-out 0.6s both;
+          titleReveal 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both,
+          goldShimmer 4s linear 1.3s infinite,
+          titleGlow 3s ease-in-out 1.3s infinite alternate;
       }
-      @keyframes titleSlide {
-        from {
+      .pgtitle::after {
+        content: "";
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        height: 2px;
+        width: 0%;
+        background: linear-gradient(90deg, transparent, #FFD700, #D4AF37, transparent);
+        animation: underlineDraw 1.2s cubic-bezier(0.22, 1, 0.36, 1) 1s forwards;
+        border-radius: 2px;
+      }
+      @keyframes titleReveal {
+        0% {
           opacity: 0;
-          transform: translateX(-50px);
+          transform: translateY(30px) skewX(-8deg);
+          filter: blur(8px);
+          letter-spacing: 20px;
         }
-        to {
+        60% {
+          filter: blur(0px);
+        }
+        100% {
           opacity: 1;
-          transform: translateX(0);
+          transform: translateY(0) skewX(0deg);
+          letter-spacing: 6px;
         }
+      }
+      @keyframes goldShimmer {
+        0%   { background-position: 200% center; }
+        100% { background-position: -200% center; }
+      }
+      @keyframes underlineDraw {
+        0%   { width: 0%; opacity: 0; }
+        20%  { opacity: 1; }
+        100% { width: 100%; opacity: 0.7; }
       }
       @keyframes titleGlow {
         0% {
-          filter: brightness(1) drop-shadow(0 0 10px rgba(245, 158, 11, 0.3));
+          filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
         }
         100% {
-          filter: brightness(1.2) drop-shadow(0 0 20px rgba(245, 158, 11, 0.5));
+          filter: drop-shadow(0 0 22px rgba(255, 215, 0, 0.6)) drop-shadow(0 0 40px rgba(212, 175, 55, 0.25));
         }
       }
       @media (max-width: 360px) {
         .pgtitle {
           font-size: 26px;
-          letter-spacing: 1px;
+          letter-spacing: 3px;
         }
       }
       .pgsub {
         font-family: "DM Mono", monospace;
-        font-size: clamp(9px, 2.5vw, 12px);
+        font-size: clamp(13px, 2.5vw, 15px);
         color: var(--m2);
         letter-spacing: clamp(1px, 0.5vw, 2px);
         text-transform: uppercase;
@@ -591,30 +705,30 @@
       .weight-note {
         background: linear-gradient(
           145deg,
-          rgba(239, 68, 68, 0.05) 0%,
-          rgba(239, 68, 68, 0.1) 100%
+          rgba(245, 158, 11, 0.08) 0%,
+          rgba(245, 158, 11, 0.15) 100%
         );
-        border: 1px solid var(--red) 44;
+        border: 1.5px solid rgba(245, 158, 11, 0.6);
         border-radius: 10px;
-        padding: clamp(9px, 2vw, 14px) clamp(13px, 3vw, 18px);
+        padding: clamp(10px, 2vw, 16px) clamp(14px, 3vw, 20px);
         font-family: "DM Mono", monospace;
-        font-size: clamp(10px, 2.5vw, 12px);
-        color: var(--red-light);
+        font-size: clamp(13px, 2.5vw, 15px);
+        color: #FCD34D;
         margin-bottom: clamp(14px, 4vw, 22px);
-        line-height: 1.7;
+        line-height: 1.8;
         position: relative;
         overflow: hidden;
-        animation: warningPulse 2s ease-in-out 1s infinite;
+        box-shadow: 0 0 18px rgba(245, 158, 11, 0.15), inset 0 0 20px rgba(245, 158, 11, 0.04);
+        animation: warningPulse 2.5s ease-in-out infinite;
       }
       @keyframes warningPulse {
-        0%,
-        100% {
-          transform: scale(1);
-          border-color: var(--red) 44;
+        0%, 100% {
+          box-shadow: 0 0 18px rgba(245, 158, 11, 0.15), inset 0 0 20px rgba(245, 158, 11, 0.04);
+          border-color: rgba(245, 158, 11, 0.6);
         }
         50% {
-          transform: scale(1.02);
-          border-color: var(--red-light);
+          box-shadow: 0 0 28px rgba(245, 158, 11, 0.3), inset 0 0 24px rgba(245, 158, 11, 0.08);
+          border-color: rgba(245, 158, 11, 0.9);
         }
       }
       .weight-note::before {
@@ -623,11 +737,11 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 1px;
+        height: 2px;
         background: linear-gradient(
           90deg,
           transparent,
-          var(--red-light),
+          #F59E0B,
           transparent
         );
         animation: pulse 2s infinite;
@@ -681,12 +795,13 @@
 
       /* CARD */
       .card {
-        background: linear-gradient(145deg, var(--surface) 0%, var(--s2) 100%);
-        border: 1px solid var(--border);
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
         border-radius: var(--r);
         padding: clamp(13px, 3vw, 22px);
         margin-bottom: clamp(12px, 3vw, 18px);
-        box-shadow: var(--shadow-md);
+        box-shadow: var(--glass-shadow);
         position: relative;
         overflow: hidden;
         opacity: 0;
@@ -710,46 +825,53 @@
         background: linear-gradient(
           90deg,
           transparent,
-          rgba(245, 158, 11, 0.3),
+          var(--gold-shimmer),
           transparent
         );
         opacity: 0;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all var(--transition-slow);
       }
       .card::after {
         content: "";
         position: absolute;
         top: 50%;
         left: 50%;
-        width: 100%;
-        height: 100%;
+        width: 120%;
+        height: 120%;
         background: radial-gradient(
           circle,
-          rgba(245, 158, 11, 0.05) 0%,
+          var(--gold-glow) 0%,
+          rgba(212, 165, 116, 0.1) 30%,
           transparent 70%
         );
-        transform: translate(-50%, -50%) scale(0);
+        transform: translate(-50%, -50%) scale(0) rotate(45deg);
         opacity: 0;
-        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all var(--transition-bounce);
         pointer-events: none;
       }
       .card:hover::after {
-        transform: translate(-50%, -50%) scale(1.5);
+        transform: translate(-50%, -50%) scale(1) rotate(45deg);
         opacity: 1;
       }
       .card:hover {
-        transform: translateY(-4px) scale(1.02);
-        box-shadow:
-          var(--shadow-lg),
-          0 0 30px rgba(245, 158, 11, 0.15);
-        border-color: var(--gold) 66;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-glow-cyan);
+        border-color: var(--accent-primary);
+        background: rgba(12, 9, 2, 0.92);
+        backdrop-filter: blur(16px);
       }
       .card:hover::before {
         opacity: 1;
         height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent-primary),
+          transparent
+        );
       }
       .card:hover .ctitle {
-        color: var(--gold);
+        color: var(--accent-primary);
         transform: translateX(4px);
       }
       @media (max-width: 360px) {
@@ -760,7 +882,7 @@
       }
       .ctitle {
         font-family: "DM Mono", monospace;
-        font-size: clamp(9px, 2.5vw, 11px);
+        font-size: clamp(12px, 2.5vw, 14px);
         letter-spacing: clamp(1px, 0.5vw, 2px);
         text-transform: uppercase;
         color: var(--m1);
@@ -786,7 +908,7 @@
       }
       .cnote {
         font-family: "DM Mono", monospace;
-        font-size: 9px;
+        font-size: 13px;
         color: var(--m2);
         margin-left: auto;
         display: flex;
@@ -813,7 +935,7 @@
         }
         .btn {
           padding: clamp(12px, 2.5vw, 16px) clamp(14px, 3vw, 20px);
-          font-size: clamp(10px, 2.5vw, 12px);
+          font-size: clamp(13px, 2.5vw, 15px);
         }
         .sp {
           padding: clamp(12px, 3vw, 18px);
@@ -825,7 +947,7 @@
         gap: clamp(4px, 1.5vw, 7px);
       }
       .lbl {
-        font-size: clamp(9px, 2.5vw, 11px);
+        font-size: clamp(12px, 2.5vw, 14px);
         font-family: "DM Mono", monospace;
         text-transform: uppercase;
         letter-spacing: clamp(0.5px, 0.5vw, 1px);
@@ -836,7 +958,7 @@
         flex-wrap: wrap;
       }
       .lck {
-        font-size: 9px;
+        font-size: 13px;
         opacity: 0.45;
       }
 
@@ -844,38 +966,52 @@
       input[type="number"],
       input[type="password"],
       input[type="text"] {
-        background: linear-gradient(145deg, var(--s2) 0%, var(--surface) 100%);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        color: var(--text);
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--r-sm);
+        color: var(--text-primary);
         font-family: "DM Mono", monospace;
         font-size: clamp(12px, 2.5vw, 14px);
         padding: clamp(9px, 2.5vw, 13px) clamp(10px, 2.5vw, 14px);
         width: 100%;
         outline: none;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all var(--transition-base);
         -webkit-appearance: none;
         appearance: none;
         min-height: 44px;
         position: relative;
       }
+      input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(75%) sepia(40%) saturate(600%) hue-rotate(5deg) brightness(110%);
+        opacity: 0.85;
+        cursor: pointer;
+        width: 18px;
+        height: 18px;
+        padding: 2px;
+        border-radius: 4px;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+      input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+        transform: scale(1.15);
+      }
       input[type="date"]:hover,
       input[type="number"]:hover,
       input[type="password"]:hover,
       input[type="text"]:hover {
-        border-color: var(--gold) 66;
-        transform: translateY(-2px);
-        box-shadow:
-          0 4px 12px rgba(245, 158, 11, 0.15),
-          inset 0 1px 0 rgba(245, 158, 11, 0.1);
-        background: linear-gradient(145deg, var(--s2) 0%, var(--surface) 100%);
+        border-color: var(--accent-primary);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-glow-cyan);
+        background: rgba(12, 9, 2, 0.92);
+        backdrop-filter: blur(16px);
       }
       @media (max-width: 360px) {
         input[type="date"],
         input[type="number"],
         input[type="password"],
         input[type="text"] {
-          font-size: 13px;
+          font-size: 14px;
           padding: 10px 12px;
           min-height: 48px;
         }
@@ -883,16 +1019,6 @@
           min-height: 48px;
           padding: 10px 12px;
         }
-      }
-      input:focus {
-        border-color: var(--gold);
-        box-shadow:
-          0 0 0 3px rgba(245, 158, 11, 0.1),
-          0 4px 12px rgba(245, 158, 11, 0.2);
-        transform: translateY(-1px);
-      }
-      input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(0.4);
       }
       .ro {
         opacity: 0.52;
@@ -912,19 +1038,21 @@
         border-color: var(--gold) !important;
       }
       .date-display {
-        background: linear-gradient(145deg, var(--bg) 0%, var(--s2) 100%);
-        border: 1px solid var(--border);
-        border-radius: 8px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--r-sm);
         padding: clamp(9px, 2.5vw, 13px) clamp(10px, 2.5vw, 14px);
         font-family: "DM Mono", monospace;
         font-size: clamp(12px, 2.5vw, 14px);
-        color: var(--m1);
+        color: var(--text-secondary);
         opacity: 0.8;
         min-height: 44px;
         display: flex;
         align-items: center;
         position: relative;
         overflow: hidden;
+        transition: all var(--transition-base);
       }
       .date-display::before {
         content: "";
@@ -936,10 +1064,41 @@
         background: linear-gradient(
           90deg,
           transparent,
-          rgba(245, 158, 11, 0.05),
+          var(--gold-shimmer),
           transparent
         );
-        animation: shimmer 3s infinite;
+        animation: shimmer 4s infinite;
+      }
+      .date-display::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: radial-gradient(
+          circle,
+          var(--gold-glow) 0%,
+          transparent 70%
+        );
+        transform: translate(-50%, -50%);
+        transition: all var(--transition-luxury);
+        pointer-events: none;
+        opacity: 0;
+      }
+      .date-display:hover {
+        border-color: var(--accent-primary);
+        color: var(--text-primary);
+        opacity: 1;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-glow-cyan);
+        background: rgba(12, 9, 2, 0.92);
+        backdrop-filter: blur(16px);
+      }
+      .date-display:hover::after {
+        width: 120%;
+        height: 120%;
+        opacity: 0.4;
       }
       @keyframes shimmer {
         0% {
@@ -957,7 +1116,7 @@
         border-radius: 6px;
         padding: 6px 10px;
         font-family: "DM Mono", monospace;
-        font-size: 10px;
+        font-size: 14px;
         color: var(--red);
         margin-top: 6px;
         display: none;
@@ -972,7 +1131,7 @@
         align-items: center;
         gap: 6px;
         font-family: "DM Mono", monospace;
-        font-size: 10px;
+        font-size: 14px;
         padding: 3px 10px;
         border-radius: 20px;
         margin-top: 10px;
@@ -1008,7 +1167,7 @@
       }
       .ptbl th {
         font-family: "DM Mono", monospace;
-        font-size: clamp(9px, 2.5vw, 11px);
+        font-size: clamp(12px, 2.5vw, 14px);
         text-transform: uppercase;
         letter-spacing: clamp(0.5px, 0.5vw, 1px);
         color: var(--m1);
@@ -1025,13 +1184,13 @@
         padding: clamp(8px, 2vw, 12px) clamp(10px, 2vw, 14px);
         border-bottom: 1px solid var(--border) 44;
         font-family: "DM Mono", monospace;
-        font-size: clamp(10px, 2.5vw, 13px);
+        font-size: clamp(13px, 2.5vw, 15px);
         color: var(--m1);
         vertical-align: middle;
         transition: all 0.2s ease;
       }
       .ptbl tr:hover td {
-        background: rgba(245, 158, 11, 0.03);
+        background: rgba(212, 175, 55, 0.06);
         transform: translateX(2px);
       }
       .ptbl tr:last-child td {
@@ -1040,7 +1199,7 @@
       .ptbl td input[type="number"] {
         width: clamp(60px, 15vw, 80px);
         padding: clamp(4px, 1.5vw, 7px) clamp(6px, 1.5vw, 10px);
-        font-size: clamp(11px, 2.5vw, 13px);
+        font-size: clamp(14px, 2.5vw, 16px);
         min-height: 36px;
       }
       .ptbl td input[type="checkbox"] {
@@ -1056,7 +1215,7 @@
         text-align: center;
       }
       .ntcell {
-        font-size: 10px;
+        font-size: 14px;
         white-space: nowrap;
       }
 
@@ -1074,7 +1233,7 @@
       }
       .rst {
         font-family: "DM Mono", monospace;
-        font-size: clamp(9px, 2.5vw, 11px);
+        font-size: clamp(12px, 2.5vw, 14px);
         text-transform: uppercase;
         letter-spacing: clamp(0.5px, 0.5vw, 1px);
         margin-bottom: clamp(7px, 2vw, 11px);
@@ -1098,7 +1257,7 @@
       }
       .rt th {
         font-family: "DM Mono", monospace;
-        font-size: clamp(9px, 2.5vw, 11px);
+        font-size: clamp(12px, 2.5vw, 14px);
         text-transform: uppercase;
         letter-spacing: clamp(0.5px, 0.5vw, 1px);
         color: var(--m2);
@@ -1110,7 +1269,7 @@
         padding: clamp(7px, 2vw, 11px) clamp(8px, 2vw, 12px);
         border-bottom: 1px solid var(--border) 55;
         font-family: "DM Mono", monospace;
-        font-size: clamp(11px, 2.5vw, 13px);
+        font-size: clamp(14px, 2.5vw, 16px);
         color: var(--m1);
       }
       .rt tr:last-child td {
@@ -1135,7 +1294,7 @@
       .rspan {
         color: var(--m1);
         font-family: "DM Mono", monospace;
-        font-size: 13px;
+        font-size: 14px;
       }
 
       /* VAT ROW */
@@ -1147,7 +1306,7 @@
         flex-wrap: wrap;
       }
       .vatr label {
-        font-size: clamp(9px, 2.5vw, 11px);
+        font-size: clamp(12px, 2.5vw, 14px);
         font-family: "DM Mono", monospace;
         text-transform: uppercase;
         letter-spacing: clamp(0.5px, 0.5vw, 1px);
@@ -1221,7 +1380,7 @@
 
       #preview {
         font-family: "DM Mono", monospace;
-        font-size: clamp(11px, 2.5vw, 13px);
+        font-size: clamp(14px, 2.5vw, 16px);
         color: var(--m2);
         line-height: 2.3;
         padding: clamp(12px, 2.5vw, 18px);
@@ -1294,7 +1453,7 @@
         );
         color: #000;
         font-family: "DM Mono", monospace;
-        font-size: clamp(11px, 2.5vw, 13px);
+        font-size: clamp(14px, 2.5vw, 16px);
         font-weight: 600;
         letter-spacing: clamp(1px, 0.5vw, 1.5px);
         text-transform: uppercase;
@@ -1320,17 +1479,39 @@
         background: linear-gradient(
           90deg,
           transparent,
-          rgba(255, 255, 255, 0.2),
+          rgba(255, 255, 255, 0.3),
           transparent
         );
-        transition: left 0.5s;
+        transition: left var(--transition-slow);
+      }
+      .btn::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.4) 0%,
+          transparent 70%
+        );
+        transform: translate(-50%, -50%);
+        transition: all var(--transition-bounce);
+        pointer-events: none;
+        opacity: 0;
       }
       .btn:hover::before {
         left: 100%;
       }
+      .btn:hover::after {
+        width: 150%;
+        height: 150%;
+        opacity: 0.8;
+      }
       @media (max-width: 360px) {
         .btn {
-          font-size: 11px;
+          font-size: 14px;
           padding: 12px 16px;
           min-height: 48px;
         }
@@ -1340,20 +1521,25 @@
         }
       }
       .btn:hover {
-        transform: translateY(-3px) scale(1.05);
+        transform: translateY(-3px) scale(1.02);
         box-shadow:
-          0 8px 25px rgba(245, 158, 11, 0.5),
-          0 0 40px rgba(245, 158, 11, 0.2);
+          0 8px 24px rgba(212, 175, 55, 0.45),
+          0 2px 8px rgba(0, 0, 0, 0.6);
         filter: brightness(1.15) saturate(1.2);
+        background: linear-gradient(
+          135deg,
+          #FFD700 0%,
+          #D4AF37 50%,
+          #B8860B 100%
+        );
       }
       .btn:active {
-        transform: translateY(-1px) scale(1.02);
-        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-        transition: all 0.1s;
-      }
-      .btn:active {
-        transform: translateY(0) scale(0.98);
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        transform: translateY(-1px) scale(1.01);
+        box-shadow:
+          0 4px 12px rgba(212, 175, 55, 0.3),
+          0 1px 4px rgba(0, 0, 0, 0.5);
+        filter: brightness(1.05);
+        transition: all var(--transition-fast);
       }
       .bg {
         background: transparent;
@@ -1362,12 +1548,22 @@
         margin-top: 8px;
       }
       .bg:hover {
-        border-color: var(--b2);
-        color: var(--text);
+        border-color: var(--gold);
+        color: var(--gold);
         opacity: 1;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow:
+          0 6px 20px rgba(212, 175, 55, 0.2),
+          0 2px 6px rgba(0, 0, 0, 0.4);
+        background: linear-gradient(
+          135deg,
+          var(--s2) 0%,
+          rgba(212, 175, 55, 0.08) 50%,
+          var(--surface) 100%
+        );
       }
       .bsm {
-        font-size: clamp(10px, 2.5vw, 12px);
+        font-size: clamp(13px, 2.5vw, 15px);
         padding: clamp(7px, 2vw, 11px) clamp(13px, 2.5vw, 18px);
         border-radius: 7px;
         min-height: 40px;
@@ -1376,7 +1572,7 @@
       /* GUIDE */
       .guide {
         font-family: "DM Mono", monospace;
-        font-size: clamp(10px, 2.5vw, 12px);
+        font-size: clamp(13px, 2.5vw, 15px);
         color: var(--m2);
         line-height: 2.3;
       }
@@ -1489,7 +1685,7 @@
       }
       .il {
         font-family: "DM Mono", monospace;
-        font-size: clamp(8px, 2vw, 10px);
+        font-size: clamp(12px, 2vw, 14px);
         text-transform: uppercase;
         letter-spacing: clamp(1px, 0.5vw, 1.5px);
         color: var(--m2);
@@ -1497,7 +1693,7 @@
       }
       .iv {
         font-family: "DM Mono", monospace;
-        font-size: clamp(10px, 2.5vw, 12px);
+        font-size: clamp(13px, 2.5vw, 15px);
         color: var(--text);
       }
 
@@ -1550,7 +1746,7 @@
       }
       .sc .sl {
         font-family: "DM Mono", monospace;
-        font-size: clamp(8px, 2vw, 10px);
+        font-size: clamp(12px, 2vw, 14px);
         text-transform: uppercase;
         letter-spacing: clamp(1px, 0.5vw, 1.5px);
         color: var(--m2);
@@ -1576,7 +1772,7 @@
       }
       .sc .ss {
         font-family: "DM Mono", monospace;
-        font-size: clamp(8px, 2vw, 10px);
+        font-size: clamp(12px, 2vw, 14px);
         color: var(--m2);
         margin-top: clamp(2px, 1vw, 6px);
       }
@@ -1587,7 +1783,7 @@
         align-items: center;
         gap: clamp(6px, 2vw, 10px);
         font-family: "DM Mono", monospace;
-        font-size: clamp(9px, 2.5vw, 11px);
+        font-size: clamp(12px, 2.5vw, 14px);
         text-transform: uppercase;
         letter-spacing: clamp(1px, 0.5vw, 2px);
         padding: clamp(3px, 1.5vw, 6px) clamp(10px, 3vw, 15px);
@@ -1622,7 +1818,7 @@
       }
       .bt th {
         font-family: "DM Mono", monospace;
-        font-size: clamp(9px, 2.5vw, 11px);
+        font-size: clamp(12px, 2.5vw, 14px);
         text-transform: uppercase;
         letter-spacing: clamp(0.5px, 0.5vw, 1px);
         color: var(--m2);
@@ -1640,7 +1836,7 @@
         border-bottom: 1px solid var(--border) 44;
         text-align: right;
         font-family: "DM Mono", monospace;
-        font-size: clamp(10px, 2.5vw, 13px);
+        font-size: clamp(13px, 2.5vw, 15px);
       }
       .bt td:first-child {
         text-align: left;
@@ -1652,7 +1848,7 @@
       .bt .sep td {
         background: var(--s2);
         padding: 5px 14px;
-        font-size: 10px;
+        font-size: 14px;
         color: var(--m2);
         border-top: 1px solid var(--border);
         border-bottom: 1px solid var(--border) 44;
@@ -1660,12 +1856,12 @@
       .bt .sub td {
         background: var(--s2);
         color: var(--m1);
-        font-size: 11px;
+        font-size: 14px;
       }
       .bt .tot td {
         background: var(--s2);
         color: var(--gold);
-        font-size: 13px;
+        font-size: 14px;
         border-top: 1px solid var(--border);
       }
       .bt .grand td {
@@ -1677,11 +1873,11 @@
       }
       .bt .vrow td {
         color: var(--m1);
-        font-size: 11px;
+        font-size: 14px;
       }
       .bt .lrow td {
         color: var(--green);
-        font-size: 11px;
+        font-size: 14px;
       }
 
       /* DAY PILL */
@@ -1693,7 +1889,7 @@
         border: none;
         color: var(--blue);
         font-family: "DM Mono", monospace;
-        font-size: clamp(9px, 2.5vw, 11px);
+        font-size: clamp(12px, 2.5vw, 14px);
         min-width: clamp(30px, 7vw, 40px);
         height: clamp(18px, 4vw, 24px);
         border-radius: 4px;
@@ -1712,7 +1908,7 @@
         border-radius: 10px;
         padding: clamp(7px, 2.5vw, 12px) clamp(10px, 3vw, 16px);
         font-family: "DM Mono", monospace;
-        font-size: clamp(10px, 2.5vw, 12px);
+        font-size: clamp(13px, 2.5vw, 15px);
         color: var(--gold);
         margin-bottom: clamp(10px, 2.5vw, 16px);
         display: flex;
@@ -1725,7 +1921,7 @@
         border-radius: 10px;
         padding: clamp(7px, 2.5vw, 12px) clamp(10px, 3vw, 16px);
         font-family: "DM Mono", monospace;
-        font-size: clamp(10px, 2.5vw, 12px);
+        font-size: clamp(13px, 2.5vw, 15px);
         color: var(--m1);
         margin-top: clamp(10px, 2.5vw, 16px);
         line-height: 1.7;
@@ -1736,7 +1932,7 @@
         border-radius: 10px;
         padding: clamp(9px, 2.5vw, 14px) clamp(10px, 3vw, 16px);
         font-family: "DM Mono", monospace;
-        font-size: clamp(10px, 2.5vw, 12px);
+        font-size: clamp(13px, 2.5vw, 15px);
         color: var(--green);
         margin-bottom: clamp(12px, 3vw, 20px);
       }
@@ -1769,7 +1965,7 @@
       }
       .glbl {
         font-family: "DM Mono", monospace;
-        font-size: clamp(8px, 2vw, 10px);
+        font-size: clamp(12px, 2vw, 14px);
         text-transform: uppercase;
         letter-spacing: clamp(1px, 0.5vw, 2px);
         color: var(--m2);
@@ -1783,7 +1979,7 @@
       }
       .gsub {
         font-family: "DM Mono", monospace;
-        font-size: clamp(8px, 2vw, 10px);
+        font-size: clamp(12px, 2vw, 14px);
         color: var(--m2);
         margin-top: clamp(2px, 1vw, 4px);
       }
@@ -1811,19 +2007,25 @@
 
       /* DISCLAIMER */
       .disclaimer {
-        background: var(--s2);
-        border: 1px solid var(--border);
+        background: linear-gradient(
+          145deg,
+          rgba(245, 158, 11, 0.06) 0%,
+          rgba(212, 175, 55, 0.1) 100%
+        );
+        border: 1.5px solid rgba(212, 175, 55, 0.45);
         border-radius: 10px;
-        padding: clamp(10px, 2.5vw, 16px) clamp(12px, 3vw, 20px);
+        padding: clamp(12px, 2.5vw, 18px) clamp(14px, 3vw, 22px);
         font-family: "DM Mono", monospace;
-        font-size: clamp(9px, 2.5vw, 11px);
-        color: var(--m2);
+        font-size: clamp(13px, 2.5vw, 15px);
+        color: #E5C97A;
         margin-top: clamp(16px, 4vw, 28px);
-        line-height: 1.8;
+        line-height: 1.9;
         text-align: center;
+        box-shadow: 0 0 14px rgba(212, 175, 55, 0.1);
       }
       .disclaimer strong {
-        color: var(--m1);
+        color: #FFD700;
+        font-weight: 700;
       }
 
       /* COPYRIGHT FOOTER */
@@ -1839,7 +2041,7 @@
       }
       .copyright-footer p {
         font-family: "DM Mono", monospace;
-        font-size: clamp(10px, 2.5vw, 13px);
+        font-size: clamp(13px, 2.5vw, 15px);
         color: var(--m1);
         letter-spacing: clamp(0.5px, 0.5vw, 0.8px);
         margin: 0;
@@ -1854,7 +2056,7 @@
           padding: 12px 10px;
         }
         .copyright-footer p {
-          font-size: 10px;
+          font-size: 14px;
           line-height: 1.5;
         }
       }
@@ -1947,7 +2149,7 @@
               <div class="fg">
                 <label class="lbl"
                   >CLD
-                  <span style="font-size: 9px; color: var(--m2)"
+                  <span style="font-size: 13px; color: var(--m2)"
                     >(Common Landing Day)</span
                   ></label
                 >
@@ -1961,7 +2163,7 @@
               <div class="fg">
                 <label class="lbl"
                   >Free Time
-                  <span style="font-size: 9px; color: var(--m2)"
+                  <span style="font-size: 13px; color: var(--m2)"
                     >(days incl. CLD)</span
                   >
                   <span class="lck">🔒</span></label
@@ -1985,7 +2187,7 @@
                 padding: 10px 14px;
                 margin-bottom: 10px;
                 font-family: &quot;DM Mono&quot;, monospace;
-                font-size: 11px;
+                font-size: 14px;
                 color: var(--m1);
                 line-height: 1.9;
                 display: none;
