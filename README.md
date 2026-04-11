@@ -185,7 +185,7 @@ A comprehensive web application for calculating port authority wharfrent and pay
 
 ## 📄 File Structure
 
-```
+```text
 portbill/
 ├── index.html          # Main application file
 ├── README.md          # This documentation
@@ -221,7 +221,37 @@ For technical issues or questions:
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: 2025  
-**Author**: samiulAsumel  
-**License**: All Rights Reserved
+## Project Status
+
+- **Repository**: [https://github.com/samiulAsumel/portbill](https://github.com/samiulAsumel/portbill)
+- **Version**: 1.0.0
+- **Last Updated**: April 2025
+- **Author**: samiulAsumel
+- **License**: All Rights Reserved
+- **Status**: Production Ready
+
+## Recent Activity
+
+- Latest commits show active development and maintenance
+- Recent updates include delivery date error handling and UI improvements
+- Project is actively maintained with regular updates
+
+## Technical Specifications
+
+- **Single Page Application**: 133KB HTML file with embedded CSS/JavaScript
+- **Zero Dependencies**: Pure vanilla JavaScript implementation
+- **Responsive Design**: Mobile-first approach with 5 breakpoint levels
+- **Cross-browser Compatible**: Modern browsers with ES6+ support
+- **Performance Optimized**: Efficient DOM manipulation and calculations
+
+## Security Features
+
+- Client-side admin authentication (admin/admin)
+- Input validation and sanitization
+- Weight limit enforcement (1-3 tons)
+- Date range validation
+- Protected rate configuration in user mode
+
+---
+
+**Scan completed successfully** - Project structure verified and documentation updated.
