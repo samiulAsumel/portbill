@@ -16,10 +16,10 @@
     />
     <style>
       :root {
-        /* Multi-layer Background System — Pure Dark */
-        --bg-base: #000000;
-        --bg-mid: #050505;
-        --bg-surface: #0a0a0a;
+        /* Multi-layer Background System — Deep Dark */
+        --bg-base: #020202;
+        --bg-mid: #030303;
+        --bg-surface: #050505;
         --bg: var(--bg-base);
         --surface: var(--bg-surface);
         --s2: var(--bg-mid);
@@ -115,21 +115,16 @@
       body {
         background:
           radial-gradient(
-            circle at 20% 30%,
-            rgba(212, 175, 55, 0.06),
-            transparent 40%
+            ellipse at 30% 20%,
+            rgba(212, 175, 55, 0.03) 0%,
+            transparent 50%
           ),
           radial-gradient(
-            circle at 80% 70%,
-            rgba(184, 134, 11, 0.05),
-            transparent 40%
+            ellipse at 70% 80%,
+            rgba(184, 134, 11, 0.025) 0%,
+            transparent 50%
           ),
-          linear-gradient(
-            135deg,
-            var(--bg-base) 0%,
-            var(--bg-mid) 50%,
-            var(--bg-surface) 100%
-          );
+          var(--bg-base);
         color: var(--text-primary);
         font-family: "DM Sans", sans-serif;
         font-size: inherit;
@@ -139,6 +134,49 @@
         position: relative;
         opacity: 0;
         animation: pageLoad 0.8s ease-out forwards;
+        scroll-behavior: smooth;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
+      .particle-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+      .particle {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        background: var(--gold);
+        border-radius: 50%;
+        opacity: 0;
+        animation: particleFloat 8s infinite ease-in-out;
+      }
+      @keyframes particleFloat {
+        0%, 100% {
+          opacity: 0;
+          transform: translateY(100vh) scale(0);
+        }
+        10% {
+          opacity: 0.5;
+        }
+        90% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-100px) scale(1);
+        }
+      }
+      @media (hover: none) {
+        .particle {
+          display: none;
+        }
       }
       @keyframes pageLoad {
         from {
@@ -149,6 +187,54 @@
           opacity: 1;
           transform: translateY(0);
         }
+      }
+      [data-reveal] {
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+        transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                    transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+      [data-reveal].revealed {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      [data-reveal="fade"] {
+        transform: translateY(20px);
+      }
+      [data-reveal="up"] {
+        transform: translateY(50px);
+      }
+      [data-reveal="down"] {
+        transform: translateY(-50px);
+      }
+      [data-reveal="left"] {
+        transform: translateX(-50px);
+      }
+      [data-reveal="right"] {
+        transform: translateX(50px);
+      }
+      [data-reveal="scale"] {
+        transform: scale(0.8);
+      }
+      [data-reveal="3d"] {
+        transform: perspective(1000px) rotateX(15deg) translateY(30px);
+      }
+      [data-delay] {
+        --reveal-delay: var(--data-delay, 0s);
+        transition-delay: var(--reveal-delay);
+      }
+      .parallax-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        z-index: -1;
+        background: 
+          radial-gradient(ellipse at 15% 25%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+          radial-gradient(ellipse at 85% 75%, rgba(184, 134, 11, 0.06) 0%, transparent 50%);
+        will-change: transform;
+        pointer-events: none;
       }
       body::before {
         content: "";
@@ -831,6 +917,7 @@
       .card {
         background: var(--glass-bg);
         backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border: 1px solid var(--glass-border);
         border-radius: var(--r);
         padding: clamp(13px, 3vw, 22px);
@@ -843,6 +930,15 @@
         animation-delay: var(--card-delay, 0s);
         transform: translateY(20px);
         will-change: transform, opacity;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s, border-color 0.3s;
+      }
+      @media (hover: fine) {
+        .card:hover {
+          transform: translateY(-4px);
+        }
+      }
+      .card:active {
+        transform: scale(0.99);
       }
       @keyframes cardReveal {
         to {
@@ -3990,6 +4086,170 @@
     <script>
       // Set current year dynamically
       document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+    <script>
+      // ===== INTERSECTION OBSERVER SCROLL REVEALS =====
+      (function() {
+        const reveals = document.querySelectorAll('[data-reveal]');
+        if (!reveals.length) return;
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('revealed');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        reveals.forEach(el => observer.observe(el));
+      })();
+
+      // ===== 3D CARD TILT EFFECT (mouse only) =====
+      (function() {
+        if (window.matchMedia('(hover: none)').matches) return;
+        const cards = document.querySelectorAll('.card');
+        if (!cards.length) return;
+
+        cards.forEach(card => {
+          card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = (y - centerY) / 20;
+            const rotateY = (centerX - x) / 20;
+
+            card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+          });
+
+          card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg)';
+          });
+        });
+      })();
+
+      // ===== FLOATING PARTICLES =====
+      (function() {
+        const container = document.createElement('div');
+        container.className = 'particle-container';
+        document.body.appendChild(container);
+
+        const particleCount = 12;
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          particle.style.left = `${Math.random() * 100}%`;
+          particle.style.animationDelay = `${Math.random() * 8}s`;
+          particle.style.animationDuration = `${6 + Math.random() * 4}s`;
+          const size = 2 + Math.random() * 4;
+          particle.style.width = `${size}px`;
+          particle.style.height = `${size}px`;
+          particle.style.opacity = 0.2 + Math.random() * 0.4;
+          container.appendChild(particle);
+        }
+      })();
+
+      
+
+      // ===== ENHANCED BUTTON ANIMATIONS =====
+      (function() {
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            ripple.style.width = ripple.style.height = `${size}px`;
+            ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+            ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+            ripple.style.position = 'absolute';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(255,255,255,0.4)';
+            ripple.style.transform = 'scale(0)';
+            ripple.style.animation = 'rippleEffect 0.6s ease-out';
+            ripple.style.pointerEvents = 'none';
+            this.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+          });
+        });
+
+        const style = document.createElement('style');
+        style.textContent = `@keyframes rippleEffect { to { transform: scale(2); opacity: 0; } }`;
+        document.head.appendChild(style);
+      })();
+
+      // ===== SMOOTH NUMBER COUNT UP =====
+      (function() {
+        const animated = document.querySelectorAll('[data-count]');
+        if (!animated.length) return;
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const el = entry.target;
+              const target = parseFloat(el.dataset.count);
+              const duration = 1500;
+              const start = performance.now();
+              const isDecimal = target % 1 !== 0;
+
+              function update(now) {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = target * eased;
+                el.textContent = isDecimal ? current.toFixed(2) : Math.floor(current);
+                if (progress < 1) requestAnimationFrame(update);
+              }
+              requestAnimationFrame(update);
+              observer.unobserve(el);
+            }
+          });
+        }, { threshold: 0.5 });
+
+        animated.forEach(el => observer.observe(el));
+      })();
+
+      // ===== STAGGERED LIST ANIMATIONS =====
+      (function() {
+        const items = document.querySelectorAll('.ptbl tbody tr');
+        items.forEach((item, i) => {
+          item.style.opacity = '0';
+          item.style.transform = 'translateX(-10px)';
+          item.style.transition = `opacity 0.3s ease ${i * 0.05}s, transform 0.3s ease ${i * 0.05}s`;
+          item.classList.add('list-item');
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const rows = entry.target.querySelectorAll('tbody tr');
+              rows.forEach((row, i) => {
+                setTimeout(() => {
+                  row.style.opacity = '1';
+                  row.style.transform = 'translateX(0)';
+                }, i * 30);
+              });
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1 });
+
+        const table = document.querySelector('.ptbl');
+        if (table) observer.observe(table);
+      })();
+
+      // ===== KEYPRESS FEEDBACK =====
+      (function() {
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+          input.addEventListener('focus', () => {
+            input.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+          });
+        });
+      })();
     </script>
   </body>
 </html>
