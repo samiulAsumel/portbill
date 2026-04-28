@@ -4,2422 +4,80 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <title>Port Car Billing</title>
+    <meta
+      name="description"
+      content="Port Authority Billing System — Car &amp; General Cargo Wharfrent Calculator with slab-based billing, VAT, and levy computation."
+    />
+    <meta name="theme-color" content="#020202" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>Port Billing System</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <link rel="apple-touch-icon" href="favicon.png" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
     <link
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
-    <style>
-      :root {
-        /* Multi-layer Background System — Deep Dark */
-        --bg-base: #020202;
-        --bg-mid: #030303;
-        --bg-surface: #050505;
-        --bg: var(--bg-base);
-        --surface: var(--bg-surface);
-        --s2: var(--bg-mid);
-        --border: rgba(212, 175, 55, 0.1);
-        --b2: rgba(212, 175, 55, 0.15);
-
-        /* Premium Gold Accent System */
-        --accent-primary: #d4af37;
-        --accent-secondary: #b8860b;
-        --accent-highlight: #ffd700;
-
-        /* Gold Variants */
-        --cyan-light: #ffd700;
-        --cyan-dark: #b8860b;
-        --purple-light: #f5c518;
-        --purple-dark: #996515;
-        --gold-light: #ffd700;
-        --gold-dark: #b8860b;
-        --gold: #d4af37;
-
-        /* Premium Gold Glow System */
-        --glow-cyan: rgba(212, 175, 55, 0.25);
-        --glow-cyan-intense: rgba(212, 175, 55, 0.45);
-        --glow-purple: rgba(184, 134, 11, 0.15);
-        --glow-purple-intense: rgba(184, 134, 11, 0.3);
-        --glow-gold: rgba(212, 175, 55, 0.3);
-
-        /* Premium Text System */
-        --text-primary: #f0ead6;
-        --text-secondary: #c8aa6e;
-        --text-muted: #8a7a60;
-        --m1: var(--text-secondary);
-        --m2: var(--text-muted);
-        --m3: #6a5a42;
-
-        /* Glass Surface System */
-        --glass-bg: rgba(8, 6, 2, 0.85);
-        --glass-border: rgba(212, 175, 55, 0.12);
-        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-
-        /* Premium Shadows */
-        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
-        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
-        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
-        --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.7);
-
-        /* Premium Gold Glow Combinations */
-        --shadow-glow-cyan:
-          0 0 20px var(--glow-cyan), 0 0 40px var(--glow-gold);
-        --shadow-glow-cyan-intense:
-          0 0 30px var(--glow-cyan-intense), 0 0 60px var(--glow-purple-intense);
-
-        /* Border Radius */
-        --r: 12px;
-        --r-sm: 8px;
-        --r-lg: 16px;
-
-        /* Semantic Color Tokens */
-        --blue: #4fa3e0;
-        --purple: #c084fc;
-        --green: #4ade80;
-        --red: #f87171;
-        --cyan: #22d3ee;
-        --text: var(--text-primary);
-
-        /* Gold Effect Tokens */
-        --gold-shimmer: rgba(212, 175, 55, 0.18);
-        --gold-glow: rgba(212, 175, 55, 0.12);
-        --shadow-glow:
-          0 0 20px rgba(212, 175, 55, 0.25), 0 0 40px rgba(212, 175, 55, 0.12);
-
-        /* Transition Tokens */
-        --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        /* Premium Transitions */
-        --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        --transition-luxury: 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      }
-      @media (max-width: 360px) {
-        :root {
-          --r: 10px;
-        }
-      }
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      html {
-        font-size: clamp(17px, 2.8vw, 22px);
-      }
-      body {
-        background:
-          radial-gradient(
-            ellipse at 30% 20%,
-            rgba(212, 175, 55, 0.03) 0%,
-            transparent 50%
-          ),
-          radial-gradient(
-            ellipse at 70% 80%,
-            rgba(184, 134, 11, 0.025) 0%,
-            transparent 50%
-          ),
-          var(--bg-base);
-        color: var(--text-primary);
-        font-family: "DM Sans", sans-serif;
-        font-size: inherit;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        opacity: 0;
-        animation: pageLoad 0.8s ease-out forwards;
-        scroll-behavior: smooth;
-        -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
-      }
-      .particle-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 0;
-        overflow: hidden;
-      }
-      .particle {
-        position: absolute;
-        width: 3px;
-        height: 3px;
-        background: var(--gold);
-        border-radius: 50%;
-        opacity: 0;
-        animation: particleFloat 8s infinite ease-in-out;
-      }
-      @keyframes particleFloat {
-        0%, 100% {
-          opacity: 0;
-          transform: translateY(100vh) scale(0);
-        }
-        10% {
-          opacity: 0.5;
-        }
-        90% {
-          opacity: 0.5;
-        }
-        100% {
-          opacity: 0;
-          transform: translateY(-100px) scale(1);
-        }
-      }
-      @media (hover: none) {
-        .particle {
-          display: none;
-        }
-      }
-      @keyframes pageLoad {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      [data-reveal] {
-        opacity: 0;
-        transform: translateY(30px) scale(0.98);
-        transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                    transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      }
-      [data-reveal].revealed {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-      [data-reveal="fade"] {
-        transform: translateY(20px);
-      }
-      [data-reveal="up"] {
-        transform: translateY(50px);
-      }
-      [data-reveal="down"] {
-        transform: translateY(-50px);
-      }
-      [data-reveal="left"] {
-        transform: translateX(-50px);
-      }
-      [data-reveal="right"] {
-        transform: translateX(50px);
-      }
-      [data-reveal="scale"] {
-        transform: scale(0.8);
-      }
-      [data-reveal="3d"] {
-        transform: perspective(1000px) rotateX(15deg) translateY(30px);
-      }
-      [data-delay] {
-        --reveal-delay: var(--data-delay, 0s);
-        transition-delay: var(--reveal-delay);
-      }
-      .parallax-bg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 120%;
-        z-index: -1;
-        background: 
-          radial-gradient(ellipse at 15% 25%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
-          radial-gradient(ellipse at 85% 75%, rgba(184, 134, 11, 0.06) 0%, transparent 50%);
-        will-change: transform;
-        pointer-events: none;
-      }
-      body::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background:
-          radial-gradient(
-            circle at 20% 50%,
-            rgb(212 175 55 / 0.04) 0%,
-            transparent 50%
-          ),
-          radial-gradient(
-            circle at 80% 80%,
-            rgb(184 134 11 / 0.03) 0%,
-            transparent 50%
-          );
-        pointer-events: none;
-        z-index: 1;
-      }
-      @media (max-width: 360px) {
-        html {
-          font-size: 17px;
-        }
-        .wrap {
-          padding: 10px 8px 60px;
-        }
-        .layout {
-          gap: 8px;
-        }
-        .card {
-          padding: 12px;
-          margin-bottom: 10px;
-        }
-      }
-
-      /* HEADER */
-      header {
-        background: linear-gradient(180deg, var(--surface) 0%, var(--s2) 100%);
-        border-bottom: 1px solid var(--border);
-        padding: 0 clamp(12px, 4vw, 24px);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        height: clamp(48px, 12vw, 64px);
-        position: sticky;
-        top: 0;
-        z-index: 200;
-        flex-shrink: 0;
-        backdrop-filter: blur(10px);
-        box-shadow: var(--shadow-sm);
-        animation: slideDown 0.6s ease-out 0.2s both;
-      }
-      @keyframes slideDown {
-        from {
-          transform: translateY(-100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-      @media (max-width: 360px) {
-        header {
-          padding: 0 12px;
-          height: 52px;
-        }
-      }
-      .logo {
-        font-family: "Bebas Neue", sans-serif;
-        font-size: clamp(18px, 5vw, 28px);
-        letter-spacing: 2px;
-        color: var(--gold);
-        display: flex;
-        align-items: center;
-        gap: clamp(6px, 2vw, 12px);
-        white-space: nowrap;
-        text-shadow: 0 0 20px rgb(245 158 11 / 0.3);
-        position: relative;
-        animation: logoGlow 2s ease-in-out 0.5s infinite alternate;
-        will-change: filter;
-      }
-      @keyframes logoGlow {
-        0% {
-          filter: brightness(1) drop-shadow(0 0 8px rgba(212, 175, 55, 0.28));
-        }
-        100% {
-          filter: brightness(1.15)
-            drop-shadow(0 0 18px rgba(212, 175, 55, 0.52));
-        }
-      }
-      .logo::after {
-        content: "";
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          var(--gold-light),
-          transparent
-        );
-        opacity: 0.6;
-      }
-      .logo-sub {
-        color: var(--m1);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2vw, 14px);
-        letter-spacing: 2px;
-      }
-      @media (max-width: 480px) {
-        .logo-sub {
-          display: none;
-        }
-      }
-      @media (max-width: 360px) {
-        .logo {
-          font-size: 16px;
-          gap: 6px;
-          letter-spacing: 1px;
-        }
-        .hright {
-          gap: 6px;
-        }
-        .admin-btn {
-          min-height: 36px;
-          padding: 6px 8px;
-        }
-      }
-      .hright {
-        display: flex;
-        align-items: center;
-        gap: clamp(6px, 2vw, 12px);
-        flex-shrink: 0;
-      }
-      .hbadge {
-        background: var(--glass-bg);
-        backdrop-filter: blur(12px);
-        border: 1px solid var(--glass-border);
-        color: var(--accent-primary);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2vw, 14px);
-        padding: clamp(3px, 1vw, 5px) clamp(8px, 2vw, 12px);
-        border-radius: 20px;
-        letter-spacing: 1px;
-        white-space: nowrap;
-        font-weight: 600;
-        box-shadow: var(--shadow-glow-cyan);
-        text-transform: uppercase;
-      }
-      .admin-btn {
-        display: none;
-        align-items: center;
-        gap: clamp(4px, 1.5vw, 8px);
-        background: var(--glass-bg);
-        backdrop-filter: blur(12px);
-        border: 1px solid var(--glass-border);
-        color: var(--text-secondary);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2vw, 14px);
-        padding: clamp(6px, 1.5vw, 9px) clamp(10px, 2.5vw, 14px);
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all var(--transition-base);
-        white-space: nowrap;
-        letter-spacing: 0.5px;
-        min-height: 40px;
-        min-width: 40px;
-        position: relative;
-        overflow: hidden;
-        transform-origin: center;
-      }
-      .admin-btn::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          var(--gold-shimmer),
-          transparent
-        );
-        transition: left var(--transition-slow);
-      }
-      .admin-btn::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        background: radial-gradient(
-          circle,
-          var(--gold-glow) 0%,
-          transparent 70%
-        );
-        transform: translate(-50%, -50%);
-        transition: all var(--transition-bounce);
-        pointer-events: none;
-      }
-      .admin-btn:hover::before {
-        left: 100%;
-      }
-      .admin-btn:hover::after {
-        width: 120%;
-        height: 120%;
-        opacity: 0.8;
-      }
-      @media (max-width: 360px) {
-        .admin-btn span:last-child {
-          display: none;
-        }
-      }
-      .admin-btn:hover {
-        border-color: var(--accent-primary);
-        color: var(--text-primary);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-glow-cyan);
-        background: rgba(12, 9, 2, 0.92);
-        backdrop-filter: blur(16px);
-      }
-      .admin-btn:active {
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-        transition: all var(--transition-fast);
-      }
-      .admin-btn.active {
-        background: linear-gradient(
-          135deg,
-          var(--gold) 15%,
-          var(--gold-dark) 100%
-        );
-        border-color: var(--gold-dark);
-        color: var(--bg);
-        box-shadow: var(--shadow-glow);
-      }
-      .adot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--m2);
-        transition: background 0.3s;
-        flex-shrink: 0;
-      }
-      .admin-btn.active .adot {
-        background: var(--gold);
-      }
-
-      /* MODAL */
-      .overlay {
-        position: fixed;
-        inset: 0;
-        background: radial-gradient(
-          circle at center,
-          rgba(0, 0, 0, 0.8) 0%,
-          rgba(0, 0, 0, 0.95) 100%
-        );
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: clamp(12px, 4vw, 20px);
-        opacity: 0;
-        pointer-events: none;
-        backdrop-filter: blur(8px);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .overlay.open {
-        opacity: 1;
-        pointer-events: all;
-        animation: overlayPulse 0.6s ease-out;
-      }
-      @keyframes overlayPulse {
-        0% {
-          opacity: 0;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
-      .overlay.open {
-        opacity: 1;
-        pointer-events: all;
-      }
-      .modal {
-        background: linear-gradient(145deg, var(--surface) 0%, var(--s2) 100%);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: clamp(20px, 5vw, 32px) clamp(18px, 4vw, 26px);
-        width: 100%;
-        max-width: 95vw;
-        width: clamp(280px, 90vw, 400px);
-        animation: modalSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow:
-          var(--shadow-lg),
-          var(--shadow-glow),
-          0 0 40px rgba(245, 158, 11, 0.1);
-        position: relative;
-        transform-origin: center;
-      }
-      .overlay.open .modal {
-        animation: modalBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-      }
-      @keyframes modalBounce {
-        0% {
-          transform: scale(0.88) translateY(12px);
-          opacity: 0;
-        }
-        60% {
-          transform: scale(1.02) translateY(-3px);
-          opacity: 1;
-        }
-        80% {
-          transform: scale(0.99) translateY(1px);
-        }
-        100% {
-          transform: scale(1) translateY(0);
-          opacity: 1;
-        }
-      }
-      .modal::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, var(--gold-light), var(--gold-dark));
-        border-radius: 16px 16px 0 0;
-      }
-      @keyframes modalSlideIn {
-        from {
-          transform: translateY(30px) scale(0.95);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0) scale(1);
-          opacity: 1;
-        }
-      }
-      @media (max-width: 360px) {
-        .modal {
-          width: calc(100vw - 24px);
-          padding: clamp(16px, 4vw, 24px) clamp(14px, 3vw, 20px);
-        }
-        .modal-title {
-          font-size: clamp(20px, 5vw, 28px);
-        }
-        .modal-sub {
-          font-size: clamp(13px, 2.5vw, 15px);
-        }
-        .minput {
-          min-height: 48px;
-          padding: 12px 14px;
-        }
-      }
-      .modal-title {
-        font-family: "Bebas Neue", sans-serif;
-        font-size: clamp(22px, 5vw, 32px);
-        letter-spacing: 2px;
-        color: var(--gold);
-        margin-bottom: clamp(2px, 1vw, 6px);
-      }
-      .modal-sub {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-        color: var(--m2);
-        margin-bottom: clamp(16px, 4vw, 24px);
-      }
-      .mfg {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        margin-bottom: 14px;
-      }
-      .mlbl {
-        font-family: "DM Mono", monospace;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--m1);
-      }
-      .minput {
-        background: var(--s2);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        color: var(--text);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-        padding: clamp(10px, 2.5vw, 14px) clamp(11px, 2.5vw, 15px);
-        width: 100%;
-        outline: none;
-        transition: border-color 0.2s;
-        min-height: 44px;
-      }
-      .minput:focus {
-        border-color: var(--accent-primary);
-        box-shadow:
-          0 0 0 3px var(--glow-cyan),
-          var(--shadow-md),
-          var(--shadow-glow-cyan);
-        transform: translateY(-1px);
-      }
-      .merr {
-        background: rgba(248, 113, 113, 0.07);
-        border: 1px solid rgba(248, 113, 113, 0.2);
-        color: var(--red);
-        font-family: "DM Mono", monospace;
-        font-size: 14px;
-        padding: 8px 12px;
-        border-radius: 6px;
-        margin-bottom: 12px;
-        display: none;
-      }
-      .merr.show {
-        display: block;
-      }
-      .mbtns {
-        display: flex;
-        gap: 10px;
-        margin-top: 4px;
-      }
-
-      /* WRAP */
-      .wrap {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: clamp(14px, 4vw, 32px) clamp(12px, 3vw, 28px)
-          clamp(60px, 10vw, 100px);
-        width: 100%;
-        box-sizing: border-box;
-        flex: 1;
-        animation: fadeInUp 0.8s ease-out 0.4s both;
-      }
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(30px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      @media (max-width: 360px) {
-        .wrap {
-          padding: 10px 8px 60px;
-        }
-      }
-      @media (max-width: 480px) {
-        .wrap {
-          padding: 12px 10px 70px;
-        }
-      }
-      @media (min-width: 1024px) {
-        .wrap {
-          padding: clamp(20px, 5vw, 40px) clamp(20px, 4vw, 40px)
-            clamp(80px, 12vw, 120px);
-        }
-      }
-
-      .pgtitle {
-        font-family: "Bebas Neue", sans-serif;
-        font-size: clamp(28px, 7vw, 56px);
-        letter-spacing: 6px;
-        line-height: 1.1;
-        background: linear-gradient(
-          110deg,
-          #7a5c10 0%,
-          #d4af37 20%,
-          #ffd700 35%,
-          #fff8dc 50%,
-          #ffd700 65%,
-          #d4af37 80%,
-          #7a5c10 100%
-        );
-        background-size: 250% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: clamp(4px, 2vw, 8px);
-        position: relative;
-        animation:
-          titleReveal 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both,
-          goldShimmer 4s linear 1.3s infinite,
-          titleGlow 3s ease-in-out 1.3s infinite alternate;
-      }
-      .pgtitle::after {
-        content: "";
-        position: absolute;
-        bottom: -4px;
-        left: 0;
-        height: 2px;
-        width: 0%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          #ffd700,
-          #d4af37,
-          transparent
-        );
-        animation: underlineDraw 1.2s cubic-bezier(0.22, 1, 0.36, 1) 1s forwards;
-        border-radius: 2px;
-      }
-      @keyframes titleReveal {
-        0% {
-          opacity: 0;
-          transform: translateY(30px) skewX(-8deg);
-          filter: blur(8px);
-          letter-spacing: 20px;
-        }
-        60% {
-          filter: blur(0px);
-        }
-        100% {
-          opacity: 1;
-          transform: translateY(0) skewX(0deg);
-          letter-spacing: 6px;
-        }
-      }
-      @keyframes goldShimmer {
-        0% {
-          background-position: 200% center;
-        }
-        100% {
-          background-position: -200% center;
-        }
-      }
-      @keyframes underlineDraw {
-        0% {
-          width: 0%;
-          opacity: 0;
-        }
-        20% {
-          opacity: 1;
-        }
-        100% {
-          width: 100%;
-          opacity: 0.7;
-        }
-      }
-      @keyframes titleGlow {
-        0% {
-          filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
-        }
-        100% {
-          filter: drop-shadow(0 0 22px rgba(255, 215, 0, 0.6))
-            drop-shadow(0 0 40px rgba(212, 175, 55, 0.25));
-        }
-      }
-      @media (max-width: 360px) {
-        .pgtitle {
-          font-size: 26px;
-          letter-spacing: 3px;
-        }
-      }
-      .pgsub {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-        color: var(--m2);
-        letter-spacing: clamp(1px, 0.5vw, 2px);
-        text-transform: uppercase;
-        margin: clamp(2px, 1vw, 4px) 0 clamp(16px, 4vw, 24px);
-        animation: fadeIn 0.8s ease-out 0.8s both;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-
-      /* WEIGHT NOTE */
-      .weight-note {
-        background: linear-gradient(
-          145deg,
-          rgba(239, 68, 68, 0.08) 0%,
-          rgba(239, 68, 68, 0.15) 100%
-        );
-        border: 1.5px solid rgba(239, 68, 68, 0.6);
-        border-radius: 10px;
-        padding: clamp(10px, 2vw, 16px) clamp(14px, 3vw, 20px);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-        color: #ef4444;
-        margin-bottom: clamp(14px, 4vw, 22px);
-        line-height: 1.8;
-        position: relative;
-        overflow: hidden;
-        box-shadow:
-          0 0 18px rgba(239, 68, 68, 0.2),
-          inset 0 0 20px rgba(239, 68, 68, 0.05);
-        animation: warningPulse 2.5s ease-in-out infinite;
-      }
-      @keyframes warningPulse {
-        0%,
-        100% {
-          box-shadow:
-            0 0 18px rgba(239, 68, 68, 0.2),
-            inset 0 0 20px rgba(239, 68, 68, 0.05);
-          border-color: rgba(239, 68, 68, 0.6);
-        }
-        50% {
-          box-shadow:
-            0 0 28px rgba(239, 68, 68, 0.4),
-            inset 0 0 24px rgba(239, 68, 68, 0.1);
-          border-color: rgba(239, 68, 68, 0.9);
-        }
-      }
-      .weight-note::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #ef4444, transparent);
-        animation: pulse 2s infinite;
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 0.4;
-        }
-        50% {
-          opacity: 1;
-        }
-      }
-
-      /* LAYOUT */
-      .layout {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: clamp(12px, 3vw, 20px);
-        align-items: start;
-        animation: layoutReveal 0.8s ease-out 1s both;
-      }
-      @keyframes layoutReveal {
-        from {
-          opacity: 0;
-          transform: scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-      @media (min-width: 768px) {
-        .layout {
-          grid-template-columns: 1fr 300px;
-          gap: clamp(14px, 3vw, 24px);
-        }
-      }
-      @media (min-width: 1024px) {
-        .layout {
-          grid-template-columns: 1fr 340px;
-          gap: clamp(16px, 3vw, 28px);
-        }
-      }
-      @media (min-width: 1200px) {
-        .layout {
-          grid-template-columns: 1fr 380px;
-          gap: 20px;
-        }
-      }
-
-      /* CARD */
-      .card {
-        background: var(--glass-bg);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--r);
-        padding: clamp(13px, 3vw, 22px);
-        margin-bottom: clamp(12px, 3vw, 18px);
-        box-shadow: var(--glass-shadow);
-        position: relative;
-        overflow: hidden;
-        opacity: 0;
-        animation: cardReveal 0.6s ease-out forwards;
-        animation-delay: var(--card-delay, 0s);
-        transform: translateY(20px);
-        will-change: transform, opacity;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s, border-color 0.3s;
-      }
-      @media (hover: fine) {
-        .card:hover {
-          transform: translateY(-4px);
-        }
-      }
-      .card:active {
-        transform: scale(0.99);
-      }
-      @keyframes cardReveal {
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          var(--gold-shimmer),
-          transparent
-        );
-        opacity: 0;
-        transition: all var(--transition-slow);
-      }
-      .card::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 120%;
-        height: 120%;
-        background: radial-gradient(
-          circle,
-          var(--gold-glow) 0%,
-          rgba(212, 165, 116, 0.1) 30%,
-          transparent 70%
-        );
-        transform: translate(-50%, -50%) scale(0) rotate(45deg);
-        opacity: 0;
-        transition: all var(--transition-bounce);
-        pointer-events: none;
-      }
-      .card:hover::after {
-        transform: translate(-50%, -50%) scale(1) rotate(45deg);
-        opacity: 1;
-      }
-      .card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-glow-cyan);
-        border-color: var(--accent-primary);
-        background: rgba(12, 9, 2, 0.92);
-        backdrop-filter: blur(16px);
-      }
-      .card:hover::before {
-        opacity: 1;
-        height: 2px;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          var(--accent-primary),
-          transparent
-        );
-      }
-      .card:hover .ctitle {
-        color: var(--accent-primary);
-        transform: translateX(4px);
-      }
-      @media (max-width: 360px) {
-        .card {
-          padding: 13px;
-          margin-bottom: 12px;
-        }
-      }
-      .ctitle {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2.5vw, 14px);
-        letter-spacing: clamp(1px, 0.5vw, 2px);
-        text-transform: uppercase;
-        color: var(--m1);
-        margin-bottom: clamp(16px, 3vw, 20px);
-        display: flex;
-        align-items: center;
-        gap: clamp(6px, 2vw, 10px);
-        flex-wrap: wrap;
-        font-weight: 600;
-      }
-      .ctitle::before {
-        content: "";
-        width: 4px;
-        height: 16px;
-        background: linear-gradient(
-          180deg,
-          var(--gold-light) 0%,
-          var(--gold-dark) 100%
-        );
-        border-radius: 3px;
-        flex-shrink: 0;
-        box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
-      }
-      .cnote {
-        font-family: "DM Mono", monospace;
-        font-size: 13px;
-        color: var(--m2);
-        margin-left: auto;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        opacity: 0.8;
-      }
-
-      /* FORM */
-      .r2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: clamp(8px, 2vw, 14px);
-        margin-bottom: clamp(8px, 2vw, 12px);
-      }
-      @media (max-width: 480px) {
-        .layout {
-          grid-template-columns: 1fr;
-          gap: clamp(8px, 3vw, 10px);
-        }
-        .r2 {
-          grid-template-columns: 1fr;
-          gap: clamp(6px, 2vw, 8px);
-        }
-        .btn {
-          padding: clamp(12px, 2.5vw, 16px) clamp(14px, 3vw, 20px);
-          font-size: clamp(13px, 2.5vw, 15px);
-        }
-        .sp {
-          padding: clamp(12px, 3vw, 18px);
-        }
-      }
-      .fg {
-        display: flex;
-        flex-direction: column;
-        gap: clamp(4px, 1.5vw, 7px);
-      }
-      .lbl {
-        font-size: clamp(12px, 2.5vw, 14px);
-        font-family: "DM Mono", monospace;
-        text-transform: uppercase;
-        letter-spacing: clamp(0.5px, 0.5vw, 1px);
-        color: var(--m1);
-        display: flex;
-        align-items: center;
-        gap: clamp(3px, 1.5vw, 6px);
-        flex-wrap: wrap;
-      }
-      .lck {
-        font-size: 13px;
-        opacity: 0.45;
-      }
-
-      input[type="date"],
-      input[type="number"],
-      input[type="password"],
-      input[type="text"] {
-        background: var(--glass-bg);
-        backdrop-filter: blur(12px);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--r-sm);
-        color: var(--text-primary);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2.5vw, 14px);
-        padding: clamp(9px, 2.5vw, 13px) clamp(10px, 2.5vw, 14px);
-        width: 100%;
-        outline: none;
-        transition: all var(--transition-base);
-        -webkit-appearance: none;
-        appearance: none;
-        min-height: 44px;
-        position: relative;
-      }
-      input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(75%) sepia(40%) saturate(600%) hue-rotate(5deg)
-          brightness(110%);
-        opacity: 0.85;
-        cursor: pointer;
-        width: 18px;
-        height: 18px;
-        padding: 2px;
-        border-radius: 4px;
-        transition:
-          opacity 0.2s ease,
-          transform 0.2s ease;
-      }
-      input[type="date"]::-webkit-calendar-picker-indicator:hover {
-        opacity: 1;
-        transform: scale(1.15);
-      }
-      input[type="date"]:hover,
-      input[type="number"]:hover,
-      input[type="password"]:hover,
-      input[type="text"]:hover {
-        border-color: var(--accent-primary);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-glow-cyan);
-        background: rgba(12, 9, 2, 0.92);
-        backdrop-filter: blur(16px);
-      }
-      @media (max-width: 360px) {
-        input[type="date"],
-        input[type="number"],
-        input[type="password"],
-        input[type="text"] {
-          font-size: 14px;
-          padding: 10px 12px;
-          min-height: 48px;
-        }
-        .date-display {
-          min-height: 48px;
-          padding: 10px 12px;
-        }
-      }
-      .ro {
-        opacity: 0.52;
-        cursor: not-allowed;
-        background: var(--bg) !important;
-      }
-      .ro:focus {
-        border-color: var(--border) !important;
-      }
-
-      /* Cyan Glow for Key Fields */
-      .cyan-glow {
-        border-color: var(--cyan-light) !important;
-        box-shadow:
-          0 0 0 2px rgba(0, 255, 255, 0.2),
-          0 0 12px rgba(0, 255, 255, 0.4),
-          0 0 24px rgba(0, 255, 255, 0.2) !important;
-        background: rgba(0, 20, 30, 0.3) !important;
-      }
-      .cyan-glow:focus {
-        border-color: var(--cyan-light) !important;
-        box-shadow:
-          0 0 0 3px rgba(0, 255, 255, 0.3),
-          0 0 20px rgba(0, 255, 255, 0.6),
-          0 0 40px rgba(0, 255, 255, 0.3) !important;
-        transform: translateY(-1px) !important;
-      }
-      .cyan-glow:hover {
-        border-color: var(--cyan-light) !important;
-        box-shadow:
-          0 0 0 2px rgba(0, 255, 255, 0.25),
-          0 0 16px rgba(0, 255, 255, 0.5),
-          0 0 32px rgba(0, 255, 255, 0.25) !important;
-        transform: translateY(-1px) scale(1.01) !important;
-      }
-      .ae {
-        border-color: rgba(212, 175, 55, 0.13) !important;
-        background: var(--s2) !important;
-        opacity: 1 !important;
-        cursor: text !important;
-      }
-      .ae:focus {
-        border-color: var(--gold) !important;
-      }
-      .date-display {
-        background: var(--glass-bg);
-        backdrop-filter: blur(12px);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--r-sm);
-        padding: clamp(9px, 2.5vw, 13px) clamp(10px, 2.5vw, 14px);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2.5vw, 14px);
-        color: var(--text-secondary);
-        opacity: 0.8;
-        min-height: 44px;
-        display: flex;
-        align-items: center;
-        position: relative;
-        overflow: hidden;
-        transition: all var(--transition-base);
-      }
-      .date-display::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          var(--gold-shimmer),
-          transparent
-        );
-        animation: shimmer 4s infinite;
-      }
-      .date-display::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        background: radial-gradient(
-          circle,
-          var(--gold-glow) 0%,
-          transparent 70%
-        );
-        transform: translate(-50%, -50%);
-        transition: all var(--transition-luxury);
-        pointer-events: none;
-        opacity: 0;
-      }
-      .date-display:hover {
-        border-color: var(--accent-primary);
-        color: var(--text-primary);
-        opacity: 1;
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-glow-cyan);
-        background: rgba(12, 9, 2, 0.92);
-        backdrop-filter: blur(16px);
-      }
-      .date-display:hover::after {
-        width: 120%;
-        height: 120%;
-        opacity: 0.4;
-      }
-      @keyframes shimmer {
-        0% {
-          left: -100%;
-        }
-        100% {
-          left: 100%;
-        }
-      }
-
-      /* WEIGHT WARNING */
-      .weight-warn {
-        background: rgba(248, 113, 113, 0.07);
-        border: 1px solid rgba(248, 113, 113, 0.27);
-        border-radius: 6px;
-        padding: 6px 10px;
-        font-family: "DM Mono", monospace;
-        font-size: 14px;
-        color: var(--red);
-        margin-top: 6px;
-        display: none;
-      }
-      .weight-warn.show {
-        display: block;
-      }
-
-      /* RATE BADGE */
-      .rbadge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-family: "DM Mono", monospace;
-        font-size: 14px;
-        padding: 3px 10px;
-        border-radius: 20px;
-        margin-top: 10px;
-      }
-      .rb-new {
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--green);
-      }
-      .rb-old {
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--red);
-      }
-      .rb-split {
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--text);
-      }
-
-      /* PAYABLE TABLE */
-      .ptw {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        margin: 0 clamp(-8px, -2vw, -4px);
-        padding: 0 clamp(8px, 2vw, 8px);
-      }
-      .ptbl {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        min-width: 280px;
-      }
-      .ptbl th {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2.5vw, 14px);
-        text-transform: uppercase;
-        letter-spacing: clamp(0.5px, 0.5vw, 1px);
-        color: var(--m1);
-        text-align: left;
-        padding: clamp(8px, 2vw, 12px) clamp(10px, 2vw, 14px);
-        border-bottom: 2px solid var(--border);
-        background: linear-gradient(180deg, var(--s2) 0%, var(--surface) 100%);
-        font-weight: 600;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-      }
-      .ptbl td {
-        padding: clamp(8px, 2vw, 12px) clamp(10px, 2vw, 14px);
-        border-bottom: 1px solid rgba(212, 175, 55, 0.05);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-        color: var(--m1);
-        vertical-align: middle;
-        transition: all 0.2s ease;
-      }
-      .ptbl tr:hover td {
-        background: rgba(212, 175, 55, 0.07);
-      }
-      .ptbl tr:last-child td {
-        border-bottom: none;
-      }
-      .ptbl td input[type="number"] {
-        width: clamp(60px, 15vw, 80px);
-        padding: clamp(4px, 1.5vw, 7px) clamp(6px, 1.5vw, 10px);
-        font-size: clamp(14px, 2.5vw, 16px);
-        min-height: 36px;
-      }
-      .ptbl td input[type="checkbox"] {
-        width: clamp(16px, 5vw, 20px);
-        height: clamp(16px, 5vw, 20px);
-        accent-color: var(--gold);
-        cursor: pointer;
-        min-width: 16px;
-        min-height: 16px;
-      }
-      .ckcell {
-        width: clamp(32px, 8vw, 48px);
-        text-align: center;
-      }
-      .ntcell {
-        font-size: 14px;
-        white-space: nowrap;
-      }
-
-      /* RATES */
-      .rg {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: clamp(12px, 3vw, 18px);
-      }
-      @media (min-width: 640px) {
-        .rg {
-          grid-template-columns: 1fr 1fr;
-          gap: clamp(12px, 3vw, 20px);
-        }
-      }
-      .rst {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2.5vw, 14px);
-        text-transform: uppercase;
-        letter-spacing: clamp(0.5px, 0.5vw, 1px);
-        margin-bottom: clamp(7px, 2vw, 11px);
-        padding: clamp(3px, 1.5vw, 5px) clamp(8px, 2vw, 12px);
-        border-radius: 6px;
-        display: inline-block;
-      }
-      .rn {
-        background: transparent;
-        color: var(--green);
-        border: 1px solid var(--border);
-      }
-      .ro2 {
-        background: transparent;
-        color: var(--red);
-        border: 1px solid var(--border);
-      }
-      .rt {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      .rt th {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2.5vw, 14px);
-        text-transform: uppercase;
-        letter-spacing: clamp(0.5px, 0.5vw, 1px);
-        color: var(--m2);
-        text-align: left;
-        padding: clamp(6px, 2vw, 10px) clamp(8px, 2vw, 12px);
-        border-bottom: 1px solid var(--border);
-      }
-      .rt td {
-        padding: clamp(7px, 2vw, 11px) clamp(8px, 2vw, 12px);
-        border-bottom: 1px solid rgba(212, 175, 55, 0.07);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(14px, 2.5vw, 16px);
-        color: var(--m1);
-      }
-      .rt tr:last-child td {
-        border-bottom: none;
-      }
-      .rt td input {
-        background: transparent;
-        border: none;
-        border-bottom: 1px solid var(--border);
-        border-radius: 0;
-        color: var(--gold);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2.5vw, 14px);
-        padding: clamp(2px, 1vw, 4px) clamp(3px, 1vw, 5px);
-        width: clamp(60px, 20vw, 90px);
-        outline: none;
-        min-height: 32px;
-      }
-      .rt td input:focus {
-        border-bottom-color: var(--gold);
-      }
-      .rspan {
-        color: var(--m1);
-        font-family: "DM Mono", monospace;
-        font-size: 14px;
-      }
-
-      /* VAT ROW */
-      .vatr {
-        display: flex;
-        align-items: center;
-        gap: clamp(8px, 2vw, 14px);
-        margin-top: clamp(10px, 2vw, 16px);
-        flex-wrap: wrap;
-      }
-      .vatr label {
-        font-size: clamp(12px, 2.5vw, 14px);
-        font-family: "DM Mono", monospace;
-        text-transform: uppercase;
-        letter-spacing: clamp(0.5px, 0.5vw, 1px);
-        color: var(--m1);
-        white-space: nowrap;
-      }
-      .vatr input {
-        max-width: clamp(70px, 20vw, 100px);
-        min-height: 44px;
-      }
-
-      /* STICKY PANEL */
-      .sp {
-        background: linear-gradient(135deg, var(--surface) 0%, var(--s2) 100%);
-        border: 1px solid rgba(212, 175, 55, 0.27) %;
-        border-radius: var(--r);
-        padding: clamp(13px, 3vw, 22px);
-        margin-bottom: clamp(12px, 3vw, 18px);
-        position: relative;
-        overflow: hidden;
-        box-shadow:
-          var(--shadow-md),
-          inset 0 1px 0 rgba(245, 158, 11, 0.1);
-        animation: stickyPanelReveal 0.8s ease-out 1.2s both;
-      }
-      @keyframes stickyPanelReveal {
-        from {
-          opacity: 0;
-          transform: translateX(30px) scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0) scale(1);
-        }
-      }
-      .sp::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          var(--gold-light),
-          transparent
-        );
-        animation: shimmerTop 3s infinite;
-      }
-      @keyframes shimmerTop {
-        0% {
-          transform: translateX(-100%);
-        }
-        100% {
-          transform: translateX(100%);
-        }
-      }
-      @media (min-width: 768px) {
-        .sp {
-          position: sticky;
-          top: clamp(48px, 12vw, 72px);
-          z-index: 100;
-        }
-      }
-      @media (max-width: 767px) {
-        .sp {
-          position: static;
-        }
-      }
-
-      #preview {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(14px, 2.5vw, 16px);
-        color: var(--m2);
-        line-height: 2.3;
-        padding: clamp(12px, 2.5vw, 18px);
-        background: linear-gradient(145deg, var(--bg) 0%, var(--s2) 100%);
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        margin-bottom: clamp(10px, 2vw, 16px);
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-      }
-      #preview.loading {
-        animation: skeletonPulse 1.5s ease-in-out infinite;
-      }
-      @keyframes skeletonPulse {
-        0%,
-        100% {
-          opacity: 0.6;
-          background: linear-gradient(145deg, var(--bg) 0%, var(--s2) 100%);
-        }
-        50% {
-          opacity: 1;
-          background: linear-gradient(
-            145deg,
-            var(--s2) 0%,
-            var(--surface) 100%
-          );
-        }
-      }
-      #preview::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(245, 158, 11, 0.03),
-          transparent
-        );
-        animation: previewShimmer 4s infinite;
-      }
-      @keyframes previewShimmer {
-        0% {
-          left: -100%;
-        }
-        100% {
-          left: 100%;
-        }
-      }
-      .pvr {
-        display: flex;
-        justify-content: space-between;
-        gap: 8px;
-      }
-
-      /* BUTTONS */
-      .btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: clamp(6px, 2vw, 10px);
-        background: linear-gradient(
-          135deg,
-          var(--gold-light) 0%,
-          var(--gold) 50%,
-          var(--gold-dark) 100%
-        );
-        color: #000;
-        font-family: "DM Mono", monospace;
-        font-size: clamp(14px, 2.5vw, 16px);
-        font-weight: 600;
-        letter-spacing: clamp(1px, 0.5vw, 1.5px);
-        text-transform: uppercase;
-        padding: clamp(11px, 2.5vw, 15px) clamp(16px, 3vw, 24px);
-        border: none;
-        border-radius: 9px;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        width: 100%;
-        min-height: 44px;
-        touch-action: manipulation;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-      }
-      .btn::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.3),
-          transparent
-        );
-        transition: left var(--transition-slow);
-      }
-      .btn::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        background: radial-gradient(
-          circle,
-          rgba(255, 255, 255, 0.4) 0%,
-          transparent 70%
-        );
-        transform: translate(-50%, -50%);
-        transition: all var(--transition-bounce);
-        pointer-events: none;
-        opacity: 0;
-      }
-      .btn:hover::before {
-        left: 100%;
-      }
-      .btn:hover::after {
-        width: 150%;
-        height: 150%;
-        opacity: 0.8;
-      }
-      @media (max-width: 360px) {
-        .btn {
-          font-size: 14px;
-          padding: 12px 16px;
-          min-height: 48px;
-        }
-        .bsm {
-          min-height: 44px;
-          padding: 10px 14px;
-        }
-      }
-      .btn:hover {
-        transform: translateY(-3px) scale(1.02);
-        box-shadow:
-          0 8px 24px rgba(212, 175, 55, 0.45),
-          0 2px 8px rgba(0, 0, 0, 0.6);
-        filter: brightness(1.15) saturate(1.2);
-        background: linear-gradient(
-          135deg,
-          #ffd700 0%,
-          #d4af37 50%,
-          #b8860b 100%
-        );
-      }
-      .btn:active {
-        transform: translateY(-1px) scale(1.01);
-        box-shadow:
-          0 4px 12px rgba(212, 175, 55, 0.3),
-          0 1px 4px rgba(0, 0, 0, 0.5);
-        filter: brightness(1.05);
-        transition: all var(--transition-fast);
-      }
-      .bg {
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--m1);
-        margin-top: 8px;
-      }
-      .bg:hover {
-        border-color: var(--gold);
-        color: var(--gold);
-        opacity: 1;
-        transform: translateY(-2px) scale(1.02);
-        box-shadow:
-          0 6px 20px rgba(212, 175, 55, 0.2),
-          0 2px 6px rgba(0, 0, 0, 0.4);
-        background: linear-gradient(
-          135deg,
-          var(--s2) 0%,
-          rgba(212, 175, 55, 0.08) 50%,
-          var(--surface) 100%
-        );
-      }
-      .bsm {
-        font-size: clamp(13px, 2.5vw, 15px);
-        padding: clamp(7px, 2vw, 11px) clamp(13px, 2.5vw, 18px);
-        border-radius: 7px;
-        min-height: 40px;
-      }
-
-      /* GUIDE */
-      .guide {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-        color: var(--m2);
-        line-height: 2.3;
-      }
-
-      /* DIVIDER */
-      hr {
-        border: none;
-        border-top: 1px solid var(--border);
-        margin: clamp(18px, 4vw, 36px) 0;
-      }
-
-      /* RESULTS */
-      #results {
-        display: none;
-        animation: resultsReveal 0.6s ease-out;
-      }
-      @keyframes resultsReveal {
-        from {
-          opacity: 0;
-          transform: translateY(30px) scale(0.98);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-      @keyframes fup {
-        from {
-          opacity: 0;
-          transform: translateY(14px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .rh {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: clamp(14px, 4vw, 24px);
-        gap: clamp(8px, 2vw, 14px);
-        flex-wrap: wrap;
-      }
-      .rtitle {
-        font-family: "Bebas Neue", sans-serif;
-        font-size: clamp(28px, 6vw, 48px);
-        letter-spacing: 2px;
-        color: var(--gold);
-      }
-
-      /* INFO BAR */
-      .ibar {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--r);
-        overflow: hidden;
-        margin-bottom: clamp(14px, 4vw, 24px);
-      }
-      @media (min-width: 600px) {
-        .ibar {
-          grid-template-columns: repeat(3, 1fr);
-        }
-      }
-      @media (min-width: 900px) {
-        .ibar {
-          grid-template-columns: repeat(4, 1fr);
-        }
-      }
-      @media (min-width: 1200px) {
-        .ibar {
-          grid-template-columns: repeat(7, 1fr);
-        }
-      }
-      .ii {
-        padding: clamp(9px, 2vw, 14px) clamp(10px, 2.5vw, 16px);
-        border-right: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
-      }
-      .ii:nth-child(2n) {
-        border-right: none;
-      }
-      @media (min-width: 600px) {
-        .ii:nth-child(2n) {
-          border-right: 1px solid var(--border);
-        }
-        .ii:nth-child(3n) {
-          border-right: none;
-        }
-      }
-      @media (min-width: 900px) {
-        .ii:nth-child(3n) {
-          border-right: 1px solid var(--border);
-        }
-        .ii:nth-child(4n) {
-          border-right: none;
-        }
-      }
-      @media (min-width: 1200px) {
-        .ii {
-          border-bottom: none !important;
-          border-right: 1px solid var(--border) !important;
-        }
-        .ii:last-child {
-          border-right: none !important;
-        }
-      }
-      .il {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2vw, 14px);
-        text-transform: uppercase;
-        letter-spacing: clamp(1px, 0.5vw, 1.5px);
-        color: var(--m2);
-        margin-bottom: clamp(2px, 1vw, 6px);
-      }
-      .iv {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-        color: var(--text);
-      }
-
-      /* STATS */
-      .sr {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: clamp(9px, 2.5vw, 14px);
-        margin-bottom: clamp(14px, 4vw, 24px);
-      }
-      @media (min-width: 640px) {
-        .sr {
-          grid-template-columns: 1fr 1fr;
-          gap: clamp(10px, 2.5vw, 14px);
-        }
-      }
-      @media (min-width: 900px) {
-        .sr {
-          grid-template-columns: repeat(3, 1fr);
-          gap: clamp(10px, 2.5vw, 16px);
-        }
-      }
-      .sc {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--r);
-        padding: clamp(12px, 3vw, 20px);
-        position: relative;
-        overflow: hidden;
-      }
-      .sc::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-      }
-      .cg::after {
-        background: var(--gold);
-      }
-      .cb::after {
-        background: var(--blue);
-      }
-      .cp::after {
-        background: var(--purple);
-      }
-      .cv::after {
-        background: var(--green);
-      }
-      .sc .sl {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2vw, 14px);
-        text-transform: uppercase;
-        letter-spacing: clamp(1px, 0.5vw, 1.5px);
-        color: var(--m2);
-        margin-bottom: clamp(5px, 1.5vw, 9px);
-      }
-      .sc .sv {
-        font-family: "Bebas Neue", sans-serif;
-        font-size: clamp(20px, 5vw, 32px);
-        letter-spacing: 1px;
-        line-height: 1;
-      }
-      .cg .sv {
-        color: var(--gold);
-      }
-      .cb .sv {
-        color: var(--blue);
-      }
-      .cp .sv {
-        color: var(--purple);
-      }
-      .cv .sv {
-        color: var(--green);
-      }
-      .sc .ss {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2vw, 14px);
-        color: var(--m2);
-        margin-top: clamp(2px, 1vw, 6px);
-      }
-
-      /* SECTION LABEL */
-      .slbl {
-        display: inline-flex;
-        align-items: center;
-        gap: clamp(6px, 2vw, 10px);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2.5vw, 14px);
-        text-transform: uppercase;
-        letter-spacing: clamp(1px, 0.5vw, 2px);
-        padding: clamp(3px, 1.5vw, 6px) clamp(10px, 3vw, 15px);
-        border-radius: 20px;
-        margin-bottom: clamp(10px, 2.5vw, 16px);
-      }
-      .sl-in {
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--gold);
-      }
-      .sl-out {
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--gold);
-      }
-      .sl-payable {
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--cyan);
-      }
-
-      /* UNIFIED BILL TABLE — same for inside and outside */
-      .btw {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-      .bt {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 360px;
-      }
-      .bt th {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2.5vw, 14px);
-        text-transform: uppercase;
-        letter-spacing: clamp(0.5px, 0.5vw, 1px);
-        color: var(--m2);
-        text-align: right;
-        padding: clamp(8px, 2vw, 12px) clamp(10px, 2.5vw, 16px);
-        border-bottom: 1px solid var(--border);
-        background: var(--s2);
-        white-space: nowrap;
-      }
-      .bt th:first-child {
-        text-align: left;
-      }
-      .bt td {
-        padding: clamp(8px, 2vw, 12px) clamp(10px, 2.5vw, 16px);
-        border-bottom: 1px solid rgba(212, 175, 55, 0.05);
-        text-align: right;
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-      }
-      .bt td:first-child {
-        text-align: left;
-        color: var(--m1);
-      }
-      .bt tr:last-child td {
-        border-bottom: none;
-      }
-      .bt .sep td {
-        background: var(--s2);
-        padding: 5px 14px;
-        font-size: 14px;
-        color: var(--m2);
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid rgba(212, 175, 55, 0.05);
-      }
-      .bt .sub td {
-        background: var(--s2);
-        color: var(--m1);
-        font-size: 14px;
-      }
-      .bt .tot td {
-        background: var(--s2);
-        color: var(--gold);
-        font-size: 14px;
-        border-top: 1px solid var(--border);
-      }
-      .bt .grand td {
-        background: rgba(212, 175, 55, 0.05);
-        color: var(--gold);
-        font-size: 14px;
-        font-weight: 600;
-        border-top: 2px solid rgba(212, 175, 55, 0.2);
-      }
-      .bt .vrow td {
-        color: var(--m1);
-        font-size: 14px;
-      }
-      .bt .lrow td {
-        color: var(--green);
-        font-size: 14px;
-      }
-
-      /* DAY PILL */
-      .dp {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        border: none;
-        color: var(--blue);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2.5vw, 14px);
-        min-width: clamp(30px, 7vw, 40px);
-        height: clamp(18px, 4vw, 24px);
-        border-radius: 4px;
-        padding: 0 clamp(4px, 1vw, 7px);
-      }
-      .dpg {
-        background: transparent;
-        border: none;
-        color: var(--gold);
-      }
-
-      /* WARN */
-      .warn {
-        background: rgba(212, 175, 55, 0.05);
-        border: 1px solid rgba(212, 175, 55, 0.13);
-        border-radius: 10px;
-        padding: clamp(7px, 2.5vw, 12px) clamp(10px, 3vw, 16px);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-        color: var(--gold);
-        margin-bottom: clamp(10px, 2.5vw, 16px);
-        display: flex;
-        align-items: center;
-        gap: clamp(6px, 2vw, 10px);
-      }
-      .info-note {
-        background: rgba(79, 163, 224, 0.05);
-        border: 1px solid rgba(79, 163, 224, 0.13);
-        border-radius: 10px;
-        padding: clamp(7px, 2.5vw, 12px) clamp(10px, 3vw, 16px);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-        color: var(--m1);
-        margin-top: clamp(10px, 2.5vw, 16px);
-        line-height: 1.7;
-      }
-      .no-stor-note {
-        background: rgba(74, 222, 128, 0.05);
-        border: 1px solid rgba(74, 222, 128, 0.13);
-        border-radius: 10px;
-        padding: clamp(9px, 2.5vw, 14px) clamp(10px, 3vw, 16px);
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-        color: var(--green);
-        margin-bottom: clamp(12px, 3vw, 20px);
-      }
-
-      /* GRAND BOX */
-      .gbox {
-        background: linear-gradient(
-          135deg,
-          rgba(212, 175, 55, 0.04) 0%,
-          rgba(212, 175, 55, 0.02) 100%
-        );
-        border: 1px solid rgba(212, 175, 55, 0.27) %;
-        border-radius: var(--r);
-        padding: clamp(14px, 3vw, 28px) clamp(14px, 3vw, 28px);
-        margin-top: clamp(4px, 1.5vw, 10px);
-      }
-      .ginn {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: clamp(12px, 3vw, 18px);
-        align-items: center;
-      }
-      @media (min-width: 640px) {
-        .ginn {
-          grid-template-columns: 1fr 1fr;
-          gap: clamp(12px, 3vw, 20px);
-        }
-      }
-      @media (min-width: 900px) {
-        .ginn {
-          grid-template-columns: 1fr 1fr 1.1fr;
-          gap: clamp(14px, 3vw, 22px);
-        }
-      }
-      .glbl {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2vw, 14px);
-        text-transform: uppercase;
-        letter-spacing: clamp(1px, 0.5vw, 2px);
-        color: var(--m2);
-        margin-bottom: clamp(4px, 1.5vw, 8px);
-      }
-      .gval {
-        font-family: "Bebas Neue", sans-serif;
-        font-size: clamp(20px, 5vw, 36px);
-        letter-spacing: 1px;
-        line-height: 1;
-      }
-      .gsub {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(12px, 2vw, 14px);
-        color: var(--m2);
-        margin-top: clamp(2px, 1vw, 4px);
-      }
-      .gfin {
-        border-top: 1px solid rgba(212, 175, 55, 0.2);
-        padding-top: clamp(12px, 3vw, 18px);
-        grid-column: 1/-1;
-      }
-      @media (min-width: 640px) {
-        .gfin {
-          border-top: none;
-          padding-top: 0;
-          border-left: 1px solid rgba(212, 175, 55, 0.2);
-          padding-left: clamp(14px, 3vw, 22px);
-          grid-column: auto;
-        }
-      }
-      .gfin .glbl {
-        color: var(--gold);
-      }
-      .gfin .gval {
-        font-size: clamp(24px, 6vw, 44px);
-        color: var(--gold);
-      }
-
-      /* BILL RESULTS — animated via JS transition */
-      #results {
-        /* animation managed by enhanceBillResults() in JS */
-      }
-
-      /* Glowing bill tables */
-      .bt {
-        background: var(--glass-bg);
-        border: 1px solid rgba(212, 175, 55, 0.12);
-        border-radius: 12px;
-        overflow: hidden;
-        position: relative;
-        box-shadow:
-          0 0 16px rgba(212, 175, 55, 0.08),
-          0 0 32px rgba(212, 175, 55, 0.04),
-          inset 0 0 16px rgba(212, 175, 55, 0.02);
-        animation: tableGlow 3.5s ease-in-out infinite alternate;
-        will-change: box-shadow, border-color;
-      }
-      @keyframes tableGlow {
-        0% {
-          box-shadow:
-            0 0 16px rgba(212, 175, 55, 0.08),
-            0 0 32px rgba(212, 175, 55, 0.04),
-            inset 0 0 16px rgba(212, 175, 55, 0.02);
-          border-color: rgba(212, 175, 55, 0.12);
-        }
-        100% {
-          box-shadow:
-            0 0 28px rgba(212, 175, 55, 0.18),
-            0 0 56px rgba(212, 175, 55, 0.09),
-            inset 0 0 28px rgba(212, 175, 55, 0.05);
-          border-color: rgba(212, 175, 55, 0.26);
-        }
-      }
-
-      /* Glowing grand box */
-      .gbox {
-        background: linear-gradient(
-          135deg,
-          rgba(12, 9, 2, 0.85) 0%,
-          rgba(20, 15, 4, 0.75) 50%,
-          rgba(10, 8, 2, 0.65) 100%
-        );
-        border: 1.5px solid rgba(212, 175, 55, 0.22);
-        border-radius: 16px;
-        position: relative;
-        overflow: hidden;
-        box-shadow:
-          0 0 24px rgba(212, 175, 55, 0.14),
-          0 0 48px rgba(212, 175, 55, 0.07),
-          inset 0 0 32px rgba(212, 175, 55, 0.03);
-        animation: grandBoxGlow 4s ease-in-out infinite alternate;
-        will-change: box-shadow, border-color;
-      }
-      @keyframes grandBoxGlow {
-        0% {
-          box-shadow:
-            0 0 24px rgba(212, 175, 55, 0.14),
-            0 0 48px rgba(212, 175, 55, 0.07),
-            inset 0 0 32px rgba(212, 175, 55, 0.03);
-          border-color: rgba(212, 175, 55, 0.22);
-        }
-        100% {
-          box-shadow:
-            0 0 36px rgba(212, 175, 55, 0.26),
-            0 0 72px rgba(212, 175, 55, 0.13),
-            inset 0 0 48px rgba(212, 175, 55, 0.07);
-          border-color: rgba(212, 175, 55, 0.4);
-        }
-      }
-
-      /* Glowing info bar */
-      .ibar {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow:
-          0 0 18px rgba(212, 175, 55, 0.08),
-          inset 0 0 18px rgba(212, 175, 55, 0.03);
-        animation: infoBarGlow 4s ease-in-out infinite alternate;
-        will-change: box-shadow, border-color;
-      }
-      @keyframes infoBarGlow {
-        0% {
-          box-shadow:
-            0 0 18px rgba(212, 175, 55, 0.08),
-            inset 0 0 18px rgba(212, 175, 55, 0.03);
-          border-color: rgba(212, 175, 55, 0.1);
-        }
-        100% {
-          box-shadow:
-            0 0 30px rgba(212, 175, 55, 0.18),
-            inset 0 0 30px rgba(212, 175, 55, 0.07);
-          border-color: rgba(212, 175, 55, 0.24);
-        }
-      }
-
-      /* Glowing stats cards */
-      .sc {
-        background: var(--surface);
-        border: 1px solid rgba(212, 175, 55, 0.14);
-        border-radius: 12px;
-        position: relative;
-        overflow: hidden;
-        box-shadow:
-          0 0 16px rgba(212, 175, 55, 0.1),
-          inset 0 0 16px rgba(212, 175, 55, 0.02);
-        animation: statsCardGlow 3s ease-in-out infinite alternate;
-        animation-delay: calc(var(--card-index, 0) * 0.2s);
-        will-change: box-shadow, border-color;
-      }
-      @keyframes statsCardGlow {
-        0% {
-          box-shadow:
-            0 0 16px rgba(212, 175, 55, 0.1),
-            inset 0 0 16px rgba(212, 175, 55, 0.02);
-          border-color: rgba(212, 175, 55, 0.14);
-        }
-        100% {
-          box-shadow:
-            0 0 28px rgba(212, 175, 55, 0.22),
-            inset 0 0 28px rgba(212, 175, 55, 0.06);
-          border-color: rgba(212, 175, 55, 0.32);
-        }
-      }
-
-      /* Glowing section labels */
-      .slbl {
-        background: rgba(212, 175, 55, 0.06);
-        border: 1px solid rgba(212, 175, 55, 0.22);
-        color: var(--gold);
-        text-shadow: 0 0 8px rgba(212, 175, 55, 0.35);
-        box-shadow:
-          0 0 14px rgba(212, 175, 55, 0.12),
-          inset 0 0 10px rgba(212, 175, 55, 0.04);
-        animation: sectionLabelGlow 3s ease-in-out infinite alternate;
-        will-change: box-shadow, border-color;
-      }
-      @keyframes sectionLabelGlow {
-        0% {
-          box-shadow:
-            0 0 14px rgba(212, 175, 55, 0.12),
-            inset 0 0 10px rgba(212, 175, 55, 0.04);
-          border-color: rgba(212, 175, 55, 0.22);
-        }
-        100% {
-          box-shadow:
-            0 0 24px rgba(212, 175, 55, 0.26),
-            inset 0 0 20px rgba(212, 175, 55, 0.09);
-          border-color: rgba(212, 175, 55, 0.42);
-        }
-      }
-
-      /* Enhanced table rows with hover glow */
-      .bt tr {
-        transition: background 0.25s ease;
-      }
-      .bt tr:hover {
-        background: rgba(212, 175, 55, 0.05) !important;
-      }
-      .bt .tot td,
-      .bt .grand td {
-        background: rgba(212, 175, 55, 0.07) !important;
-        color: var(--gold) !important;
-        font-weight: 700;
-        text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
-        animation: totalRowGlow 2.5s ease-in-out infinite alternate;
-      }
-      @keyframes totalRowGlow {
-        0% {
-          text-shadow: 0 0 6px rgba(212, 175, 55, 0.4);
-        }
-        100% {
-          text-shadow: 0 0 14px rgba(212, 175, 55, 0.7);
-        }
-      }
-
-      /* COPYRIGHT FOOTER */
-      .copyright-footer {
-        background: var(--surface);
-        border-top: 1px solid var(--border);
-        padding: clamp(16px, 3vw, 24px) clamp(12px, 3vw, 28px);
-        text-align: center;
-        margin-top: auto;
-        position: relative;
-        width: 100%;
-        flex-shrink: 0;
-      }
-      .copyright-footer p {
-        font-family: "DM Mono", monospace;
-        font-size: clamp(13px, 2.5vw, 15px);
-        color: var(--m1);
-        letter-spacing: clamp(0.5px, 0.5vw, 0.8px);
-        margin: 0;
-        line-height: 1.6;
-      }
-      .copyright-footer p strong {
-        color: var(--gold);
-        font-weight: 500;
-      }
-      @media (max-width: 360px) {
-        .copyright-footer {
-          padding: 12px 10px;
-        }
-        .copyright-footer p {
-          font-size: 14px;
-          line-height: 1.5;
-        }
-      }
-
-      /* ── REDUCED MOTION — accessibility ── */
-      @media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-        }
-        .floating-particle {
-          display: none !important;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <!-- HEADER -->
     <header>
-      <div class="logo">PORT<span class="logo-sub"> / CAR BILLING</span></div>
+      <div class="logo">
+        PORT<span class="logo-sub"> / BILLING SYSTEM</span>
+      </div>
       <div class="hright">
-        <div class="hbadge" id="modeBadge">USER</div>
-        <button class="admin-btn" id="adminBtn" onclick="toggleAdmin()">
+        <div class="hbadge" id="modeBadge" style="display:none">USER</div>
+        <button
+          class="admin-btn"
+          id="adminBtn"
+          onclick="toggleAdmin()"
+          aria-label="Admin login"
+          style="display:none"
+        >
           <span class="adot" id="adot"></span>
           <span id="adminTxt">🔒 Admin</span>
         </button>
       </div>
     </header>
 
+    <!-- MODULE TABS -->
+    <div class="module-tabs" role="tablist" aria-label="Billing modules">
+      <button
+        class="tab-btn active"
+        id="tab-car"
+        role="tab"
+        aria-selected="true"
+        aria-controls="page-car"
+        onclick="switchModule('car')"
+      >
+        <span class="tab-icon">🚗</span> Car Billing
+      </button>
+      <button
+        class="tab-btn cargo"
+        id="tab-cargo"
+        role="tab"
+        aria-selected="false"
+        aria-controls="page-cargo"
+        onclick="switchModule('cargo')"
+      >
+        <span class="tab-icon">📦</span> General Cargo Billing
+      </button>
+    </div>
+
     <!-- ADMIN MODAL -->
-    <div
-      class="overlay"
-      id="overlay"
-      onclick="if (event.target === this) closeModal();"
-    >
+    <dialog class="overlay" id="overlay" aria-labelledby="modal-heading">
       <div class="modal">
-        <div class="modal-title">ADMIN LOGIN</div>
+        <div class="modal-title" id="modal-heading">ADMIN LOGIN</div>
         <div class="modal-sub">Enter credentials to unlock all fields</div>
         <div class="merr" id="merr">Incorrect username or password.</div>
         <div class="mfg">
-          <label class="mlbl">Username</label>
+          <label class="mlbl" for="muser">Username</label>
           <input
             class="minput"
             type="text"
@@ -2429,7 +87,7 @@
           />
         </div>
         <div class="mfg">
-          <label class="mlbl">Password</label>
+          <label class="mlbl" for="mpass">Password</label>
           <input
             class="minput"
             type="password"
@@ -2452,1804 +110,1250 @@
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
 
-    <!-- MAIN -->
-    <main class="wrap">
-      <div class="pgtitle">CAR Wharfrent BILL</div>
-      <div class="pgsub">Port Authority — Wharfrent &amp; Payable Charges</div>
+    <!-- ════════════════════════════════════════
+         CAR BILLING MODULE
+    ════════════════════════════════════════ -->
+    <div id="page-car" class="module-page active">
+      <main class="wrap">
+        <div class="pgtitle">CAR WHARFRENT BILL</div>
+        <div class="pgsub">
+          Port Authority — CAR Wharfrent &amp; Payable Charges
+        </div>
+        <div class="weight-note">
+          ⚠ <strong>Module Limitation:</strong> This module covers billing for
+          vehicles up to <strong>3 tons</strong>. Any vehicle with a weight of
+          <strong>4 tons or more</strong> will not be billed here. <br /><strong
+            >⚠ Disclaimer:</strong
+          >
+          This bill cannot be used as an official reference; it is for
+          <strong>informational purposes only</strong>.
+        </div>
 
-      <!-- Weight module note -->
-      <div class="weight-note">
-        ⚠ <strong>Module Limitation:</strong> This module covers billing for
-        vehicles up to <strong>3 tons</strong>. Any vehicle with a weight of
-        <strong>4 tons or more</strong> will not be billed under this module.
-        <strong>
-          <br />
-          ⚠ Disclaimer:</strong
-        >
-        This bill cannot be used as an official reference; it is provided for
-        <strong>informational purposes only</strong>.
-      </div>
-
-      <div class="layout" id="inputSection">
-        <!-- LEFT -->
-        <div>
-          <!-- Wharfrent DETAILS -->
-          <div class="card">
-            <div class="ctitle">
-              Wharfrent Details
-              <span class="cnote"
-                ><span style="opacity: 0.4">🔒</span> CLD, Delivery &amp; WEIGHT
-                are editable</span
-              >
-            </div>
-            <div class="r2">
-              <div class="fg">
-                <label class="lbl"
-                  >CLD
-                  <span style="font-size: 13px; color: var(--m2)"
-                    >(Common Landing Day)</span
-                  ></label
+        <div class="layout" id="car-inputSection">
+          <!-- LEFT -->
+          <div>
+            <div class="card">
+              <div class="ctitle">
+                Car Wharfrent Details<span class="cnote"
+                  ><span style="opacity: 0.4">🔒</span> CLD, Delivery &amp;
+                  Weight editable</span
                 >
-                <input
-                  type="text"
-                  id="cld"
-                  class="cyan-glow"
-                  placeholder="DD/MM/YYYY"
-                  pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
-                  maxlength="10"
-                  oninput="
-                    formatDate(this);
-                    refresh();
-                  "
-                  aria-label="Common Landing Date"
-                />
               </div>
-              <div class="fg">
-                <label class="lbl"
-                  >Free Time
-                  <span style="font-size: 13px; color: var(--m2)"
-                    >(days incl. CLD)</span
+              <div class="r2">
+                <div class="fg">
+                  <label class="lbl" for="cld"
+                    >CLD
+                    <span style="font-size: 12px; color: var(--m2)"
+                      >(Common Landing Day)</span
+                    ></label
                   >
-                  <span class="lck">🔒</span></label
-                >
-                <input
+                  <input
+                    type="text"
+                    id="cld"
+                    class="cyan-glow"
+                    placeholder="DD/MM/YYYY"
+                    maxlength="10"
+                    oninput="
+                      formatDate(this);
+                      carRefresh();
+                    "
+                  />
+                </div>
+                <div class="fg">
+                  <label class="lbl" for="freeDays"
+                    >Free Time
+                    <span style="font-size: 12px; color: var(--m2)"
+                      >(days incl. CLD)</span
+                    >
+                    <span class="lck">🔒</span></label
+                  >
+                  <input
+                    type="number"
+                    id="freeDays"
+                    value="4"
+                    class="ro"
+                    readonly
+                    oninput="carRefresh()"
+                  />
+                </div>
+              </div>
+              <div
+                id="car-ftStrip"
+                style="
+                  background: var(--s2);
+                  border: 1px solid var(--border);
+                  border-radius: 8px;
+                  padding: 10px 14px;
+                  margin-bottom: 10px;
+                  font-family: 'DM Mono', monospace;
+                  font-size: 13px;
+                  color: var(--m1);
+                  line-height: 1.9;
+                  display: none;
+                "
+              >
+                <span id="car-ftDays" style="color: var(--gold)"></span>
+              </div>
+              <div class="r2">
+                <div class="fg">
+                  <div class="lbl">
+                    Free Time Ends <span class="lck">🔒</span>
+                  </div>
+                  <div class="date-display" id="car-freeEnd">—</div>
+                </div>
+                <div class="fg">
+                  <div class="lbl">
+                    Car Wharfrent Starts <span class="lck">🔒</span>
+                  </div>
+                  <div class="date-display" id="car-storStart">—</div>
+                </div>
+              </div>
+              <div class="r2">
+                <div class="fg">
+                  <label class="lbl" for="delivery">Delivery Date</label>
+                  <input
+                    type="text"
+                    id="delivery"
+                    class="cyan-glow"
+                    placeholder="DD/MM/YYYY"
+                    maxlength="10"
+                    oninput="
+                      formatDate(this);
+                      carRefresh();
+                    "
+                  />
+                </div>
+                <div class="fg">
+                  <label class="lbl" for="weight">Weight (Tons) — max 3</label>
+                  <input
+                    type="number"
+                    id="weight"
+                    class="cyan-glow"
+                    value="2"
+                    min="1"
+                    max="3"
+                    step="1"
+                    oninput="onWeightChange()"
+                  />
+                  <div class="weight-warn" id="weightWarn">
+                    ⚠ Max 3 tons for this module
+                  </div>
+                </div>
+              </div>
+              <div id="rbadge"></div>
+            </div>
+
+            <!-- PAYABLE CHARGES — CAR -->
+            <div class="card">
+              <div class="ctitle">Payable Charges</div>
+              <div class="ptw">
+                <table class="ptbl">
+                  <thead>
+                    <tr>
+                      <th class="ckcell">Pay</th>
+                      <th>Charge Name</th>
+                      <th>Rate (Tk/ton)</th>
+                      <th class="ntcell">VAT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="ckcell">
+                        <input
+                          type="checkbox"
+                          id="chkRiver"
+                          checked
+                          oninput="carRefresh()"
+                        />
+                      </td>
+                      <td>River Dues</td>
+                      <td>
+                        <input
+                          type="number"
+                          id="rRiver"
+                          value="33"
+                          class="ro rate-input"
+                          readonly
+                          oninput="carRefresh()"
+                        />
+                      </td>
+                      <td class="ntcell" style="color: var(--gold)">Yes</td>
+                    </tr>
+                    <tr>
+                      <td class="ckcell">
+                        <input
+                          type="checkbox"
+                          id="chkLanding"
+                          checked
+                          oninput="carRefresh()"
+                        />
+                      </td>
+                      <td>Landing Charge</td>
+                      <td>
+                        <input
+                          type="number"
+                          id="rLanding"
+                          value="175"
+                          class="ro rate-input"
+                          readonly
+                          oninput="carRefresh()"
+                        />
+                      </td>
+                      <td class="ntcell" style="color: var(--gold)">Yes</td>
+                    </tr>
+                    <tr>
+                      <td class="ckcell">
+                        <input
+                          type="checkbox"
+                          id="chkRemoval"
+                          checked
+                          oninput="carRefresh()"
+                        />
+                      </td>
+                      <td>Removal Charge</td>
+                      <td>
+                        <input
+                          type="number"
+                          id="rRemoval"
+                          value="350"
+                          class="ro rate-input"
+                          readonly
+                          oninput="carRefresh()"
+                        />
+                      </td>
+                      <td class="ntcell" style="color: var(--gold)">Yes</td>
+                    </tr>
+                    <tr>
+                      <td class="ckcell">
+                        <input
+                          type="checkbox"
+                          id="chkWeighment"
+                          checked
+                          oninput="carRefresh()"
+                        />
+                      </td>
+                      <td>Weighment Charge</td>
+                      <td>
+                        <input
+                          type="number"
+                          id="rWeighment"
+                          value="2.5"
+                          step="0.5"
+                          class="ro rate-input"
+                          readonly
+                          oninput="carRefresh()"
+                        />
+                      </td>
+                      <td class="ntcell" style="color: var(--gold)">Yes</td>
+                    </tr>
+                    <tr>
+                      <td class="ckcell">
+                        <input
+                          type="checkbox"
+                          id="chkLevy"
+                          checked
+                          oninput="carRefresh()"
+                        />
+                      </td>
+                      <td>Levy Charge</td>
+                      <td>
+                        <input
+                          type="number"
+                          id="rLevy"
+                          value="1.5"
+                          step="0.5"
+                          class="ro rate-input"
+                          readonly
+                          oninput="carRefresh()"
+                        />
+                      </td>
+                      <td class="ntcell" style="color: var(--green)">No VAT</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="vatr">
+                <label class="lbl" for="vatRate"
+                  >VAT Rate (%) <span class="lck">🔒</span></label
+                ><input
                   type="number"
-                  id="freeDays"
-                  value="4"
+                  id="vatRate"
+                  value="15"
+                  min="0"
+                  max="100"
+                  step="0.5"
                   class="ro"
                   readonly
+                  oninput="carRefresh()"
                 />
               </div>
             </div>
-            <!-- Free time breakdown strip -->
-            <div
-              id="ftStrip"
-              style="
-                background: var(--s2);
-                border: 1px solid var(--border);
-                border-radius: 8px;
-                padding: 10px 14px;
-                margin-bottom: 10px;
-                font-family: &quot;DM Mono&quot;, monospace;
-                font-size: 14px;
-                color: var(--m1);
-                line-height: 1.9;
-                display: none;
-              "
-            >
-              <span id="ftDays" style="color: var(--gold)"></span>
-            </div>
-            <div class="r2">
-              <div class="fg">
-                <label class="lbl"
-                  >Free Time Ends <span class="lck">🔒</span></label
+
+            <!-- WHARFRENT RATES — CAR -->
+            <div class="card">
+              <div class="ctitle">
+                Car Wharfrent Rates — Tk per ton per day<span class="cnote"
+                  ><span style="opacity: 0.8">🔒</span> Admin only</span
                 >
-                <div class="date-display" id="freeEnd">—</div>
               </div>
-              <div class="fg">
-                <label class="lbl"
-                  >Wharfrent Starts <span class="lck">🔒</span></label
-                >
-                <div class="date-display" id="storStart">—</div>
-              </div>
-            </div>
-            <div class="r2">
-              <div class="fg">
-                <label class="lbl">Delivery Date</label>
-                <input
-                  type="text"
-                  id="delivery"
-                  class="cyan-glow"
-                  placeholder="DD/MM/YYYY"
-                  pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
-                  maxlength="10"
-                  oninput="
-                    formatDate(this);
-                    refresh();
-                  "
-                  aria-label="Delivery Date"
-                />
-              </div>
-              <div class="fg">
-                <label class="lbl">Weight (Tons) — max 3</label>
-                <input
-                  type="number"
-                  id="weight"
-                  class="cyan-glow"
-                  value="2"
-                  min="1"
-                  max="3"
-                  step="1"
-                  oninput="onWeightChange()"
-                  aria-label="Weight in tons"
-                />
-                <div class="weight-warn" id="weightWarn">
-                  ⚠ Max 3 tons for this module
+              <div class="rg">
+                <div>
+                  <div class="rst rn">▲ New (From 23/07/2024)</div>
+                  <table class="rt">
+                    <thead>
+                      <tr>
+                        <th>Slab</th>
+                        <th>Rate (Tk)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>1st 7 days</td>
+                        <td>
+                          <span class="rspan" id="dnr1">70</span
+                          ><input
+                            type="number"
+                            id="nr1"
+                            value="70"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('nr1', 'dnr1');
+                              carRefresh();
+                            "
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>8th–14th day</td>
+                        <td>
+                          <span class="rspan" id="dnr2">185</span
+                          ><input
+                            type="number"
+                            id="nr2"
+                            value="185"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('nr2', 'dnr2');
+                              carRefresh();
+                            "
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>15th day+</td>
+                        <td>
+                          <span class="rspan" id="dnr3">295</span
+                          ><input
+                            type="number"
+                            id="nr3"
+                            value="295"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('nr3', 'dnr3');
+                              carRefresh();
+                            "
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div>
+                  <div class="rst ro2">▼ Old (Up to 22/07/2024)</div>
+                  <table class="rt">
+                    <thead>
+                      <tr>
+                        <th>Slab</th>
+                        <th>Rate (Tk)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>1st 7 days</td>
+                        <td>
+                          <span class="rspan" id="dor1">40</span
+                          ><input
+                            type="number"
+                            id="or1"
+                            value="40"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('or1', 'dor1');
+                              carRefresh();
+                            "
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>8th–14th day</td>
+                        <td>
+                          <span class="rspan" id="dor2">115</span
+                          ><input
+                            type="number"
+                            id="or2"
+                            value="115"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('or2', 'dor2');
+                              carRefresh();
+                            "
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>15th day+</td>
+                        <td>
+                          <span class="rspan" id="dor3">185</span
+                          ><input
+                            type="number"
+                            id="or3"
+                            value="185"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('or3', 'dor3');
+                              carRefresh();
+                            "
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
-            <div id="rbadge"></div>
           </div>
-
-          <!-- PAYABLE CHARGES -->
-          <div class="card">
-            <div class="ctitle">Payable Charges</div>
-            <div class="ptw">
-              <table class="ptbl">
-                <thead>
-                  <tr>
-                    <th class="ckcell">Pay</th>
-                    <th>Charge Name</th>
-                    <th>Rate (Tk/ton)</th>
-                    <th class="ntcell">VAT</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="ckcell">
-                      <input
-                        type="checkbox"
-                        id="chkRiver"
-                        checked
-                        oninput="refresh()"
-                      />
-                    </td>
-                    <td>River Dues</td>
-                    <td>
-                      <input
-                        type="number"
-                        id="rRiver"
-                        value="33"
-                        class="ro"
-                        readonly
-                        oninput="refresh()"
-                      />
-                    </td>
-                    <td class="ntcell" style="color: var(--gold)">Yes</td>
-                  </tr>
-                  <tr>
-                    <td class="ckcell">
-                      <input
-                        type="checkbox"
-                        id="chkLanding"
-                        checked
-                        oninput="refresh()"
-                      />
-                    </td>
-                    <td>Landing Charge</td>
-                    <td>
-                      <input
-                        type="number"
-                        id="rLanding"
-                        value="175"
-                        class="ro"
-                        readonly
-                        oninput="refresh()"
-                      />
-                    </td>
-                    <td class="ntcell" style="color: var(--gold)">Yes</td>
-                  </tr>
-                  <tr>
-                    <td class="ckcell">
-                      <input
-                        type="checkbox"
-                        id="chkRemoval"
-                        checked
-                        oninput="refresh()"
-                      />
-                    </td>
-                    <td>Removal Charge</td>
-                    <td>
-                      <input
-                        type="number"
-                        id="rRemoval"
-                        value="350"
-                        class="ro"
-                        readonly
-                        oninput="refresh()"
-                      />
-                    </td>
-                    <td class="ntcell" style="color: var(--gold)">Yes</td>
-                  </tr>
-                  <tr>
-                    <td class="ckcell">
-                      <input
-                        type="checkbox"
-                        id="chkWeighment"
-                        checked
-                        oninput="refresh()"
-                      />
-                    </td>
-                    <td>Weighment Charge</td>
-                    <td>
-                      <input
-                        type="number"
-                        id="rWeighment"
-                        value="2.5"
-                        step="0.5"
-                        class="ro"
-                        readonly
-                        oninput="refresh()"
-                      />
-                    </td>
-                    <td class="ntcell" style="color: var(--gold)">Yes</td>
-                  </tr>
-                  <tr>
-                    <td class="ckcell">
-                      <input
-                        type="checkbox"
-                        id="chkLevy"
-                        checked
-                        oninput="refresh()"
-                      />
-                    </td>
-                    <td>Levy Charge</td>
-                    <td>
-                      <input
-                        type="number"
-                        id="rLevy"
-                        value="1.5"
-                        step="0.5"
-                        class="ro"
-                        readonly
-                        oninput="refresh()"
-                      />
-                    </td>
-                    <td class="ntcell" style="color: var(--green)">No VAT</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="vatr">
-              <label class="lbl"
-                >VAT Rate (%) <span class="lck">🔒</span></label
-              >
-              <input
-                type="number"
-                id="vatRate"
-                value="15"
-                min="0"
-                max="100"
-                step="0.5"
-                class="ro"
-                readonly
-                oninput="refresh()"
-              />
-            </div>
-          </div>
-
-          <!-- Wharfrent RATES -->
-          <div class="card">
-            <div class="ctitle">
-              Wharfrent Rates — Tk per ton per day
-              <span class="cnote"
-                ><span style="opacity: 0.8">🔒</span> Admin only</span
-              >
-            </div>
-            <div class="rg">
-              <div>
-                <div class="rst rn">▲ New (From 23/07/2024)</div>
-                <table class="rt">
-                  <thead>
-                    <tr>
-                      <th>Slab</th>
-                      <th>Rate (Tk)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>1st 7 days</td>
-                      <td>
-                        <span class="rspan" id="dnr1">70</span
-                        ><input
-                          type="number"
-                          id="nr1"
-                          value="70"
-                          style="display: none"
-                          class="ro"
-                          readonly
-                          oninput="
-                            syncSpan('nr1', 'dnr1');
-                            refresh();
-                          "
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>8th – 14th day</td>
-                      <td>
-                        <span class="rspan" id="dnr2">185</span
-                        ><input
-                          type="number"
-                          id="nr2"
-                          value="185"
-                          style="display: none"
-                          class="ro"
-                          readonly
-                          oninput="
-                            syncSpan('nr2', 'dnr2');
-                            refresh();
-                          "
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>15th day onwards</td>
-                      <td>
-                        <span class="rspan" id="dnr3">295</span
-                        ><input
-                          type="number"
-                          id="nr3"
-                          value="295"
-                          style="display: none"
-                          class="ro"
-                          readonly
-                          oninput="
-                            syncSpan('nr3', 'dnr3');
-                            refresh();
-                          "
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+          <!-- RIGHT -->
+          <div>
+            <div class="sp">
+              <div class="ctitle">
+                Quick Preview
+                <span class="sp-live-badge">● LIVE</span>
               </div>
-              <div>
-                <div class="rst ro2">▼ Old (Up to 22/07/2024)</div>
-                <table class="rt">
-                  <thead>
-                    <tr>
-                      <th>Slab</th>
-                      <th>Rate (Tk)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>1st 7 days</td>
-                      <td>
-                        <span class="rspan" id="dor1">40</span
-                        ><input
-                          type="number"
-                          id="or1"
-                          value="40"
-                          style="display: none"
-                          class="ro"
-                          readonly
-                          oninput="
-                            syncSpan('or1', 'dor1');
-                            refresh();
-                          "
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>8th – 14th day</td>
-                      <td>
-                        <span class="rspan" id="dor2">115</span
-                        ><input
-                          type="number"
-                          id="or2"
-                          value="115"
-                          style="display: none"
-                          class="ro"
-                          readonly
-                          oninput="
-                            syncSpan('or2', 'dor2');
-                            refresh();
-                          "
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>15th day onwards</td>
-                      <td>
-                        <span class="rspan" id="dor3">185</span
-                        ><input
-                          type="number"
-                          id="or3"
-                          value="185"
-                          style="display: none"
-                          class="ro"
-                          readonly
-                          oninput="
-                            syncSpan('or3', 'dor3');
-                            refresh();
-                          "
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="sp-mod-label">Car Wharfrent Module</div>
+              <div id="car-preview">
+                <div class="sp-idle">
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <path d="M8 21h8M12 17v4" />
+                  </svg>
+                  <span
+                    >Fill in shipment details<br />to see live cost
+                    preview</span
+                  >
+                </div>
+              </div>
+              <div class="sp-actions sp-actions-car">
+                <button class="car-gen-btn" onclick="carCalculate()">
+                  <span class="cgb-icon">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      stroke="none"
+                    >
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                  </span>
+                  <span class="cgb-text">GENERATE BILL</span>
+                  <svg
+                    class="cgb-arrow"
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <button class="car-reset-btn" onclick="carReset()">
+                  <svg
+                    class="crb-icon"
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                    />
+                    <path d="M3 3v5h5" />
+                  </svg>
+                  Reset
+                </button>
+              </div>
+            </div>
+            <div
+              class="card"
+              style="border-style: dashed; background: transparent"
+            >
+              <div class="ctitle">Billing Rules</div>
+              <div class="guide">
+                <div>① Free Time = CLD + 3 days (4 days incl. CLD)</div>
+                <div>② Car Wharfrent starts day after free time ends</div>
+                <div>③ Rate: Tk × ton × day (slab-wise)</div>
+                <div>
+                  ④ CLD ≤ 22/07/2024 →
+                  <span style="color: var(--red)">split billing</span>
+                </div>
+                <div>
+                  ⑤ <span style="color: var(--blue)">Inside</span> = Car
+                  Wharfrent + payable + VAT + levy
+                </div>
+                <div>
+                  ⑥ <span style="color: var(--purple)">Outside</span> = ½ Car
+                  Wharfrent + payable + VAT + levy
+                </div>
+                <div>⑦ Payable charges always apply</div>
+                <div>⑧ Levy added without VAT</div>
+                <div>⑨ 🔒 Rates editable by Admin only</div>
+                <div>⑩ Max weight: 3 tons</div>
               </div>
             </div>
           </div>
         </div>
-        <!-- /left -->
 
-        <!-- RIGHT PANEL -->
-        <div>
-          <div class="sp">
-            <div class="ctitle">Quick Preview</div>
-            <div id="preview">Enter shipment details…</div>
-            <button class="btn" onclick="calculate()">
+        <!-- CAR RESULTS -->
+        <div id="results">
+          <hr />
+          <div class="rh">
+            <div class="rtitle">CAR WHARFRENT BILL STATEMENT</div>
+            <button class="print-btn" onclick="printBill('car')">
               <svg
-                width="13"
-                height="13"
+                width="14"
+                height="14"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2.5"
+                stroke-width="2"
               >
-                <rect x="2" y="3" width="20" height="14" rx="2" />
-                <path d="M8 21h8M12 17v4" />
+                <polyline points="6 9 6 2 18 2 18 9" />
+                <path
+                  d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+                />
+                <rect x="6" y="14" width="12" height="8" />
               </svg>
-              GENERATE BILL
-            </button>
-            <button class="btn bg" onclick="resetAll()" aria-label="Reset form">
-              ↻ Reset
+              Print Bill
             </button>
           </div>
+          <div id="car-ibar"></div>
+          <div class="sr" id="car-srow"></div>
+          <div id="car-insideSec"></div>
+          <div id="car-outsideSec"></div>
+          <div id="car-grandSec"></div>
+        </div>
+      </main>
+    </div>
 
-          <div
-            class="card"
-            style="border-style: dashed; background: transparent"
-          >
-            <div class="ctitle">Billing Rules</div>
-            <div class="guide">
-              <div>① Free Time = CLD + 3 days (4 days incl. CLD)</div>
-              <div>② Wharfrent starts day after free time ends</div>
-              <div>③ Rate: Tk × ton × day (slab-wise)</div>
-              <div>
-                ④ CLD ≤ 22/07/2024 →
-                <span style="color: var(--red)">split billing</span>
+    <!-- ════════════════════════════════════════
+         GENERAL CARGO BILLING MODULE
+    ════════════════════════════════════════ -->
+    <div id="page-cargo" class="module-page">
+      <main class="wrap">
+        <div class="pgtitle" style="color: var(--cargo-accent)">
+          GENERAL CARGO WHARFRENT BILL
+        </div>
+        <div class="pgsub" style="color: var(--m1)">
+          Port Authority — GENERAL Cargo Wharfrent &amp; Payable Charges
+        </div>
+        <div class="cargo-note">
+          ⚠ <strong>General Cargo Module:</strong> Enter
+          <strong>total cargo weight</strong>, then specify how much is stored
+          <strong>Inside</strong> vs <strong>Outside</strong> the
+          shed/warehouse. Outside wharfrent is always
+          <strong>½ of inside rate</strong>. Portions must equal total weight.
+          <br /><strong>⚠ Disclaimer:</strong> This bill cannot be used as an
+          official reference; it is for
+          <strong>informational purposes only</strong>.
+        </div>
+
+        <div class="layout" id="cargo-inputSection">
+          <!-- LEFT -->
+          <div>
+            <!-- CARGO DETAILS -->
+            <div class="card">
+              <div class="ctitle cargo-title">
+                General Cargo Wharfrent Details<span class="cnote"
+                  ><span style="opacity: 0.4">🔒</span> CLD, Delivery &amp;
+                  Weight editable</span
+                >
+              </div>
+              <div class="r2">
+                <div class="fg">
+                  <label class="lbl" for="c-cld"
+                    >CLD
+                    <span style="font-size: 12px; color: var(--m2)"
+                      >(Common Landing Day)</span
+                    ></label
+                  >
+                  <input
+                    type="text"
+                    id="c-cld"
+                    class="cargo-glow"
+                    placeholder="DD/MM/YYYY"
+                    maxlength="10"
+                    oninput="
+                      formatDate(this);
+                      cargoRefresh();
+                    "
+                  />
+                </div>
+                <div class="fg">
+                  <label class="lbl" for="c-freeDays"
+                    >Free Time
+                    <span style="font-size: 12px; color: var(--m2)"
+                      >(days incl. CLD)</span
+                    >
+                    <span class="lck">🔒</span></label
+                  >
+                  <input
+                    type="number"
+                    id="c-freeDays"
+                    value="4"
+                    class="ro"
+                    readonly
+                    oninput="cargoRefresh()"
+                  />
+                </div>
+              </div>
+              <div
+                id="cargo-ftStrip"
+                style="
+                  background: var(--s2);
+                  border: 1px solid rgba(34, 211, 238, 0.15);
+                  border-radius: 8px;
+                  padding: 10px 14px;
+                  margin-bottom: 10px;
+                  font-family: 'DM Mono', monospace;
+                  font-size: 13px;
+                  color: var(--m1);
+                  line-height: 1.9;
+                  display: none;
+                "
+              >
+                <span
+                  id="cargo-ftDays"
+                  style="color: var(--cargo-accent)"
+                ></span>
+              </div>
+              <div class="r2">
+                <div class="fg">
+                  <div class="lbl">
+                    Free Time Ends <span class="lck">🔒</span>
+                  </div>
+                  <div class="date-display" id="cargo-freeEnd">—</div>
+                </div>
+                <div class="fg">
+                  <div class="lbl">
+                    General Cargo Wharfrent Starts <span class="lck">🔒</span>
+                  </div>
+                  <div class="date-display" id="cargo-storStart">—</div>
+                </div>
+              </div>
+              <div class="r2">
+                <div class="fg">
+                  <label class="lbl" for="c-delivery">Delivery Date</label>
+                  <input
+                    type="text"
+                    id="c-delivery"
+                    class="cargo-glow"
+                    placeholder="DD/MM/YYYY"
+                    maxlength="10"
+                    oninput="
+                      formatDate(this);
+                      cargoRefresh();
+                    "
+                  />
+                </div>
+                <div class="fg">
+                  <label class="lbl" for="c-weight">Total Weight (Tons)</label>
+                  <input
+                    type="number"
+                    id="c-weight"
+                    class="cargo-glow"
+                    value="0"
+                    min="0"
+                    step="1"
+                    oninput="cargoRefresh()"
+                  />
+                </div>
+              </div>
+              <div id="cargo-rbadge"></div>
+            </div>
+
+            <!-- INSIDE / OUTSIDE SPLIT -->
+            <div class="card">
+              <div class="ctitle cargo-title">
+                Inside / Outside Weight Split
+              </div>
+              <div class="inside-outside-row">
+                <div class="iorow-title">📊 Cargo Portion Allocation</div>
+                <div class="r3">
+                  <div class="fg">
+                    <label class="lbl" for="c-inside" style="color: var(--blue)"
+                      >Inside (tons)</label
+                    >
+                    <input
+                      type="number"
+                      id="c-inside"
+                      class="cargo-glow"
+                      value="0"
+                      min="0"
+                      step="1"
+                      oninput="cargoRefresh()"
+                    />
+                  </div>
+                  <div class="fg">
+                    <label
+                      class="lbl"
+                      for="c-outside"
+                      style="color: var(--purple)"
+                      >Outside (tons)</label
+                    >
+                    <input
+                      type="number"
+                      id="c-outside"
+                      class="cargo-glow"
+                      value="0"
+                      min="0"
+                      step="1"
+                      oninput="cargoRefresh()"
+                    />
+                  </div>
+                  <div class="fg">
+                    <div class="lbl">Total Check</div>
+                    <div id="c-totalCheck" class="io-total-badge io-ok">
+                      ✓ 100 ton(s)
+                    </div>
+                  </div>
+                </div>
+                <div class="iorow-note">
+                  Outside wharfrent = ½ × inside rate. Inside + Outside must
+                  equal Total Weight.
+                </div>
+              </div>
+            </div>
+
+            <!-- CARGO PAYABLE CHARGES -->
+            <div class="card">
+              <div class="ctitle cargo-title">Payable Charges</div>
+              <div class="ptw">
+                <table class="ptbl">
+                  <thead>
+                    <tr>
+                      <th class="ckcell">Pay</th>
+                      <th>Charge Name</th>
+                      <th>Rate (Tk/ton)</th>
+                      <th class="ntcell">VAT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="ckcell">
+                        <label for="c-chkRiver" class="sr-only"
+                          >River Dues</label
+                        >
+                        <input
+                          type="checkbox"
+                          id="c-chkRiver"
+                          checked
+                          oninput="cargoRefresh()"
+                        />
+                      </td>
+                      <td>River Dues</td>
+                      <td>
+                        <input
+                          type="number"
+                          id="c-rRiver"
+                          value="33"
+                          class="ro rate-input"
+                          readonly
+                          oninput="cargoRefresh()"
+                        />
+                      </td>
+                      <td class="ntcell" style="color: var(--gold)">Yes</td>
+                    </tr>
+                    <tr>
+                      <td class="ckcell">
+                        <label for="c-chkLanding" class="sr-only"
+                          >Landing Charge</label
+                        >
+                        <input
+                          type="checkbox"
+                          id="c-chkLanding"
+                          checked
+                          oninput="cargoRefresh()"
+                        />
+                      </td>
+                      <td>
+                        Landing Charge
+                        <div
+                          style="
+                            font-size: 10px;
+                            color: var(--m2);
+                            line-height: 1.4;
+                            margin-top: 2px;
+                          "
+                        >
+                          ≤3t:90 / &gt;3t–≤20t:180 / &gt;20t:250
+                        </div>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          id="c-rLanding"
+                          value="250"
+                          class="ro rate-input"
+                          readonly
+                          oninput="cargoRefresh()"
+                        />
+                      </td>
+                      <td class="ntcell" style="color: var(--gold)">Yes</td>
+                    </tr>
+                    <tr>
+                      <td class="ckcell">
+                        <label for="c-chkRemoval" class="sr-only"
+                          >Removal Charge</label
+                        >
+                        <input
+                          type="checkbox"
+                          id="c-chkRemoval"
+                          oninput="cargoRefresh()"
+                        />
+                      </td>
+                      <td>
+                        Removal Charge
+                        <div
+                          style="
+                            font-size: 10px;
+                            color: var(--m2);
+                            line-height: 1.4;
+                            margin-top: 2px;
+                          "
+                        >
+                          7× slab (landing ✓) / 8× slab (landing ✗)
+                        </div>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          id="c-rRemoval"
+                          value="1750"
+                          class="ro rate-input"
+                          readonly
+                          oninput="cargoRefresh()"
+                        />
+                      </td>
+                      <td class="ntcell" style="color: var(--gold)">Yes</td>
+                    </tr>
+                    <tr>
+                      <td class="ckcell">
+                        <label for="c-chkWeighment" class="sr-only"
+                          >Weighment Charge</label
+                        >
+                        <input
+                          type="checkbox"
+                          id="c-chkWeighment"
+                          checked
+                          oninput="cargoRefresh()"
+                        />
+                      </td>
+                      <td>Weighment Charge</td>
+                      <td>
+                        <input
+                          type="number"
+                          id="c-rWeighment"
+                          value="2.5"
+                          step="0.5"
+                          class="ro rate-input"
+                          readonly
+                          oninput="cargoRefresh()"
+                        />
+                      </td>
+                      <td class="ntcell" style="color: var(--gold)">Yes</td>
+                    </tr>
+                    <tr>
+                      <td class="ckcell">
+                        <label for="c-chkHoisting" class="sr-only"
+                          >Hoisting Charge</label
+                        >
+                        <input
+                          type="checkbox"
+                          id="c-chkHoisting"
+                          checked
+                          oninput="cargoRefresh()"
+                        />
+                      </td>
+                      <td>
+                        Hoisting Charge
+                        <div
+                          style="
+                            font-size: 10px;
+                            color: var(--m2);
+                            line-height: 1.4;
+                            margin-top: 2px;
+                          "
+                        >
+                          125% of landing slab
+                        </div>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          id="c-rHoisting"
+                          value="312.5"
+                          step="0.01"
+                          class="ro rate-input"
+                          readonly
+                          oninput="cargoRefresh()"
+                        />
+                      </td>
+                      <td class="ntcell" style="color: var(--gold)">Yes</td>
+                    </tr>
+                    <tr>
+                      <td class="ckcell">
+                        <label for="c-chkLevy" class="sr-only"
+                          >Levy Charge</label
+                        >
+                        <input
+                          type="checkbox"
+                          id="c-chkLevy"
+                          checked
+                          oninput="cargoRefresh()"
+                        />
+                      </td>
+                      <td>Levy Charge</td>
+                      <td>
+                        <input
+                          type="number"
+                          id="c-rLevy"
+                          value="1.5"
+                          step="0.5"
+                          class="ro rate-input"
+                          readonly
+                          oninput="cargoRefresh()"
+                        />
+                      </td>
+                      <td class="ntcell" style="color: var(--green)">No VAT</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div
+                id="cargo-tier-info"
+                style="
+                  background: rgba(34, 211, 238, 0.06);
+                  border: 1px solid rgba(34, 211, 238, 0.15);
+                  border-radius: 6px;
+                  padding: 7px 12px;
+                  margin: 8px 0 10px;
+                  font-family: 'DM Mono', monospace;
+                  font-size: 11.5px;
+                  color: var(--m1);
+                  line-height: 1.8;
+                "
+              >
+                <span style="color: var(--m2)">Landing Tier: </span
+                ><strong style="color: var(--cargo-accent)">—</strong>
+              </div>
+              <div class="r2">
+                <div class="fg">
+                  <label class="lbl" for="c-removalTon"
+                    >Removal Cargo (ton)</label
+                  >
+                  <input
+                    type="number"
+                    id="c-removalTon"
+                    class="cargo-glow"
+                    value="0"
+                    min="0"
+                    step="1"
+                    oninput="cargoRefresh()"
+                  />
+                </div>
+                <div class="fg"></div>
+              </div>
+              <div class="vatr">
+                <label class="lbl" for="c-vatRate"
+                  >VAT Rate (%) <span class="lck">🔒</span></label
+                ><input
+                  type="number"
+                  id="c-vatRate"
+                  value="15"
+                  min="0"
+                  max="100"
+                  step="0.5"
+                  class="ro"
+                  readonly
+                  oninput="cargoRefresh()"
+                />
+              </div>
+            </div>
+
+            <!-- CARGO WHARFRENT RATES -->
+            <div class="card">
+              <div class="ctitle cargo-title">
+                General Cargo Wharfrent Rates — Tk per ton per day<span
+                  class="cnote"
+                  ><span style="opacity: 0.8">🔒</span> Admin only</span
+                >
               </div>
               <div>
-                ⑤ <span style="color: var(--blue)">Inside</span> = Wharfrent +
-                payable + VAT + levy
+                <div class="rst rn">● Standard Cargo Rates</div>
+                <table class="cargo-rate-table">
+                  <thead>
+                    <tr>
+                      <th>Slab</th>
+                      <th>Rate (Tk)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>1st 7 days</td>
+                      <td>
+                        <span class="rspan" id="c-dor1">10</span
+                        ><input
+                          type="number"
+                          id="c-or1"
+                          value="10"
+                          style="display: none"
+                          class="ro"
+                          readonly
+                          oninput="
+                            syncSpan('c-or1', 'c-dor1');
+                            cargoRefresh();
+                          "
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>8th–14th day</td>
+                      <td>
+                        <span class="rspan" id="c-dor2">20</span
+                        ><input
+                          type="number"
+                          id="c-or2"
+                          value="20"
+                          style="display: none"
+                          class="ro"
+                          readonly
+                          oninput="
+                            syncSpan('c-or2', 'c-dor2');
+                            cargoRefresh();
+                          "
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>15th day+</td>
+                      <td>
+                        <span class="rspan" id="c-dor3">25</span
+                        ><input
+                          type="number"
+                          id="c-or3"
+                          value="25"
+                          style="display: none"
+                          class="ro"
+                          readonly
+                          oninput="
+                            syncSpan('c-or3', 'c-dor3');
+                            cargoRefresh();
+                          "
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <div>
-                ⑥ <span style="color: var(--purple)">Outside</span> = ½
-                Wharfrent + payable + VAT + levy
+            </div>
+          </div>
+
+          <!-- RIGHT -->
+          <div>
+            <div class="sp" style="border-color: rgba(34, 211, 238, 0.15)">
+              <div class="ctitle cargo-title">
+                Quick Preview
+                <span class="sp-live-badge sp-live-cargo">● LIVE</span>
               </div>
-              <div>⑦ Payable charges always apply</div>
-              <div>⑧ Levy added without VAT</div>
-              <div>⑨ 🔒 Rates editable by Admin only</div>
-              <div>⑩ Max weight: 3 tons</div>
+              <div class="sp-mod-label sp-mod-cargo">
+                General Cargo Wharfrent Module
+              </div>
+              <div id="cargo-preview">
+                <div class="sp-idle">
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <rect x="1" y="3" width="15" height="13" />
+                    <path d="M16 8h4l3 3v5h-7V8z" />
+                    <circle cx="5.5" cy="18.5" r="2.5" />
+                    <circle cx="18.5" cy="18.5" r="2.5" />
+                  </svg>
+                  <span
+                    >Fill in cargo details<br />to see live cost preview</span
+                  >
+                </div>
+              </div>
+              <div class="sp-actions sp-actions-cargo">
+                <button class="cargo-gen-btn" onclick="cargoCalculate()">
+                  <span class="cgb-icon">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      stroke="none"
+                    >
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                  </span>
+                  <span class="cgb-text">GENERATE BILL</span>
+                  <svg
+                    class="cgb-arrow"
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <button class="cargo-reset-btn" onclick="cargoReset()">
+                  <svg
+                    class="crb-icon"
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                    />
+                    <path d="M3 3v5h5" />
+                  </svg>
+                  Reset
+                </button>
+              </div>
+            </div>
+            <div
+              class="card"
+              style="
+                border-style: dashed;
+                background: transparent;
+                border-color: rgba(34, 211, 238, 0.2);
+              "
+            >
+              <div class="ctitle cargo-title">Billing Rules</div>
+              <div class="guide">
+                <div>① Free Time = CLD + 3 days (4 days incl. CLD)</div>
+                <div>
+                  ② General Cargo Wharfrent starts day after free time ends
+                </div>
+                <div>③ Rate: Tk × ton × day (slab-wise)</div>
+                <div>④ River Dues = 33 Tk/ton (flat)</div>
+                <div>
+                  ⑤ Landing =
+                  <span style="color: var(--cargo-accent)"
+                    >≤3t→90 / &gt;3t–≤20t→180 / &gt;20t→250</span
+                  >
+                  Tk/ton
+                </div>
+                <div>
+                  ⑥ Removal =
+                  <span style="color: var(--gold)">7× slab</span> (landing ✓) or
+                  <span style="color: var(--gold)">8× slab</span> (landing ✗)
+                </div>
+                <div>⑦ Hoisting = 125% of landing slab rate</div>
+                <div>
+                  ⑧ <span style="color: var(--blue)">Inside</span> = full
+                  wharfrent (inside tons)
+                </div>
+                <div>
+                  ⑨ <span style="color: var(--purple)">Outside</span> = ½
+                  wharfrent (outside tons)
+                </div>
+                <div>
+                  ⑩ Payable basis: total tons (free time) / inside-outside
+                  (wharfrent)
+                </div>
+                <div>⑪ Levy added without VAT</div>
+                <div>⑫ 🔒 Landing/Removal/Hoisting auto-computed</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <!-- /layout -->
 
-      <!-- ════ RESULTS ════ -->
-      <div id="results">
-        <hr />
-        <div class="rh">
-          <div class="rtitle">BILL STATEMENT</div>
-        </div>
-        <div id="ibar"></div>
-        <div class="sr" id="srow"></div>
-        <div id="insideSec"></div>
-        <div id="outsideSec"></div>
-        <div id="grandSec"></div>
-      </div>
-    </main>
-    <!-- /wrap -->
-
-    <script>
-      // ── STATE ──
-      let isAdmin = false;
-      const AU = "admin",
-        AP = "admin";
-
-      // ── UTILS ──
-      // Format date input as DD/MM/YYYY
-      function formatDate(input) {
-        let value = input.value.replace(/\D/g, "");
-        if (value.length >= 2) {
-          value = value.slice(0, 2) + "/" + value.slice(2);
-        }
-        if (value.length >= 5) {
-          value = value.slice(0, 5) + "/" + value.slice(5, 9);
-        }
-        input.value = value;
-      }
-
-      // Custom Calendar Picker
-      class CalendarPicker {
-        constructor(inputId) {
-          this.input = document.getElementById(inputId);
-          this.inputId = inputId;
-          this.isOpen = false;
-          this.currentDate = new Date();
-          this.selectedDate = null;
-          this.init();
-        }
-
-        init() {
-          // Add calendar icon
-          const wrapper = document.createElement("div");
-          wrapper.style.position = "relative";
-          wrapper.style.display = "inline-block";
-          wrapper.style.width = "100%";
-
-          this.input.parentNode.insertBefore(wrapper, this.input);
-          wrapper.appendChild(this.input);
-
-          const icon = document.createElement("span");
-          icon.innerHTML = "📅";
-          icon.style.cssText = `
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            font-size: 18px;
-            z-index: 10;
-            pointer-events: auto;
-            background: transparent;
-            border: none;
-            padding: 4px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-          `;
-          icon.onmouseover = () => {
-            icon.style.background = "var(--glass-bg)";
-            icon.style.transform = "translateY(-50%) scale(1.1)";
-          };
-          icon.onmouseout = () => {
-            icon.style.background = "transparent";
-            icon.style.transform = "translateY(-50%) scale(1)";
-          };
-          icon.onclick = () => this.toggle();
-          wrapper.appendChild(icon);
-
-          // Create calendar
-          this.calendar = document.createElement("div");
-          this.calendar.style.cssText = `
-            position: fixed;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 9px;
-            box-shadow: var(--shadow-lg);
-            z-index: 1000;
-            display: none;
-            min-width: 276px;
-            font-size: 14px;
-          `;
-          document.body.appendChild(this.calendar);
-
-          // Close on outside click
-          document.addEventListener("click", (e) => {
-            if (
-              !wrapper.contains(e.target) &&
-              !this.calendar.contains(e.target)
-            ) {
-              this.close();
-            }
-          });
-        }
-
-        toggle() {
-          this.isOpen ? this.close() : this.open();
-        }
-
-        open() {
-          this.isOpen = true;
-          this.calendar.style.display = "block";
-          this.positionCalendar();
-          this.render();
-        }
-
-        positionCalendar() {
-          const rect = this.input.getBoundingClientRect();
-          const calendarHeight = 299; // Approximate height
-          const calendarWidth = 276;
-
-          let top = rect.bottom + window.scrollY + 5;
-          let left = rect.left + window.scrollX;
-
-          // Adjust if calendar goes below viewport
-          if (top + calendarHeight > window.innerHeight + window.scrollY) {
-            top = rect.top + window.scrollY - calendarHeight - 5;
-          }
-
-          // Adjust if calendar goes right of viewport
-          if (left + calendarWidth > window.innerWidth + window.scrollX) {
-            left = rect.right + window.scrollX - calendarWidth;
-          }
-
-          this.calendar.style.top = top + "px";
-          this.calendar.style.left = left + "px";
-        }
-
-        close() {
-          this.isOpen = false;
-          this.calendar.style.display = "none";
-        }
-
-        render() {
-          const year = this.currentDate.getFullYear();
-          const month = this.currentDate.getMonth();
-
-          let html = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px;">
-              <button onclick="event.stopPropagation(); calendarPickers['${this.inputId}'].previousMonth()" style="background: var(--gold); border: none; border-radius: 3px; padding: 4px 7px; cursor: pointer; font-size: 13px;">‹</button>
-              <span style="color: var(--text); font-weight: 600; font-size: 14px;">${new Date(year, month).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
-              <button onclick="event.stopPropagation(); calendarPickers['${this.inputId}'].nextMonth()" style="background: var(--gold); border: none; border-radius: 3px; padding: 4px 7px; cursor: pointer; font-size: 13px;">›</button>
+        <!-- CARGO RESULTS -->
+        <div id="cargo-results">
+          <hr style="border-color: rgba(34, 211, 238, 0.15)" />
+          <div class="rh">
+            <div class="rtitle cargo">
+              GENERAL CARGO WHARFRENT BILL STATEMENT
             </div>
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; text-align: center;">
-          `;
-
-          // Day headers
-          const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-          days.forEach((day) => {
-            html += `<div style="color: var(--m2); font-size: 12px; padding: 3px;">${day}</div>`;
-          });
-
-          // Calendar days
-          const firstDay = new Date(year, month, 1).getDay();
-          const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-          for (let i = 0; i < firstDay; i++) {
-            html += "<div></div>";
-          }
-
-          for (let day = 1; day <= daysInMonth; day++) {
-            const date = new Date(year, month, day);
-            const isSelected =
-              this.selectedDate &&
-              date.getDate() === this.selectedDate.getDate() &&
-              date.getMonth() === this.selectedDate.getMonth() &&
-              date.getFullYear() === this.selectedDate.getFullYear();
-
-            html += `
-              <div onclick="calendarPickers['${this.inputId}'].selectDate(${year}, ${month}, ${day})" 
-                   style="padding: 5px; cursor: pointer; border-radius: 3px; font-size: 13px;
-                          ${isSelected ? "background: var(--gold); color: var(--bg);" : "color: var(--text);"}
-                          &:hover { background: var(--glass-bg); }">
-                ${day}
-              </div>
-            `;
-          }
-
-          html += "</div>";
-          this.calendar.innerHTML = html;
-        }
-
-        previousMonth() {
-          this.currentDate.setMonth(this.currentDate.getMonth() - 1);
-          this.render();
-        }
-
-        nextMonth() {
-          this.currentDate.setMonth(this.currentDate.getMonth() + 1);
-          this.render();
-        }
-
-        selectDate(year, month, day) {
-          this.selectedDate = new Date(year, month, day);
-          const formattedDate = this.formatDateForInput(this.selectedDate);
-          this.input.value = formattedDate;
-          this.input.dispatchEvent(new Event("input"));
-          this.close();
-        }
-
-        formatDateForInput(date) {
-          const d = String(date.getDate()).padStart(2, "0");
-          const m = String(date.getMonth() + 1).padStart(2, "0");
-          const y = date.getFullYear();
-          return `${d}/${m}/${y}`;
-        }
-      }
-
-      // Global calendar pickers storage
-      window.calendarPickers = {};
-
-      // Parse DD/MM/YYYY to Date object
-      const pd = (s) => {
-        if (!s || s.trim() === "") return new Date(); // Return today if empty
-
-        // Handle DD/MM/YYYY format
-        if (s.includes("/")) {
-          const parts = s.split("/");
-          if (parts.length === 3) {
-            const day = parseInt(parts[0]);
-            const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
-            const year = parseInt(parts[2]);
-            const d = new Date(year, month, day);
-            if (!isNaN(d.getTime())) return d;
-          }
-        }
-
-        // Fallback to original parsing
-        const d = new Date(s + "T00:00:00");
-        return isNaN(d.getTime()) ? new Date() : d; // Return today if invalid
-      };
-      const iso = (d) => d.toISOString().split("T")[0];
-      const fd = (d) =>
-        d
-          .toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })
-          .replace(/\//g, "/");
-      const addD = (d, n) => {
-        const r = new Date(d);
-        r.setDate(r.getDate() + n);
-        return r;
-      };
-      const diffD = (a, b) => Math.round((b - a) / 86400000);
-      const gn = (id) => parseFloat(document.getElementById(id).value) || 0;
-      const gb = (id) => document.getElementById(id).checked;
-
-      // Format with Tk prefix, always 2 decimal places
-      const fmt = (n) =>
-        "Tk " +
-        Number(n).toLocaleString("en-BD", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        });
-      const fmtN = (n) =>
-        Number(n).toLocaleString("en-BD", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        });
-
-      const CUT = pd("2024-07-23");
-      const CUT_OLD = pd("2024-07-22");
-
-      // ── WEIGHT CHANGE// VALIDATION
-      function onWeightChange() {
-        const w = parseFloat(document.getElementById("weight").value);
-        const warn = document.getElementById("weightWarn");
-        if (w >= 4) {
-          warn.classList.add("show");
-        } else {
-          warn.classList.remove("show");
-        }
-        refresh();
-      }
-
-      function validateDates() {
-        // Date validation disabled - always return true
-        return true;
-      }
-
-      // ── ADMIN ──
-      function toggleAdmin() {
-        if (isAdmin) {
-          isAdmin = false;
-          applyAdmin();
-          return;
-        }
-        document.getElementById("muser").value = "";
-        document.getElementById("mpass").value = "";
-        document.getElementById("merr").classList.remove("show");
-        document.getElementById("overlay").classList.add("open");
-        setTimeout(() => document.getElementById("muser").focus(), 200);
-      }
-      function closeModal() {
-        document.getElementById("overlay").classList.remove("open");
-      }
-      function doLogin() {
-        const u = document.getElementById("muser").value.trim();
-        const p = document.getElementById("mpass").value;
-        if (u === AU && p === AP) {
-          isAdmin = true;
-          closeModal();
-          applyAdmin();
-        } else {
-          document.getElementById("merr").classList.add("show");
-          document.getElementById("mpass").value = "";
-          document.getElementById("mpass").focus();
-        }
-      }
-
-      function applyAdmin() {
-        const ab = document.getElementById("adminBtn");
-        document.getElementById("adot").style.background = isAdmin
-          ? "var(--gold)"
-          : "var(--m2)";
-        document.getElementById("adminTxt").textContent = isAdmin
-          ? "Logout"
-          : "Admin";
-        document.getElementById("modeBadge").textContent = isAdmin
-          ? "ADMIN"
-          : "USER";
-        isAdmin ? ab.classList.add("active") : ab.classList.remove("active");
-
-        // Fields only admin can edit (not weight/CLD/delivery — those are always editable)
-        const adminFields = [
-          "freeDays",
-          "rRiver",
-          "rLanding",
-          "rRemoval",
-          "rWeighment",
-          "rLevy",
-          "vatRate",
-        ];
-        adminFields.forEach((id) => {
-          const el = document.getElementById(id);
-          if (!el) return;
-          if (isAdmin) {
-            el.removeAttribute("readonly");
-            el.classList.remove("ro");
-            el.classList.add("ae");
-          } else {
-            el.setAttribute("readonly", "");
-            el.classList.add("ro");
-            el.classList.remove("ae");
-          }
-        });
-
-        // Rate inputs toggle (show input vs span)
-        ["nr1", "nr2", "nr3", "or1", "or2", "or3"].forEach((id) => {
-          const inp = document.getElementById(id);
-          const spn = document.getElementById("d" + id);
-          if (isAdmin) {
-            inp.style.display = "inline-block";
-            inp.classList.remove("ro");
-            inp.removeAttribute("readonly");
-            if (spn) spn.style.display = "none";
-          } else {
-            inp.style.display = "none";
-            inp.classList.add("ro");
-            inp.setAttribute("readonly", "");
-            if (spn) {
-              spn.style.display = "inline";
-              spn.textContent = inp.value;
-            }
-          }
-        });
-        refresh();
-      }
-
-      function syncSpan(inputId, spanId) {
-        const sp = document.getElementById(spanId);
-        if (sp) sp.textContent = document.getElementById(inputId).value;
-      }
-
-      // ── SLAB CALC ──
-      function calcSlabs(
-        totalDays,
-        r1,
-        r2,
-        r3,
-        weight,
-        blockStart,
-        endDate,
-        daysOffset,
-      ) {
-        const slabs = [];
-        let offset = daysOffset,
-          remaining = totalDays;
-        let cur = new Date(blockStart);
-
-        if (offset < 7 && remaining > 0) {
-          const use = Math.min(7 - offset, remaining);
-          slabs.push({
-            label: "1st 7 days",
-            rate: r1,
-            days: use,
-            from: new Date(cur),
-            to: addD(cur, use - 1),
-            amt: r1 * use * weight,
-          });
-          cur = addD(cur, use);
-          offset += use;
-          remaining -= use;
-        }
-        if (offset < 14 && remaining > 0) {
-          const use = Math.min(14 - offset, remaining);
-          slabs.push({
-            label: "8th to 14th day",
-            rate: r2,
-            days: use,
-            from: new Date(cur),
-            to: addD(cur, use - 1),
-            amt: r2 * use * weight,
-          });
-          cur = addD(cur, use);
-          offset += use;
-          remaining -= use;
-        }
-        if (remaining > 0) {
-          slabs.push({
-            label: "15th day onwards",
-            rate: r3,
-            days: remaining,
-            from: new Date(cur),
-            to: new Date(endDate),
-            amt: r3 * remaining * weight,
-          });
-        }
-        return slabs;
-      }
-
-      // ── COMPUTE ──
-      function compute() {
-        // Validate dates before calculation
-        if (!validateDates()) {
-          return null;
-        }
-
-        const cld = pd(document.getElementById("cld").value);
-        const freeDays =
-          parseInt(document.getElementById("freeDays").value) || 4;
-        // Free time includes CLD: ends at CLD + (freeDays-1)
-        const freeEnd = addD(cld, freeDays - 1);
-        const storStart = addD(freeEnd, 1);
-        const delivery = pd(document.getElementById("delivery").value);
-        const weight = Math.min(
-          3,
-          Math.max(
-            1,
-            Math.round(
-              parseFloat(document.getElementById("weight").value) || 2,
-            ),
-          ),
-        );
-        const vatRate = gn("vatRate") / 100;
-
-        const nr1 = gn("nr1"),
-          nr2 = gn("nr2"),
-          nr3 = gn("nr3");
-        const or1 = gn("or1"),
-          or2 = gn("or2"),
-          or3 = gn("or3");
-
-        const cldBeforeCut = cld < CUT;
-        const deliveryCrossCut = delivery >= CUT;
-        const hasWharfrent = delivery > freeEnd;
-        let slabs = [],
-          totalDays = 0,
-          isSplit = false;
-
-        if (hasWharfrent) {
-          totalDays = diffD(freeEnd, delivery); // storStart..delivery inclusive
-
-          if (!cldBeforeCut) {
-            slabs = calcSlabs(
-              totalDays,
-              nr1,
-              nr2,
-              nr3,
-              weight,
-              storStart,
-              delivery,
-              0,
-            );
-          } else if (!deliveryCrossCut) {
-            slabs = calcSlabs(
-              totalDays,
-              or1,
-              or2,
-              or3,
-              weight,
-              storStart,
-              delivery,
-              0,
-            );
-          } else {
-            isSplit = true;
-            // oldDays = storStart → 22/07/2024 inclusive = CUT_OLD - freeEnd
-            // newDays = 23/07/2024 → delivery inclusive  = delivery - CUT_OLD
-            // Together: oldDays + newDays = (CUT_OLD - freeEnd) + (delivery - CUT_OLD) = delivery - freeEnd = totalDays ✓
-            const oldDays = diffD(freeEnd, CUT_OLD); // storStart..22Jul inclusive
-            const newDays = diffD(CUT_OLD, delivery); // 23Jul..delivery inclusive
-            const oldSlabs = calcSlabs(
-              oldDays,
-              or1,
-              or2,
-              or3,
-              weight,
-              storStart,
-              CUT_OLD,
-              0,
-            );
-            const newSlabs = calcSlabs(
-              newDays,
-              nr1,
-              nr2,
-              nr3,
-              weight,
-              CUT,
-              delivery,
-              oldDays,
-            );
-            oldSlabs.forEach((s) => (s.group = "old"));
-            newSlabs.forEach((s) => (s.group = "new"));
-            slabs = [...oldSlabs, ...newSlabs];
-          }
-        }
-
-        const insideStor = slabs.reduce((a, s) => a + s.amt, 0);
-        const outsideHalf = insideStor / 2;
-
-        // Payable charges (always apply)
-        const payables = [];
-        if (gb("chkRiver"))
-          payables.push({
-            label: "River Dues",
-            rate: gn("rRiver"),
-            amt: gn("rRiver") * weight,
-          });
-        if (gb("chkLanding"))
-          payables.push({
-            label: "Landing Charge",
-            rate: gn("rLanding"),
-            amt: gn("rLanding") * weight,
-          });
-        if (gb("chkRemoval"))
-          payables.push({
-            label: "Removal Charge",
-            rate: gn("rRemoval"),
-            amt: gn("rRemoval") * weight,
-          });
-        if (gb("chkWeighment"))
-          payables.push({
-            label: "Weighment Charge",
-            rate: gn("rWeighment"),
-            amt: gn("rWeighment") * weight,
-          });
-        const levyAmt = gb("chkLevy") ? gn("rLevy") * weight : 0;
-        const paySub = payables.reduce((a, p) => a + p.amt, 0);
-
-        // INSIDE: (insideStor + paySub) → VAT → + levy
-        const iBase = insideStor + paySub;
-        const iVat = iBase * vatRate;
-        const iLevy = levyAmt;
-        const iTotal = iBase + iVat + iLevy;
-
-        // OUTSIDE: (outsideHalf + paySub) → VAT → + levy
-        const oBase = outsideHalf + paySub;
-        const oVat = oBase * vatRate;
-        const oLevy = levyAmt;
-        const oTotal = oBase + oVat + oLevy;
-
-        // No Wharfrent: payable only
-        const nBase = paySub;
-        const nVat = nBase * vatRate;
-        const nLevy = levyAmt;
-        const nTotal = nBase + nVat + nLevy;
-
-        return {
-          cld,
-          freeEnd,
-          storStart,
-          delivery,
-          weight,
-          vatRate,
-          cldBeforeCut,
-          isSplit,
-          hasWharfrent,
-          totalDays,
-          slabs,
-          insideStor,
-          outsideHalf,
-          payables,
-          paySub,
-          levyAmt,
-          iBase,
-          iVat,
-          iLevy,
-          iTotal,
-          oBase,
-          oVat,
-          oLevy,
-          oTotal,
-          nBase,
-          nVat,
-          nLevy,
-          nTotal,
-        };
-      }
-
-      // ── REFRESH ──
-      let isInitialLoad = true;
-      function refresh() {
-        try {
-          // Validate dates before refresh
-          if (!validateDates()) {
-            return;
-          }
-
-          const cld_ = pd(document.getElementById("cld").value);
-          const fd_ = parseInt(document.getElementById("freeDays").value) || 4;
-          // Free time INCLUDES CLD as day 1:
-          // e.g. CLD=26/03, fd_=4 → free days: 26,27,28,29 → ends 29/03 → Wharfrent starts 30/03
-          const freeEnd = addD(cld_, fd_ - 1);
-          const storStartDate = addD(freeEnd, 1);
-          document.getElementById("freeEnd").textContent = fd(freeEnd);
-          document.getElementById("storStart").textContent = fd(storStartDate);
-
-          // Build free-time day strip
-          const strip = document.getElementById("ftStrip");
-          const ftDaysEl = document.getElementById("ftDays");
-          if (strip && ftDaysEl) {
-            const dayLabels = [];
-            for (let i = 0; i < fd_; i++) {
-              const d = addD(cld_, i);
-              dayLabels.push(
-                d
-                  .toLocaleDateString("en-GB", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "2-digit",
-                  })
-                  .replace(/\//g, "/"),
-              );
-            }
-            ftDaysEl.innerHTML =
-              '<span style="color:var(--m2)">Free: </span>' +
-              dayLabels
-                .map(
-                  (d) =>
-                    `<span style="background:rgba(212,175,55,0.13);border:1px solid rgba(212,175,55,0.20);color:var(--gold);border-radius:4px;padding:1px 7px;margin:0 2px;">${d}</span>`,
-                )
-                .join("") +
-              `<span style="color:var(--m2)"> → Wharfrent starts </span>` +
-              `<span style="color:var(--green);font-weight:600;">${storStartDate.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}</span>`;
-            strip.style.display = "block";
-          }
-
-          // Sync rate display spans
-          ["nr1", "nr2", "nr3", "or1", "or2", "or3"].forEach((id) => {
-            const sp = document.getElementById("d" + id);
-            if (sp) sp.textContent = document.getElementById(id).value;
-          });
-
-          // Rate badge
-          const before = cld_ < CUT;
-          const del = pd(document.getElementById("delivery").value);
-          const cross = del >= CUT;
-          document.getElementById("rbadge").innerHTML = !before
-            ? '<div class="rbadge rb-new">● NEW RATES (From 23/07/2024)</div>'
-            : !cross
-              ? '<div class="rbadge rb-old">● OLD RATES (Up to 22/07/2024)</div>'
-              : '<div class="rbadge rb-split">⚡ SPLIT BILLING — Old + New rates</div>';
-
-          const b = compute();
-          if (!b) return; // Validation failed
-
-          const pv = document.getElementById("preview");
-          if (b.hasWharfrent) {
-            pv.innerHTML = `
-        <div class="pvr"><span style="color:var(--m2)">Wharfrent Days</span><span style="color:var(--gold);font-weight:600">${b.totalDays} days</span></div>
-        <div class="pvr"><span style="color:var(--m2)">Inside Total Bill</span><span style="color:var(--blue)">${fmt(b.iTotal)}</span></div>
-        <div class="pvr"><span style="color:var(--m2)">Outside Total Bill</span><span style="color:var(--purple)">${fmt(b.oTotal)}</span></div>
-        <div class="pvr" style="border-top:1px solid var(--border);margin-top:8px;padding-top:9px;">
-          <span style="color:var(--m2)">Grand Total</span>
-          <span style="color:var(--gold);font-size:15px;font-weight:700">${fmt(b.iTotal + b.oTotal)}</span>
-        </div>`;
-          } else {
-            pv.innerHTML = `
-        <div class="pvr"><span style="color:var(--m2)">Wharfrent</span><span style="color:var(--green)">Within Free Time ✓</span></div>
-        <div class="pvr"><span style="color:var(--m2)">Payable Charges</span><span>${fmt(b.paySub)}</span></div>
-        <div class="pvr" style="border-top:1px solid var(--border);margin-top:8px;padding-top:9px;">
-          <span style="color:var(--m2)">Total</span>
-          <span style="color:var(--gold);font-size:15px;">${fmt(b.nTotal)}</span>
-        </div>`;
-          }
-        } catch (e) {
-          document.getElementById("preview").innerHTML = "Enter valid dates…";
-        }
-      }
-
-      // ── BUILD BILL TABLE (unified for inside & outside) ──
-      function buildBillTable(b, side) {
-        // side: 'inside' | 'outside' | 'noWharfrent'
-        let rows = "";
-
-        if (side === "inside" || side === "outside") {
-          const storAmt = side === "inside" ? b.insideStor : b.outsideHalf;
-          const baseAmt = side === "inside" ? b.iBase : b.oBase;
-          const vatAmt = side === "inside" ? b.iVat : b.oVat;
-          const levyAmt = side === "inside" ? b.iLevy : b.oLevy;
-          const totalAmt = side === "inside" ? b.iTotal : b.oTotal;
-          const storLabel =
-            side === "inside"
-              ? "Wharfrent Wharfrent"
-              : "Wharfrent Wharfrent (½ of Inside)";
-
-          if (b.hasWharfrent) {
-            // Slab rows
-            if (b.isSplit) {
-              const oldS = b.slabs.filter((s) => s.group === "old");
-              const newS = b.slabs.filter((s) => s.group === "new");
-              if (oldS.length) {
-                rows += `<tr class="sep"><td colspan="6">◀ OLD RATES — Up to 22/07/2024</td></tr>`;
-                oldS.forEach((s) => {
-                  const dispAmt = side === "inside" ? s.amt : s.amt / 2;
-                  rows += `<tr>
-              <td>${s.label}</td>
-              <td style="color:var(--red)">${fmtN(side === "inside" ? s.rate : s.rate / 2)}/t/d</td>
-              <td>${fd(s.from)}</td><td>${fd(s.to)}</td>
-              <td><span class="dp">${s.days}</span></td>
-              <td>${fmt(dispAmt)}</td></tr>`;
-                });
-              }
-              if (newS.length) {
-                rows += `<tr class="sep"><td colspan="6">▶ NEW RATES — From 23/07/2024</td></tr>`;
-                newS.forEach((s) => {
-                  const dispAmt = side === "inside" ? s.amt : s.amt / 2;
-                  rows += `<tr>
-              <td>${s.label}</td>
-              <td style="color:var(--green)">${fmtN(side === "inside" ? s.rate : s.rate / 2)}/t/d</td>
-              <td>${fd(s.from)}</td><td>${fd(s.to)}</td>
-              <td><span class="dp">${s.days}</span></td>
-              <td>${fmt(dispAmt)}</td></tr>`;
-                });
-              }
-            } else {
-              b.slabs.forEach((s) => {
-                const dispAmt = side === "inside" ? s.amt : s.amt / 2;
-                rows += `<tr>
-            <td>${s.label}</td>
-            <td>${fmtN(side === "inside" ? s.rate : s.rate / 2)}/t/d</td>
-            <td>${fd(s.from)}</td><td>${fd(s.to)}</td>
-            <td><span class="dp">${s.days}</span></td>
-            <td>${fmt(dispAmt)}</td></tr>`;
-              });
-            }
-
-            rows += `<tr class="sub">
-        <td colspan="4">${storLabel} Sub Total</td>
-        <td><span class="dp dpg">${b.totalDays}</span></td>
-        <td>${fmt(storAmt)}</td>
-      </tr>`;
-          }
-
-          // Payable charge rows
-          if (b.payables.length > 0) {
-            rows += `<tr class="sep"><td colspan="6">Payable Charges</td></tr>`;
-            b.payables.forEach((p) => {
-              rows += `<tr class="sub">
-          <td>${p.label}</td>
-          <td>${fmtN(p.rate)}/ton</td>
-          <td colspan="2">${b.weight} ton(s)</td>
-          <td></td>
-          <td>${fmt(p.amt)}</td></tr>`;
-            });
-          }
-
-          rows += `
-      <tr class="tot"><td colspan="5">Total Bill (Base for VAT)</td><td>${fmt(baseAmt)}</td></tr>
-      <tr class="vrow"><td colspan="5">VAT (${(b.vatRate * 100).toFixed(1)}%)</td><td>${fmt(vatAmt)}</td></tr>
-      <tr class="lrow"><td colspan="5">Levy Charge (no VAT)</td><td>${fmt(levyAmt)}</td></tr>
-      <tr class="grand"><td colspan="5">Grand Total</td><td>${fmt(totalAmt)}</td></tr>`;
-        } else {
-          // No Wharfrent — payable only
-          if (b.payables.length > 0) {
-            b.payables.forEach((p) => {
-              rows += `<tr class="sub">
-          <td>${p.label}</td>
-          <td>${fmtN(p.rate)}/ton</td>
-          <td colspan="2">${b.weight} ton(s)</td>
-          <td></td>
-          <td>${fmt(p.amt)}</td></tr>`;
-            });
-          }
-          rows += `
-      <tr class="tot"><td colspan="5">Total Payable (Base for VAT)</td><td>${fmt(b.nBase)}</td></tr>
-      <tr class="vrow"><td colspan="5">VAT (${(b.vatRate * 100).toFixed(1)}%)</td><td>${fmt(b.nVat)}</td></tr>
-      <tr class="lrow"><td colspan="5">Levy Charge (no VAT)</td><td>${fmt(b.nLevy)}</td></tr>
-      <tr class="grand"><td colspan="5">Grand Total</td><td>${fmt(b.nTotal)}</td></tr>`;
-        }
-
-        return `<div class="btw"><table class="bt">
-    <thead><tr><th>Description</th><th>Rate</th><th>From</th><th>To</th><th>Days</th><th>Amount</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table></div>`;
-      }
-
-      // ── CALCULATE & RENDER ──
-      function calculate() {
-        const rawW = parseFloat(document.getElementById("weight").value) || 2;
-        if (rawW >= 4) {
-          alert(
-            "⚠ This module only handles vehicles up to 3 tons. Weight of 4 tons or more cannot be billed here.",
-          );
-          return;
-        }
-
-        const b = compute();
-        if (!b) return; // Validation failed
-
-        document.getElementById("results").style.display = "block";
-
-        // INFO BAR
-        document.getElementById("ibar").innerHTML = `
-    <div class="ibar">
-      <div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div>
-      <div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div>
-      <div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${b.hasWharfrent ? fd(b.storStart) : "—"}</div></div>
-      <div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div>
-      <div class="ii"><div class="il">Weight</div><div class="iv">${b.weight} ton(s)</div></div>
-      <div class="ii"><div class="il">Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.hasWharfrent ? b.totalDays + " days" : "In free time"}</div></div>
-      <div class="ii"><div class="il">Rate Mode</div><div class="iv" style="color:${b.isSplit ? "var(--gold)" : b.cldBeforeCut ? "var(--red)" : "var(--green)"}">${b.isSplit ? "Split" : b.cldBeforeCut ? "Old Rates" : "New Rates"}</div></div>
-    </div>`;
-
-        // STATS
-        if (b.hasWharfrent) {
-          document.getElementById("srow").innerHTML = `
-      <div class="sc cg"><div class="sl">Grand Total</div><div class="sv">${fmtN(b.iTotal + b.oTotal)}</div><div class="ss">Inside + Outside</div></div>
-      <div class="sc cb"><div class="sl">Inside Bill</div><div class="sv">${fmtN(b.iTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div>
-      <div class="sc cp"><div class="sl">Outside Bill</div><div class="sv">${fmtN(b.oTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div>`;
-        } else {
-          document.getElementById("srow").innerHTML = `
-      <div class="sc cg"><div class="sl">Total</div><div class="sv">${fmtN(b.nTotal)}</div><div class="ss">Payable + VAT + Levy</div></div>
-      <div class="sc cv"><div class="sl">Payable Charges</div><div class="sv">${fmtN(b.paySub)}</div><div class="ss">VAT applicable</div></div>
-      <div class="sc cv"><div class="sl">VAT + Levy</div><div class="sv">${fmtN(b.nVat + b.nLevy)}</div><div class="ss">${(b.vatRate * 100).toFixed(1)}% + levy</div></div>`;
-        }
-
-        // INSIDE
-        if (b.hasWharfrent) {
-          document.getElementById("insideSec").innerHTML = `
-      <div style="margin-bottom:20px;">
-        ${b.isSplit ? '<div class="warn">⚡ Split billing — old rates up to 22/07/2024, new rates from 23/07/2024</div>' : ""}
-        <div class="slbl sl-in">▪ Wharfrent Charge — INSIDE</div>
-        <div class="card" style="padding:0;overflow:hidden;">
-          ${buildBillTable(b, "inside")}
+            <button class="print-btn cargo" onclick="printBill('cargo')">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="6 9 6 2 18 2 18 9" />
+                <path
+                  d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+                />
+                <rect x="6" y="14" width="12" height="8" />
+              </svg>
+              Print Bill
+            </button>
+          </div>
+          <div id="cargo-ibar"></div>
+          <div class="sr" id="cargo-srow"></div>
+          <div id="cargo-insideSec"></div>
+          <div id="cargo-outsideSec"></div>
+          <div id="cargo-grandSec"></div>
         </div>
-      </div>`;
-        } else {
-          document.getElementById("insideSec").innerHTML =
-            `<div class="no-stor-note">✓ Delivery within free time — no Wharfrent charge applies.</div>`;
-        }
-
-        // OUTSIDE
-        if (b.hasWharfrent) {
-          document.getElementById("outsideSec").innerHTML = `
-      <div style="margin-bottom:20px;">
-        <div class="slbl sl-out">▪ Wharfrent Charge — OUTSIDE</div>
-        <div class="card" style="padding:0;overflow:hidden;">
-          ${buildBillTable(b, "outside")}
-        </div>
-      </div>`;
-        } else {
-          // No Wharfrent — show payable-only table under outside heading
-          document.getElementById("outsideSec").innerHTML = `
-      <div style="margin-bottom:20px;">
-        <div class="slbl sl-payable">▪ Only Payable Charge — INSIDE/OUTSIDE</div>
-        <div class="card" style="padding:0;overflow:hidden;">
-          ${buildBillTable(b, "noWharfrent")}
-        </div>
-      </div>`;
-        }
-
-        // GRAND
-        const grand = b.hasWharfrent ? b.iTotal + b.oTotal : b.nTotal;
-        document.getElementById("grandSec").innerHTML = `
-    <div class="gbox">
-      <div class="ginn">
-        ${
-          b.hasWharfrent
-            ? `
-        <div>
-          <div class="glbl">Inside Grand Total</div>
-          <div class="gval" style="color:var(--blue)">${fmt(b.iTotal)}</div>
-          <div class="gsub">Incl. VAT &amp; Levy</div>
-        </div>
-        <div>
-          <div class="glbl">Outside Grand Total</div>
-          <div class="gval" style="color:var(--purple)">${fmt(b.oTotal)}</div>
-          <div class="gsub">Incl. VAT &amp; Levy</div>
-        </div>`
-            : `
-        <div>
-          <div class="glbl">Payable Charges</div>
-          <div class="gval" style="color:var(--green)">${fmt(b.nBase)}</div>
-          <div class="gsub">No Wharfrent — flat only</div>
-        </div>
-        <div></div>`
-        }
-        <div class="gfin">
-          <div class="glbl">GRAND TOTAL</div>
-          <div class="gval">${fmt(grand)}</div>
-          <div class="gsub">Tk — All inclusive</div>
-        </div>
-      </div>
-    </div>`;
-
-        // Enhance bill results with glowing animations
-        enhanceBillResults();
-
-        // Only scroll to results if not initial load
-        if (!isInitialLoad) {
-          setTimeout(
-            () =>
-              document
-                .getElementById("results")
-                .scrollIntoView({ behavior: "smooth", block: "start" }),
-            80,
-          );
-        }
-      }
-
-      function resetAll() {
-        document.getElementById("results").style.display = "none";
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-
-      // ── ANIMATION HELPERS ──
-      function addStaggeredAnimations() {
-        const cards = document.querySelectorAll(".card");
-        cards.forEach((card, index) => {
-          card.style.setProperty("--card-delay", `${0.8 + index * 0.15}s`);
-        });
-      }
-
-      function createFloatingParticles() {
-        const particleCount = 15;
-        const body = document.body;
-
-        for (let i = 0; i < particleCount; i++) {
-          const particle = document.createElement("div");
-          particle.className = "floating-particle";
-          particle.style.cssText = `
-            position: fixed;
-            width: ${Math.random() * 4 + 2}px;
-            height: ${Math.random() * 4 + 2}px;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.6) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 1;
-            left: ${Math.random() * 100}%;
-            top: ${Math.random() * 100}%;
-            animation: float${Math.floor(Math.random() * 3) + 1} ${Math.random() * 10 + 15}s ease-in-out infinite;
-            animation-delay: ${Math.random() * 5}s;
-          `;
-          body.appendChild(particle);
-        }
-
-        // Add particle animation keyframes
-        const style = document.createElement("style");
-        style.textContent = `
-          @keyframes float1 {
-            0%, 100% { transform: translateY(0px) translateX(0px) scale(1); opacity: 0.6; }
-            25% { transform: translateY(-20px) translateX(10px) scale(1.1); opacity: 0.8; }
-            50% { transform: translateY(-10px) translateX(-15px) scale(0.9); opacity: 0.4; }
-            75% { transform: translateY(-30px) translateX(5px) scale(1.05); opacity: 0.7; }
-          }
-          @keyframes float2 {
-            0%, 100% { transform: translateY(0px) translateX(0px) rotate(0deg) scale(1); opacity: 0.5; }
-            33% { transform: translateY(-25px) translateX(20px) rotate(120deg) scale(1.2); opacity: 0.8; }
-            66% { transform: translateY(-15px) translateX(-10px) rotate(240deg) scale(0.8); opacity: 0.3; }
-          }
-          @keyframes float3 {
-            0%, 100% { transform: translateY(0px) translateX(0px) rotate(0deg); opacity: 0.7; }
-            20% { transform: translateY(-15px) translateX(-20px) rotate(90deg); opacity: 0.9; }
-            40% { transform: translateY(-35px) translateX(15px) rotate(180deg); opacity: 0.5; }
-            60% { transform: translateY(-20px) translateX(-25px) rotate(270deg); opacity: 0.8; }
-            80% { transform: translateY(-10px) translateX(10px) rotate(360deg); opacity: 0.6; }
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .floating-particle { display: none !important; }
-          }
-        `;
-        document.head.appendChild(style);
-      }
-
-      function enhanceFormInteractions() {
-        const inputs = document.querySelectorAll(
-          'input[type="date"], input[type="number"], input[type="text"]',
-        );
-
-        inputs.forEach((input) => {
-          input.addEventListener("focus", function () {
-            this.parentElement.style.transform = "scale(1.02)";
-            this.parentElement.style.transition = "transform 0.2s ease";
-          });
-
-          input.addEventListener("blur", function () {
-            this.parentElement.style.transform = "scale(1)";
-          });
-        });
-      }
-
-      function addParallaxEffect() {
-        // Subtle parallax using CSS custom properties — doesn't conflict with hover
-        const body = document.body;
-        let rafId = null;
-        document.addEventListener("mousemove", (e) => {
-          if (rafId) return;
-          rafId = requestAnimationFrame(() => {
-            const mx = (e.clientX / window.innerWidth - 0.5) * 2;
-            const my = (e.clientY / window.innerHeight - 0.5) * 2;
-            body.style.setProperty("--mx", mx.toFixed(3));
-            body.style.setProperty("--my", my.toFixed(3));
-            rafId = null;
-          });
-        });
-      }
-
-      // ENHANCE BILL RESULTS WITH GLOWING EFFECTS
-      function enhanceBillResults() {
-        // Add staggered animation delays to stats cards
-        const statsCards = document.querySelectorAll(".sc");
-        statsCards.forEach((card, index) => {
-          card.style.setProperty("--card-index", index);
-        });
-
-        // Reset and trigger entrance animation for results
-        const results = document.getElementById("results");
-        if (results) {
-          results.style.opacity = "0";
-          results.style.transform = "translateY(20px)";
-          results.style.transition =
-            "opacity 0.55s cubic-bezier(0.22,1,0.36,1), transform 0.55s cubic-bezier(0.22,1,0.36,1)";
-          requestAnimationFrame(() => {
-            results.style.opacity = "1";
-            results.style.transform = "translateY(0)";
-          });
-        }
-
-        // Add pulsing glow to grand total values
-        const grandTotals = document.querySelectorAll(".gval");
-        grandTotals.forEach((total) => {
-          total.style.animation = "none";
-          total.offsetHeight; // Force reflow
-          total.style.animation = "grandValuePulse 2s ease-in-out infinite";
-        });
-      }
-
-      // Add grand value pulse animation
-      const style = document.createElement("style");
-      style.textContent = `
-        @keyframes grandValuePulse {
-          0%, 100% {
-            filter: brightness(1) drop-shadow(0 0 6px rgba(212, 175, 55, 0.35));
-          }
-          50% {
-            filter: brightness(1.12) drop-shadow(0 0 14px rgba(212, 175, 55, 0.65));
-          }
-        }
-      `;
-      document.head.appendChild(style);
-
-      // INIT
-      // Force scroll to top on page load
-      window.scrollTo(0, 0);
-      history.scrollRestoration = "manual";
-
-      // Initialize calendar pickers after DOM is ready
-      setTimeout(() => {
-        try {
-          console.log("Initializing calendar pickers...");
-          window.calendarPickers["cld"] = new CalendarPicker("cld");
-          window.calendarPickers["delivery"] = new CalendarPicker("delivery");
-          console.log("Calendar pickers initialized successfully");
-        } catch (error) {
-          console.error("Error initializing calendar pickers:", error);
-        }
-      }, 100);
-
-      // Set default dates if empty (in DD/MM/YYYY format)
-      const formatDateForInput = (date) => {
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-      };
-
-      const today = new Date();
-      // Always set both fields to current date by default
-      document.getElementById("cld").value = formatDateForInput(today);
-      document.getElementById("delivery").value = formatDateForInput(today);
-
-      refresh();
-      isInitialLoad = false; // Set after initial load
-      addStaggeredAnimations();
-      enhanceFormInteractions();
-
-      // Add parallax only on desktop
-      if (window.innerWidth > 768) {
-        addParallaxEffect();
-      }
-
-      // Additional scroll prevention after everything loads
-      setTimeout(() => {
-        window.scrollTo(0, 0);
-      }, 100);
-    </script>
+      </main>
+    </div>
 
     <footer class="copyright-footer">
       <p>&copy; <span id="year"></span> samiulAsumel. All rights reserved.</p>
     </footer>
 
-    <script>
-      // Set current year dynamically
-      document.getElementById("year").textContent = new Date().getFullYear();
-    </script>
-    <script>
-      // ===== INTERSECTION OBSERVER SCROLL REVEALS =====
-      (function() {
-        const reveals = document.querySelectorAll('[data-reveal]');
-        if (!reveals.length) return;
-
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('revealed');
-              observer.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-
-        reveals.forEach(el => observer.observe(el));
-      })();
-
-      // ===== 3D CARD TILT EFFECT (mouse only) =====
-      (function() {
-        if (window.matchMedia('(hover: none)').matches) return;
-        const cards = document.querySelectorAll('.card');
-        if (!cards.length) return;
-
-        cards.forEach(card => {
-          card.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            const rotateX = (y - centerY) / 20;
-            const rotateY = (centerX - x) / 20;
-
-            card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
-          });
-
-          card.addEventListener('mouseleave', () => {
-            card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg)';
-          });
-        });
-      })();
-
-      // ===== FLOATING PARTICLES =====
-      (function() {
-        const container = document.createElement('div');
-        container.className = 'particle-container';
-        document.body.appendChild(container);
-
-        const particleCount = 12;
-        for (let i = 0; i < particleCount; i++) {
-          const particle = document.createElement('div');
-          particle.className = 'particle';
-          particle.style.left = `${Math.random() * 100}%`;
-          particle.style.animationDelay = `${Math.random() * 8}s`;
-          particle.style.animationDuration = `${6 + Math.random() * 4}s`;
-          const size = 2 + Math.random() * 4;
-          particle.style.width = `${size}px`;
-          particle.style.height = `${size}px`;
-          particle.style.opacity = 0.2 + Math.random() * 0.4;
-          container.appendChild(particle);
-        }
-      })();
-
-      
-
-      // ===== ENHANCED BUTTON ANIMATIONS =====
-      (function() {
-        const buttons = document.querySelectorAll('.btn');
-        buttons.forEach(btn => {
-          btn.addEventListener('click', function(e) {
-            const ripple = document.createElement('span');
-            ripple.className = 'ripple';
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            ripple.style.width = ripple.style.height = `${size}px`;
-            ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-            ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-            ripple.style.position = 'absolute';
-            ripple.style.borderRadius = '50%';
-            ripple.style.background = 'rgba(255,255,255,0.4)';
-            ripple.style.transform = 'scale(0)';
-            ripple.style.animation = 'rippleEffect 0.6s ease-out';
-            ripple.style.pointerEvents = 'none';
-            this.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 600);
-          });
-        });
-
-        const style = document.createElement('style');
-        style.textContent = `@keyframes rippleEffect { to { transform: scale(2); opacity: 0; } }`;
-        document.head.appendChild(style);
-      })();
-
-      // ===== SMOOTH NUMBER COUNT UP =====
-      (function() {
-        const animated = document.querySelectorAll('[data-count]');
-        if (!animated.length) return;
-
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              const el = entry.target;
-              const target = parseFloat(el.dataset.count);
-              const duration = 1500;
-              const start = performance.now();
-              const isDecimal = target % 1 !== 0;
-
-              function update(now) {
-                const elapsed = now - start;
-                const progress = Math.min(elapsed / duration, 1);
-                const eased = 1 - Math.pow(1 - progress, 3);
-                const current = target * eased;
-                el.textContent = isDecimal ? current.toFixed(2) : Math.floor(current);
-                if (progress < 1) requestAnimationFrame(update);
-              }
-              requestAnimationFrame(update);
-              observer.unobserve(el);
-            }
-          });
-        }, { threshold: 0.5 });
-
-        animated.forEach(el => observer.observe(el));
-      })();
-
-      // ===== STAGGERED LIST ANIMATIONS =====
-      (function() {
-        const items = document.querySelectorAll('.ptbl tbody tr');
-        items.forEach((item, i) => {
-          item.style.opacity = '0';
-          item.style.transform = 'translateX(-10px)';
-          item.style.transition = `opacity 0.3s ease ${i * 0.05}s, transform 0.3s ease ${i * 0.05}s`;
-          item.classList.add('list-item');
-        });
-
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              const rows = entry.target.querySelectorAll('tbody tr');
-              rows.forEach((row, i) => {
-                setTimeout(() => {
-                  row.style.opacity = '1';
-                  row.style.transform = 'translateX(0)';
-                }, i * 30);
-              });
-              observer.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0.1 });
-
-        const table = document.querySelector('.ptbl');
-        if (table) observer.observe(table);
-      })();
-
-      // ===== KEYPRESS FEEDBACK =====
-      (function() {
-        const inputs = document.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-          input.addEventListener('focus', () => {
-            input.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
-          });
-        });
-      })();
-    </script>
+    <script src="main.js"></script>
   </body>
 </html>

@@ -1,257 +1,364 @@
-# Port Car Billing System
+# Port Billing System
 
-A comprehensive web application for calculating port authority wharfrent and payable charges for vehicles at the port. This system handles billing for vehicles up to 3 tons with support for both inside and outside port charges, VAT calculations, and split billing for rate changes.
+A dual-module, zero-dependency web application for calculating Port Authority **wharfrent** and **payable charges** for both vehicles and general cargo. The system handles slab-based billing, VAT computation, split-rate transitions, inside/outside port splits, and generates a print-ready invoice — all in a single static deployment.
 
-## 🚗 Features
+---
 
-### Core Functionality
+## Modules
 
-- **Wharfrent Calculation**: Automatic calculation based on vehicle weight and storage duration
-- **Rate Management**: Support for old and new rate structures with split billing capability
-- **Payable Charges**: River dues, landing charges, removal charges, weighment charges, and levy
-- **VAT Calculation**: Automatic VAT computation on applicable charges
-- **Inside/Outside Billing**: Different rate structures for inside vs outside port charges
-- **Weight Validation**: Maximum 3-ton vehicle limit with user warnings
+The application ships two completely independent billing engines, accessible via sticky tab navigation at the top of the page:
 
-### Billing Rules
+| Module | Scope | Weight limit | Split billing | Cargo-specific charges |
+|---|---|---|---|---|
+| **Car Billing** | Vehicles | Max 3 tons | Yes (rate cut 23/07/2024) | No |
+| **General Cargo Billing** | Bulk / general cargo | Unlimited | No | Hoisting, tiered landing/removal |
 
-1. **Free Time**: CLD + 3 days (4 days total including CLD)
-2. **Wharfrent Start**: Day after free time ends
-3. **Rate Calculation**: Tk × ton × day (slab-wise)
-4. **Split Billing**: For CLD ≤ 22/07/2024 with delivery after rate change
-5. **Inside Charges**: Full wharfrent + payable + VAT + levy
-6. **Outside Charges**: ½ wharfrent + payable + VAT + levy
-7. **Levy**: Added without VAT
+---
 
-### Rate Structure
+## Car Billing Module
 
-- **New Rates** (From 23/07/2024):
-  - 1st 7 days: 70 Tk/ton/day
-  - 8th-14th day: 185 Tk/ton/day
-  - 15th day onwards: 295 Tk/ton/day
+### Free Time & Storage Start
 
-- **Old Rates** (Up to 22/07/2024):
-  - 1st 7 days: 40 Tk/ton/day
-  - 8th-14th day: 115 Tk/ton/day
-  - 15th day onwards: 185 Tk/ton/day
+- **Free time**: CLD (Common Landing Day) + 3 days = **4 days total** (CLD itself counts as day 1).
+- **Wharfrent start**: The day immediately after free time ends.
+- Free time end date and wharfrent start date are computed automatically and displayed as read-only fields.
 
-## 🎨 Design & UI
+### Wharfrent Rate Structure
 
-### Visual Design
+Slab-based: **Tk × tons × days** per slab.
 
-- **Dark Theme**: Professional dark interface with gold accent colors
-- **Responsive Layout**: Mobile-first design with adaptive breakpoints
-- **Typography**: Bebas Neue for headers, DM Mono for data, DM Sans for body
-- **Color Coding**:
-  - Gold: Primary actions and highlights
-  - Blue: Inside port charges
-  - Purple: Outside port charges
-  - Green: Success states and payable charges
-  - Red: Old rates and warnings
+| Slab | New rates (from 23/07/2024) | Old rates (up to 22/07/2024) |
+|---|---|---|
+| 1st 7 days | 70 Tk/ton/day | 40 Tk/ton/day |
+| 8th–14th day | 185 Tk/ton/day | 115 Tk/ton/day |
+| 15th day + | 295 Tk/ton/day | 185 Tk/ton/day |
 
-### Layout Structure
+### Split Billing
 
-- **Header**: Logo, admin toggle, user mode indicator
-- **Main Content**: Two-column responsive grid
-  - Left: Input forms and rate tables
-  - Right: Quick preview and billing rules
-- **Results Section**: Comprehensive bill statement with statistics
-- **Footer**: Copyright information
+When **CLD ≤ 22/07/2024** and the delivery date falls after 23/07/2024, the engine automatically splits the storage period: old rates apply up to 22/07/2024 and new rates apply from 23/07/2024 onward. A prominent `⚡ SPLIT BILLING` badge is shown in the results.
 
-## 🔐 Security & Access Control
+### Inside vs. Outside Charges
 
-### Admin Mode
+The same input produces two separate totals:
 
-- **Authentication**: Username/password system (admin/admin)
-- **Field Protection**: Critical fields locked in user mode
-- **Rate Editing**: Admin-only access to rate modifications
-- **Visual Indicators**: Clear mode badges and status indicators
+- **Inside port**: full wharfrent + all payable charges + VAT + levy
+- **Outside port**: ½ wharfrent + all payable charges + VAT + levy
 
-### Protected Fields (User Mode)
+### Payable Charges (Car)
 
-- Free days configuration
-- All charge rates (River, Landing, Removal, Weighment, Levy)
+| Charge | Default rate | VAT |
+|---|---|---|
+| River Dues | 33 Tk/ton | Yes (15%) |
+| Landing Charge | 175 Tk/ton | Yes (15%) |
+| Removal Charge | 350 Tk/ton | Yes (15%) |
+| Weighment Charge | 2.5 Tk/ton | Yes (15%) |
+| Levy Charge | 1.5 Tk/ton | **No VAT** |
+
+Each payable charge has a checkbox — uncheck to exclude it from the bill. All rates and the VAT percentage are locked in user mode; admin can edit them.
+
+### Constraints
+
+- Weight range: 1–3 tons. A warning is shown for values outside this range; 4+ tons are not supported by this module.
+
+---
+
+## General Cargo Billing Module
+
+### Free Time & Storage Start
+
+Identical rule to car billing: CLD + 3 days = 4 days free, wharfrent starts the next day.
+
+### Inside / Outside Weight Split
+
+Cargo is split into two portions entered by the user:
+
+- **Inside tons**: billed at the full wharfrent rate.
+- **Outside tons**: billed at **½ the inside rate**.
+- Inside + Outside **must equal** the total cargo weight. A live `Total Check` badge turns red if the portions don't match, blocking calculation.
+
+### Wharfrent Rate Structure (Cargo)
+
+A single rate schedule applies — there is no old/new split for general cargo:
+
+| Slab | Rate |
+|---|---|
+| 1st 7 days | 10 Tk/ton/day |
+| 8th–14th day | 20 Tk/ton/day |
+| 15th day + | 25 Tk/ton/day |
+
+### Payable Charges (Cargo)
+
+| Charge | Rate logic | VAT |
+|---|---|---|
+| River Dues | 33 Tk/ton (flat) | Yes (15%) |
+| Landing Charge | **Tiered**: ≤3t → 90 / >3t–≤20t → 180 / >20t → 250 Tk/ton | Yes (15%) |
+| Removal Charge | **7× landing slab** (if landing checked) or **8× landing slab** (if not) | Yes (15%) |
+| Weighment Charge | 2.5 Tk/ton | Yes (15%) |
+| Hoisting Charge | **125% of landing slab rate** (auto-computed) | Yes (15%) |
+| Levy Charge | 1.5 Tk/ton | **No VAT** |
+
+- **Landing** is tier-based and auto-selected from total cargo weight on every refresh.
+- **Removal** quantity is entered separately via a dedicated `Removal Cargo (ton)` field.
+- **Hoisting** rate is always derived from the active landing slab — the input field reflects the formula value.
+- Landing/Removal/Hoisting inputs are always read-only (formula-derived); admin cannot override them.
+- A `Landing Tier` info strip updates live showing which tier is active.
+
+### Payable Charge Basis
+
+- **During free time** (days 1–4): payable charges use **total cargo weight**.
+- **During wharfrent period**: payable charges use **inside and outside portions** separately.
+
+---
+
+## Shared Features
+
+### Live Quick Preview
+
+Both modules have a `● LIVE` preview panel on the right that updates on every keystroke. It shows running estimates for inside and outside totals before the full bill is generated.
+
+### Custom Calendar Picker
+
+Date inputs (`CLD`, `Delivery Date`) feature a built-in `📅` popup calendar:
+- Smart viewport positioning: the popup flips above the input if there is not enough space below.
+- Navigation with `‹ ›` month buttons.
+- Selected date highlighted in gold.
+- Dates default to today on load.
+- Manual typed input is also supported (auto-formatted as `DD/MM/YYYY`).
+
+### Rate Badges
+
+A dynamic badge appears below the date inputs once CLD is entered:
+- `● NEW RATES` — delivery is fully in the new-rate period.
+- `● OLD RATES` — delivery is fully in the old-rate period.
+- `⚡ SPLIT BILLING` — rate change boundary is crossed (car module only).
+- `● CARGO RATES — Landing Tier: …` — shows the active landing tier (cargo module).
+
+### Generate Bill / Reset
+
+- **GENERATE BILL**: runs full validation, computes all values, and renders a detailed bill statement below the input section.
+- **Reset**: clears all inputs, collapses the results section, and resets the preview to idle state.
+
+### Print / Invoice
+
+Each module has a **Print Bill** button that opens a browser print dialog with a fully formatted invoice:
+- Port authority letterhead with date and document number.
+- Itemized table for inside charges, outside charges, payable charges, VAT, and grand totals.
+- A `NOT AN OFFICIAL DOCUMENT` watermark / disclaimer badge.
+- Split billing warning banner (car module, when applicable).
+- Print-specific CSS: black-on-white, table borders, hidden UI chrome.
+
+---
+
+## Admin Mode
+
+### Access
+
+The admin button is **hidden by default** in the UI (invisible to end users). To reveal it, open the browser developer console and run:
+
+```js
+document.getElementById('adminBtn').style.display = '';
+```
+
+Then click the **🔒 Admin** button in the header to open the login modal.
+
+### Credentials
+
+| Field | Value |
+|---|---|
+| Username | `admin` |
+| Password | `admin` |
+
+### What Admin Unlocks
+
+In **user mode**, the following fields are read-only (🔒):
+- Free time (days)
+- All payable charge rates (River, Landing, Removal, Weighment, Levy)
 - VAT rate
-- Wharfrent rate slabs
+- Car wharfrent slab rates (both new and old)
+- General cargo wharfrent slab rates
 
-## 📊 Data Processing
+In **admin mode**:
+- All locked fields become editable input boxes.
+- Wharfrent slab spans are replaced by number inputs (`<input>` replaces the display `<span>`).
+- The header badge changes from `USER` to `ADMIN`.
+- The admin button turns gold.
+- Clicking **Logout** returns all fields to read-only user mode.
 
-### Calculation Engine
+> **Note**: Landing/Removal/Hoisting in the cargo module are always locked regardless of admin mode because they are formula-derived values.
 
-- **Slab-based Billing**: Progressive rate calculation based on storage duration
-- **Split Billing Logic**: Automatic handling of rate change transitions
-- **Weight Validation**: 1-3 ton range enforcement
-- **Date Calculations**: Precise day counting including/excluding boundaries
-- **Currency Formatting**: Bangladeshi Taka (Tk) formatting with 2 decimal places
+---
 
-### Input Validation
+## UI & Design
 
-- Date range validation
-- Weight limits (1-3 tons)
-- Required field checking
-- Real-time preview updates
+### Visual Theme
 
-## 🛠 Technical Architecture
+- **Background**: near-black `#020202`
+- **Car module accent**: Gold (`var(--gold)`) — buttons, highlights, wharfrent values
+- **Cargo module accent**: Cyan/teal (`var(--cargo-accent)`) — titles, badges, glows
+- **Inside charges**: Blue (`var(--blue)`)
+- **Outside charges**: Purple (`var(--purple)`)
+- **Payable charges**: Green (`var(--green)`)
+- **Old rates / warnings**: Red (`var(--red)`)
 
-### Frontend Stack
+### Typography
 
-- **HTML5**: Semantic markup with accessibility considerations
-- **CSS3**: Custom properties, Grid/Flexbox layouts, animations
-- **Vanilla JavaScript**: No external dependencies, pure JS implementation
+| Role | Font |
+|---|---|
+| Page/section headers | Bebas Neue (Google Fonts) |
+| Numeric data, rates, codes | DM Mono |
+| Body text, labels | DM Sans |
 
-### Key Components
+### Layout
 
-- **State Management**: Global state for admin mode and calculations
-- **Utility Functions**: Date manipulation, formatting, DOM helpers
-- **Calculation Engine**: Slab-based billing with split support
-- **UI Controller**: Modal management, form interactions, dynamic updates
+- **Two-column grid**: input forms on the left, live preview + billing rules on the right.
+- Columns collapse to single-column on mobile.
+- Results section appears below the input grid after bill generation.
+
+### Animations & Motion
+
+- **Card stagger**: each `.card` element gets a progressively increasing `animation-delay` on load (0.7s + i × 0.1s).
+- **Scroll reveal**: `IntersectionObserver` adds `.revealed` class to `[data-reveal]` elements when they enter the viewport (threshold 0.12).
+- **Floating particles**: 12 randomly-sized and randomly-timed background particles rise continuously.
+- **Admin button hover**: 2px upward translate + cyan glow box-shadow.
 
 ### Responsive Breakpoints
 
-- **Mobile**: < 360px (compact layout)
-- **Tablet**: 360px - 767px (adjusted spacing)
-- **Desktop**: 768px - 1023px (two-column layout)
-- **Large**: 1024px - 1199px (enhanced spacing)
-- **Extra Large**: ≥ 1200px (full layout)
+| Breakpoint | Layout |
+|---|---|
+| < 360px | Compact single-column, reduced padding |
+| 360px–767px | Single-column, adjusted spacing |
+| 768px–1023px | Two-column grid activated |
+| 1024px–1199px | Enhanced spacing |
+| ≥ 1200px | Full layout, max-width container |
 
-## 📱 Usage Instructions
+### Accessibility
 
-### Basic Workflow
+- Module tabs use full ARIA tab pattern: `role="tablist"`, `role="tab"`, `aria-selected`, `aria-controls`.
+- Arrow keys (`←`/`→`) navigate between tabs; `Enter`/`Space` activates the focused tab.
+- Admin modal uses native `<dialog>` element with `showModal()` / `close()` — no custom focus trap needed.
+- Clicking the modal backdrop closes it.
+- Charge checkboxes in the cargo table have `.sr-only` `<label>` elements for screen readers.
+- `<header>`, `<main>`, `<footer>` landmarks present on every page.
 
-1. **Enter CLD**: Common Landing Date
-2. **Set Weight**: Vehicle weight (1-3 tons)
-3. **Select Delivery Date**: When vehicle leaves port
-4. **Choose Charges**: Toggle payable charges as needed
-5. **Generate Bill**: Click "GENERATE BILL" for full calculation
-6. **Review Results**: Check detailed breakdown and totals
+---
 
-### Admin Functions
+## Technical Architecture
 
-1. **Login**: Click Admin button, enter credentials
-2. **Edit Rates**: Modify charge rates and VAT percentages
-3. **Update Wharfrent**: Adjust slab rates as needed
-4. **Logout**: Return to user mode when finished
+### Stack
 
-## ⚠️ Limitations & Disclaimers
+- **Pure vanilla HTML5 / CSS3 / JavaScript (ES2022+)** — zero runtime dependencies, no build step.
+- Runs as a static file directly in the browser — no server, no bundler, no npm.
 
-### System Limitations
-
-- **Weight Cap**: Maximum 3 tons (4+ tons not supported)
-- **Currency**: Bangladeshi Taka only
-- **Date Range**: No historical limits, but practical date validation
-- **Browser**: Modern browsers with ES6+ support required
-
-### Legal Disclaimer
-
-- **Not Official**: This bill cannot be used as an official reference
-- **Informational Only**: Provided for estimation purposes
-- **Port Authority**: Final billing determined by port authority rates
-
-## 🚀 Deployment
-
-### Requirements
-
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- No server requirements (static HTML file)
-- No external dependencies
-
-### Installation
-
-1. Download `index.html` file
-2. Open in web browser
-3. No additional setup required
-
-### Customization
-
-- **Rates**: Modify default values in HTML input fields
-- **Colors**: Adjust CSS custom properties in `:root`
-- **Fonts**: Update Google Fonts imports
-- **Credentials**: Change admin username/password in JavaScript
-
-## 📝 Development Notes
-
-### Code Structure
-
-- **Modular CSS**: Organized into logical sections
-- **Semantic HTML**: Proper heading hierarchy and landmarks
-- **Clean JavaScript**: Well-commented, functional programming style
-- **Performance**: Optimized DOM manipulation and calculations
-
-### Browser Compatibility
-
-- **Modern Features**: Uses CSS Grid, Custom Properties, ES6+
-- **Fallbacks**: Graceful degradation for older browsers
-- **Mobile Support**: Touch-friendly interface and responsive design
-
-## 📄 File Structure
+### File Structure
 
 ```text
 portbill/
-├── index.html          # Main application file
-├── README.md          # This documentation
-└── assets/            # (optional) Static assets
-    └── images/        # Icons and graphics
+├── index.html      # Markup: header, module tabs, admin dialog, both module pages, footer
+├── style.css       # All styles: design tokens (--vars), components, print, responsive
+├── main.js         # All logic: CalendarPicker, billing engines, admin, animations, init
+└── favicon.svg     # SVG favicon (works as apple-touch-icon too)
 ```
 
-## 🤝 Contributing
+### Key Components in `main.js`
 
-### Guidelines
+| Component / function | Purpose |
+|---|---|
+| `CalendarPicker` (class) | Custom popup date picker for all date inputs |
+| `initDomCache()` | Caches frequently-accessed DOM nodes at startup for performance |
+| `switchModule(mod)` | Swaps visible module page and updates ARIA tab state |
+| `calcSlabs(…)` | Shared slab-based wharfrent calculator used by both modules |
+| `carCompute()` | Full car billing computation: free time, split billing, inside/outside |
+| `carRefresh()` / `carRefreshNow()` | Debounced live preview updater for car module |
+| `carCalculate()` | Validates inputs, runs `carCompute()`, renders bill statement |
+| `cargoCompute()` | Full cargo billing computation: tier logic, portion split, hoisting |
+| `cargoRefresh()` / `cargoRefreshNow()` | Debounced live preview updater for cargo module |
+| `cargoCalculate()` | Validates inputs, runs `cargoCompute()`, renders bill statement |
+| `getCargoLandingTierRate(w)` | Returns landing Tk/ton based on total weight tier |
+| `cargoValidateSplit()` / `cargoValidatePortion()` | Validates inside+outside = total |
+| `buildCarBillTable(b, side)` | Renders the itemized HTML table for a car bill section |
+| `buildCargoBillTable(b, side)` | Renders the itemized HTML table for a cargo bill section |
+| `buildInvoiceHtml(opts)` | Generates complete print-ready invoice HTML (both modules) |
+| `printBill(type)` | Opens a print window with the invoice HTML |
+| `toggleAdmin()` / `doLogin()` / `applyAdmin()` | Admin auth flow and field lock/unlock |
 
-- Maintain existing code style
-- Test responsive behavior
-- Validate calculations
-- Update documentation
+### Calculation Engine Details
 
-### Areas for Enhancement
+**Free time**: `CLD + (freeDays - 1)` → end of free period. Wharfrent starts `freeEnd + 1`.
 
-- Multi-currency support
-- Export functionality (PDF/Excel)
-- Database integration
-- Advanced reporting
-- Multi-user support
+**Slab accumulation** (`calcSlabs`):
+1. Days in slab 1 (days 1–7): `min(billDays, 7)`
+2. Days in slab 2 (days 8–14): `max(0, min(billDays - 7, 7))`
+3. Days in slab 3 (days 15+): `max(0, billDays - 14)`
+4. Each slab: `days × rate × tons`
 
-## 📞 Support
+**Split billing** (car): the cut date is `2024-07-22` (old) / `2024-07-23` (new). If both periods have billable days, the engine runs `calcSlabs` twice — once with old rates, once with new rates — then sums them.
 
-For technical issues or questions:
+**Outside wharfrent**: always `½ × inside wharfrent` (both modules).
 
-- Check browser console for errors
-- Verify input data validity
-- Ensure weight limits are respected
-- Review billing rules for understanding
+**Cargo tiered landing**: `getCargoLandingTierRate(totalWeight)` returns 90 / 180 / 250 based on ≤3 / ≤20 / >20 ton thresholds.
+
+**Cargo removal**: `removalTons × (landingChecked ? 7 : 8) × landingSlabRate`.
+
+**Cargo hoisting**: `hoistingTons × 1.25 × landingSlabRate`.
+
+**VAT**: applied to all payable charges except Levy. `subtotal × (vatRate / 100)`.
+
+---
+
+## Usage
+
+### Basic Workflow (Both Modules)
+
+1. Select the module tab: **Car Billing** or **General Cargo Billing**.
+2. Enter the **CLD** (Common Landing Day) — defaults to today.
+3. Enter the **Delivery Date**.
+4. Enter the **weight** (tons). For cargo, also fill in **Inside** and **Outside** portions.
+5. Toggle payable charges on/off as needed.
+6. Watch the **Quick Preview** update live.
+7. Click **GENERATE BILL** for the full itemized statement.
+8. Click **Print Bill** to open the print dialog.
+
+### Admin Workflow
+
+1. Reveal the admin button via dev console: `document.getElementById('adminBtn').style.display = ''`
+2. Click **🔒 Admin** → enter `admin` / `admin` → press Enter or click **LOGIN**.
+3. Edit any unlocked rate fields.
+4. Click **Logout** to return to user mode.
+
+---
+
+## Deployment
+
+No server, build tool, or dependency install required.
+
+1. Download all four files (`index.html`, `style.css`, `main.js`, `favicon.svg`) into the same directory.
+2. Open `index.html` in any modern browser.
+
+**Browser requirements**: ES2022+ (`?.`, `??`, `structuredClone`, `replaceAll`), CSS Grid, CSS Custom Properties, `<dialog>`, `IntersectionObserver`. All modern versions of Chrome, Firefox, Safari, and Edge are supported.
+
+---
+
+## Limitations & Disclaimers
+
+- **Car module weight cap**: vehicles ≥ 4 tons are not supported — use General Cargo Billing instead.
+- **Currency**: Bangladeshi Taka (Tk) only.
+- **Not official**: all bills carry the disclaimer "This bill cannot be used as an official reference." Final billing authority rests with the Port Authority.
+- **Client-side only**: no data persistence, no server validation, no audit log.
+- **Admin security**: the admin credentials are stored in plain text in `main.js` (`AU = 'admin'`, `AP = 'admin'`). This is a prototype-grade access control; do not treat it as production authentication.
 
 ---
 
 ## Project Status
 
-- **Repository**: [https://github.com/samiulAsumel/portbill](https://github.com/samiulAsumel/portbill)
-- **Version**: 1.0.0
-- **Last Updated**: April 2025
-- **Author**: samiulAsumel
-- **License**: All Rights Reserved
-- **Status**: Production Ready
-
-## Recent Activity
-
-- Latest commits show active development and maintenance
-- Recent updates include delivery date error handling and UI improvements
-- Project is actively maintained with regular updates
-
-## Technical Specifications
-
-- **Single Page Application**: 133KB HTML file with embedded CSS/JavaScript
-- **Zero Dependencies**: Pure vanilla JavaScript implementation
-- **Responsive Design**: Mobile-first approach with 5 breakpoint levels
-- **Cross-browser Compatible**: Modern browsers with ES6+ support
-- **Performance Optimized**: Efficient DOM manipulation and calculations
-
-## Security Features
-
-- Client-side admin authentication (admin/admin)
-- Input validation and sanitization
-- Weight limit enforcement (1-3 tons)
-- Date range validation
-- Protected rate configuration in user mode
+| Field | Value |
+|---|---|
+| Repository | [https://github.com/samiulAsumel/portbill](https://github.com/samiulAsumel/portbill) |
+| Version | 2.0.0 |
+| Last updated | April 2026 |
+| Author | samiulAsumel |
+| License | All Rights Reserved |
+| Status | Production Ready |
 
 ---
 
-**Scan completed successfully** - Project structure verified and documentation updated.
+*This bill cannot be used as an official reference — informational purposes only.*
