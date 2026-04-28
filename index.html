@@ -979,7 +979,6 @@
                         <input
                           type="checkbox"
                           id="c-chkWeighment"
-                          checked
                           oninput="cargoRefresh()"
                         />
                       </td>
@@ -1096,7 +1095,20 @@
                     oninput="cargoRefresh()"
                   />
                 </div>
-                <div class="fg"></div>
+                <div class="fg">
+                  <label class="lbl" for="c-weighmentTon"
+                    >Weighment Cargo (ton)</label
+                  >
+                  <input
+                    type="number"
+                    id="c-weighmentTon"
+                    class="cargo-glow"
+                    value="0"
+                    min="0"
+                    step="1"
+                    oninput="cargoRefresh()"
+                  />
+                </div>
               </div>
               <div class="vatr">
                 <label class="lbl" for="c-vatRate"

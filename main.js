@@ -630,19 +630,20 @@ function carCompute() {
       amt: nn('rWeighment') * weight,
     });
   const levyAmt = gb('chkLevy') ? nn('rLevy') * weight : 0;
+  const r2 = v => Math.round(v * 100) / 100;
   const paySub = payables.reduce((a, p) => a + p.amt, 0);
   const iBase = insideStor + paySub;
-  const iVat = iBase * vatRate;
+  const iVat = r2(iBase * vatRate);
   const iLevy = levyAmt;
-  const iTotal = iBase + iVat + iLevy;
+  const iTotal = r2(iBase + iVat + iLevy);
   const oBase = outsideHalf + paySub;
-  const oVat = oBase * vatRate;
+  const oVat = r2(oBase * vatRate);
   const oLevy = levyAmt;
-  const oTotal = oBase + oVat + oLevy;
+  const oTotal = r2(oBase + oVat + oLevy);
   const nBase = paySub;
-  const nVat = nBase * vatRate;
+  const nVat = r2(nBase * vatRate);
   const nLevy = levyAmt;
-  const nTotal = nBase + nVat + nLevy;
+  const nTotal = r2(nBase + nVat + nLevy);
   return {
     cld,
     freeEnd,
@@ -920,6 +921,33 @@ function cargoValidateSplit() {
   return match;
 }
 
+function cargoValidateWeighmentTon(showAlert = false) {
+  const weighmentChecked = gb('c-chkWeighment');
+  const weighmentTon = Math.round(
+    Number.parseFloat(document.getElementById('c-weighmentTon').value) || 0
+  );
+  const weighmentInput = document.getElementById('c-weighmentTon');
+  const totalWeight = Math.max(
+    0,
+    Math.round(
+      Number.parseFloat(document.getElementById('c-weight').value) || 0
+    )
+  );
+
+  const valid =
+    !weighmentChecked || (weighmentTon > 0 && weighmentTon <= totalWeight);
+  let msg =
+    'Enter weighment cargo ton greater than 0 when Weighment Charge is checked.';
+  if (weighmentChecked && weighmentTon > totalWeight) {
+    msg = 'Weighment cargo ton cannot be greater than total weight.';
+  }
+  weighmentInput.setCustomValidity(valid ? '' : msg);
+  if (!valid && showAlert) {
+    alert(`⚠ ${msg}`);
+  }
+  return valid;
+}
+
 function cargoValidateRemovalTon(showAlert = false) {
   const removalChecked = gb('c-chkRemoval');
   const removalTon = Math.round(
@@ -999,6 +1027,13 @@ function cargoCompute() {
     Math.max(
       0,
       Number.parseFloat(document.getElementById('c-removalTon').value) || 0
+    )
+  );
+  const weighmentTon = Math.min(
+    totalWeight,
+    Math.max(
+      0,
+      Number.parseFloat(document.getElementById('c-weighmentTon').value) || 0
     )
   );
   const or1 = nn('c-or1'),
@@ -1130,32 +1165,19 @@ function cargoCompute() {
   }
   if (gb('c-chkWeighment')) {
     if (hasWharfrent) {
-      // Split by portion when wharfrent applies - only for tons > 0
-      if (insideW > 0) {
-        payables.push({
-          label: 'Weighment Charge',
-          rate: nn('c-rWeighment'),
-          tons: insideW,
-          amt: nn('c-rWeighment') * insideW,
-          portion: 'inside',
-        });
-      }
-      if (outsideW > 0) {
-        payables.push({
-          label: 'Weighment Charge',
-          rate: nn('c-rWeighment'),
-          tons: outsideW,
-          amt: nn('c-rWeighment') * outsideW,
-          portion: 'outside',
-        });
-      }
-    } else {
-      // Use total tons when in free time
       payables.push({
         label: 'Weighment Charge',
         rate: nn('c-rWeighment'),
-        tons: totalWeight,
-        amt: nn('c-rWeighment') * totalWeight,
+        tons: weighmentTon,
+        amt: nn('c-rWeighment') * weighmentTon,
+        portion: 'outside',
+      });
+    } else {
+      payables.push({
+        label: 'Weighment Charge',
+        rate: nn('c-rWeighment'),
+        tons: weighmentTon,
+        amt: nn('c-rWeighment') * weighmentTon,
         portion: 'total',
       });
     }
@@ -1204,22 +1226,23 @@ function cargoCompute() {
   const outsidePaySub = outsidePayables.reduce((a, p) => a + p.amt, 0);
   const paySub = payables.reduce((a, p) => a + p.amt, 0);
 
+  const r2 = v => Math.round(v * 100) / 100;
   // Bills
   // Inside: (insideWharfrent + insidePaySub) → VAT → + insideLevy
   const iBase = insideWharfrent + insidePaySub;
-  const iVat = iBase * vatRate;
+  const iVat = r2(iBase * vatRate);
   const iLevy = insideLevy;
-  const iTotal = iBase + iVat + iLevy;
+  const iTotal = r2(iBase + iVat + iLevy);
   // Outside: (outsideWharfrent + outsidePaySub) → VAT → + outsideLevy
   const oBase = outsideWharfrent + outsidePaySub;
-  const oVat = oBase * vatRate;
+  const oVat = r2(oBase * vatRate);
   const oLevy = outsideLevy;
-  const oTotal = oBase + oVat + oLevy;
+  const oTotal = r2(oBase + oVat + oLevy);
   // No wharfrent
   const nBase = paySub;
-  const nVat = nBase * vatRate;
+  const nVat = r2(nBase * vatRate);
   const nLevy = totalLevy;
-  const nTotal = nBase + nVat + nLevy;
+  const nTotal = r2(nBase + nVat + nLevy);
 
   return {
     cld,
@@ -1231,6 +1254,7 @@ function cargoCompute() {
     outsideW,
     vatRate,
     removalTon,
+    weighmentTon,
     hasWharfrent,
     tierRate,
     dynamicLandingRate,
@@ -1267,6 +1291,7 @@ function cargoRefreshNow() {
   try {
     cargoValidateSplit();
     cargoValidateRemovalTon();
+    cargoValidateWeighmentTon();
     const cld_ = pd(document.getElementById('c-cld').value);
     const fd_ =
       Number.parseInt(document.getElementById('c-freeDays').value, 10) || 4;
@@ -1406,6 +1431,10 @@ function cargoCalculate() {
   }
   if (!cargoValidateRemovalTon(true)) {
     document.getElementById('c-removalTon').focus();
+    return;
+  }
+  if (!cargoValidateWeighmentTon(true)) {
+    document.getElementById('c-weighmentTon').focus();
     return;
   }
   const b = cargoCompute();
