@@ -1514,6 +1514,172 @@ hr {
   .hbadge { font-size: 13px; }
 }
 
+/* ════════════════════════════════════════════════════════════
+   FONT SCALE — READABILITY BOOST
+   Minimum target: 12px labels · 13px tables · 14px inputs & values
+   Inserted after all breakpoints so the cascade wins at every size.
+════════════════════════════════════════════════════════════ */
+
+/* Body base */
+body { font-size: 1rem; }          /* 16px (was 0.9375rem = 15px) */
+
+/* Header / nav */
+.logo-sub   { font-size: clamp(10.5px,1.7vw,12.5px); }
+.tab-btn    { font-size: clamp(11.5px,1.6vw,13px); }
+.hbadge     { font-size: 12.5px; }
+.admin-btn  { font-size: 13px; }
+
+/* Modal */
+.modal-sub  { font-size: 13.5px; }
+.mlbl       { font-size: 12.5px; }
+.minput     { font-size: 15px; }
+.merr       { font-size: 14px; }
+.btn        { font-size: 14px; }
+.btn.bsm    { font-size: 13px; }
+
+/* Form labels & card headings */
+.lbl    { font-size: 12.5px; }
+.ctitle { font-size: 12.5px; }
+.cnote  { font-size: 12px; }
+.ntcell { font-size: 12px; }
+
+/* Inputs */
+input[type='text'],
+input[type='number'],
+input[type='password'],
+input[type='date']  { font-size: clamp(14px,1.7vw,15px); }
+.date-display       { font-size: clamp(14px,1.9vw,15.5px); }
+.weight-warn        { font-size: 13px; }
+
+/* Rate badge & section labels */
+.rbadge { font-size: 13px; }
+.slbl   { font-size: 13px; }
+.rst    { font-size: 12.5px; }
+
+/* Payable / Rate / Cargo-rate tables */
+.ptbl              { font-size: clamp(13px,1.7vw,14px); }
+.ptbl th           { font-size: 12px; }
+.ptbl input[type='number'] { font-size: 13px; }
+.rt                { font-size: clamp(13px,1.7vw,14px); }
+.rt th             { font-size: 12px; }
+.rt input[type='number']   { font-size: 13px; }
+.rspan             { font-size: 15px; }
+.cargo-rate-table              { font-size: clamp(13px,1.7vw,14px); }
+.cargo-rate-table th           { font-size: 12px; }
+.cargo-rate-table input[type='number'] { font-size: 13px; }
+
+/* Side-panel / Quick preview */
+#car-preview,
+#cargo-preview  { font-size: clamp(14px,2vw,15px); }
+.sp-live-badge  { font-size: 11px; }
+.sp-mod-label   { font-size: 11.5px; }
+.sp-idle        { font-size: 13.5px; }
+.pvr            { font-size: clamp(13px,1.9vw,14.5px); }
+.pvr-lbl        { font-size: 13px; }
+.pvr-val        { font-size: 14.5px; }
+.pvr.pvr-grand .pvr-lbl { font-size: 12px; }
+.pvr.pvr-grand .pvr-val { font-size: 16px; }
+.guide          { font-size: clamp(13px,1.9vw,14px); }
+
+/* Info bar */
+.il { font-size: 12px; }
+.iv { font-size: clamp(14px,2vw,15.5px); }
+
+/* Stats cards */
+.sl   { font-size: 12px; }
+.sv   { font-size: clamp(14px,2.2vw,19px); }
+.ss   { font-size: 12px; }
+
+/* Grand total boxes */
+.glbl         { font-size: 12px; }
+.gval         { font-size: clamp(16px,2.7vw,24px); }
+.gsub         { font-size: 12px; }
+.gfin .gval   { font-size: clamp(18px,3.2vw,28px); }
+
+/* Inside / outside split */
+.iorow-title     { font-size: 12px; }
+.iorow-note      { font-size: 12px; }
+.io-total-badge  { font-size: 14px; }
+.cargo-split-info { font-size: 14px; }
+
+/* Bill result tables */
+.bt            { font-size: clamp(13px,1.7vw,14px); }
+.bt th         { font-size: 12px; }
+.bt .sep td    { font-size: 12px; }
+.bt .tot td    { font-size: 14px; }
+.bt .vrow td   { font-size: 13.5px; }
+.bt .lrow td   { font-size: 13.5px; }
+.bt .grand td  { font-size: clamp(14px,2vw,15.5px); }
+.warn          { font-size: 14px; }
+.no-stor-note  { font-size: 15px; }
+
+/* Print button */
+.print-btn { font-size: 13px; }
+
+/* ── Tiny phones (< 360px) — tightest floor ── */
+@media (max-width: 359px) {
+  .ctitle  { font-size: 11px; }
+  .lbl     { font-size: 11.5px; }
+  .ptbl, .bt, .cargo-rate-table, .rt { font-size: 11.5px; }
+  .pvr     { font-size: 12px; }
+  .pvr-val { font-size: 12.5px; }
+  .guide   { font-size: 12px; }
+  .gval    { font-size: 14px; }
+  .gfin .gval { font-size: 16px; }
+  .iv      { font-size: 13px; }
+  .sv      { font-size: 13px; }
+  .slbl    { font-size: 11px; }
+  .rbadge  { font-size: 11px; }
+  input[type='text'],
+  input[type='number'],
+  input[type='password'],
+  input[type='date'] { font-size: 13px; }
+}
+
+/* ── Large desktops (≥ 1600px) ── */
+@media (min-width: 1600px) {
+  .ctitle  { font-size: 13px; }
+  .ptbl, .bt, .cargo-rate-table, .rt { font-size: 14.5px; }
+  .pvr     { font-size: 14.5px; }
+  .pvr-val { font-size: 15px; }
+  .gval    { font-size: 26px; }
+  .gfin .gval { font-size: 31px; }
+  .sv      { font-size: 19px; }
+}
+
+/* ── 2K / Full HD (≥ 1920px) ── */
+@media (min-width: 1920px) {
+  .ctitle  { font-size: 14px; letter-spacing: 2px; }
+  .lbl     { font-size: 13px; }
+  .il      { font-size: 13px; }
+  .iv      { font-size: 16px; }
+  .sl      { font-size: 13px; }
+  .sv      { font-size: 20px; }
+  .glbl    { font-size: 13px; }
+  .gval    { font-size: 29px; }
+  .gfin .gval { font-size: 36px; }
+  .ptbl, .bt, .cargo-rate-table, .rt { font-size: 15px; }
+  .pvr     { font-size: 15px; }
+  .pvr-val { font-size: 16px; }
+  input[type='text'],
+  input[type='number'],
+  input[type='password'],
+  input[type='date'] { font-size: 15px; }
+}
+
+/* ── 4K / Ultra-wide (≥ 2560px) ── */
+@media (min-width: 2560px) {
+  .ptbl, .bt, .cargo-rate-table, .rt { font-size: 16px; }
+  .pvr     { font-size: 16px; }
+  .pvr-val { font-size: 17px; }
+  .gval    { font-size: 32px; }
+  .gfin .gval { font-size: 40px; }
+  input[type='text'],
+  input[type='number'],
+  input[type='password'],
+  input[type='date'] { font-size: 16px; }
+}
+
 /* ════════════════════════════
    REDUCED MOTION
 ════════════════════════════ */
@@ -1523,6 +1689,178 @@ hr {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ════════════════════════════════════════
+   PRINT PREVIEW DIALOG
+════════════════════════════════════════ */
+.ppv-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: 100vw;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: #0b0d14;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+}
+.ppv-dialog::backdrop {
+  background: rgba(2, 2, 2, 0.96);
+}
+.ppv-dialog:not([open]) { display: none; }
+
+/* toolbar */
+.ppv-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #0d1120;
+  height: 60px;
+  padding: 0 22px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 3px solid var(--gold);
+}
+.ppv-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex-shrink: 0;
+}
+.ppv-logo-mark {
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  opacity: 0.85;
+}
+.ppv-bar-label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ppv-bar-app {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #4a5270;
+  line-height: 1;
+}
+.ppv-bar-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #8a93b8;
+  line-height: 1;
+}
+.ppv-bar-center {
+  flex: 1;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #c8ccdb;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  padding: 0 12px;
+}
+.ppv-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.ppv-bar-ref {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #4a5270;
+  white-space: nowrap;
+}
+.ppv-btn-print {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.ppv-btn-print:hover { opacity: 0.88; transform: translateY(-1px); }
+.ppv-btn-print:active { transform: translateY(0); }
+.ppv-btn-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  color: #6a73a0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.ppv-btn-close:hover { background: rgba(255, 255, 255, 0.12); color: #e0e4f0; }
+
+/* stage — scrollable page canvas */
+.ppv-stage {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #13151f;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 32px 20px 48px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+.ppv-stage::-webkit-scrollbar { width: 6px; }
+.ppv-stage::-webkit-scrollbar-track { background: transparent; }
+.ppv-stage::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 3px; }
+
+.ppv-frame {
+  width: 100%;
+  max-width: 920px;
+  min-height: 1200px;
+  border: none;
+  background: #fff;
+  box-shadow: 0 8px 60px rgba(0, 0, 0, 0.65), 0 2px 12px rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+  display: block;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .ppv-bar { height: 54px; padding: 0 14px; gap: 8px; }
+  .ppv-bar-center { display: none; }
+  .ppv-bar-ref { display: none; }
+  .ppv-bar-app { display: none; }
+  .ppv-btn-print { padding: 7px 13px; font-size: 12px; }
+  .ppv-stage { padding: 0; }
+  .ppv-frame { max-width: 100%; border-radius: 0; min-height: 1000px; }
 }
 
 /* ════════════════════════════

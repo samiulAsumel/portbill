@@ -1857,13 +1857,52 @@ tr.grand td:last-child{color:#c4943a;font-size:11.5pt;letter-spacing:1px;padding
   .io-divider{height:1px;width:100%;}
   .grand-bar{flex-direction:column;align-items:flex-start;gap:10px;margin:14px 16px 0;padding:16px;}
   .gb-right{text-align:left;}
-  .gb-amount{font-size:17pt;}
+  .gb-amount{font-size:21pt;}
   .auth-row{grid-template-columns:1fr;gap:0;}
   .auth-col{padding:20px 16px 24px !important;border-right:none !important;}
   .disclaimer,.doc-footer,.cls-strip{margin-left:16px;margin-right:16px;}
   .cls-strip{padding-left:16px;padding-right:16px;}
   .split-warn{padding:8px 16px;}
 }
+
+/* ─── FONT SCALE (readability override) ─── */
+html{font-size:12pt;}
+.lh-logo{font-size:19pt;}
+.lh-sub{font-size:9pt;}
+.lh-doc-label{font-size:8pt;}
+.lh-bill-name{font-size:14pt;}
+.lh-meta-lbl{font-size:8pt;}
+.lh-meta-val{font-size:9.5pt;}
+.lh-badge{font-size:8pt;}
+.cls-strip{font-size:8pt;}
+.title-band h1{font-size:12pt;}
+.title-band p{font-size:9.5pt;}
+.split-warn{font-size:10.5pt;}
+.info-section-label{font-size:8.5pt;}
+.info-label{font-size:8.5pt;}
+.info-value{font-size:11pt;}
+.section-head>span:first-child{font-size:10.5pt;}
+.sh-accent{font-size:9pt;}
+.section-sub{font-size:9.5pt;}
+table{font-size:10.5pt;}
+thead th{font-size:9pt;}
+td:nth-child(2),td:nth-child(3),td:nth-child(4),td:nth-child(5){font-size:9.5pt;}
+tr.sep td{font-size:9pt;}
+tr.vrow td,tr.lrow td{font-size:9.5pt;}
+tr.tot td{font-size:10.5pt;}
+tr.grand td{font-size:12pt;}
+tr.grand td:last-child{font-size:13.5pt;}
+.io-tag{font-size:8.5pt;}
+.io-label{font-size:10pt;}
+.io-amount{font-size:20pt;}
+.io-note{font-size:9.5pt;}
+.gb-left .gb-label{font-size:11pt;}
+.gb-left .gb-sub{font-size:9.5pt;}
+.gb-amount{font-size:26pt;}
+.gb-vat-note{font-size:9.5pt;}
+.auth-role{font-size:8.5pt;}
+.disclaimer{font-size:9.5pt;}
+.doc-footer{font-size:8.5pt;}
 
 /* ─── PAGE CONTROL ─── */
 .no-break{page-break-inside:avoid;break-inside:avoid;}
@@ -1989,6 +2028,30 @@ tr.grand td:last-child{color:#c4943a;font-size:11.5pt;letter-spacing:1px;padding
     font-size:6.8pt;color:#888 !important;
   }
   .doc-footer .df-ref{color:#555 !important;}
+
+  /* ── print font-scale bump ── */
+  html,body{font-size:10pt !important;}
+  .info-label{font-size:7.5pt !important;}
+  .info-value{font-size:9.5pt !important;}
+  table{font-size:8.5pt !important;}
+  thead th{font-size:8pt !important;}
+  tr.sep td{font-size:7.5pt !important;}
+  tr.vrow td,tr.lrow td{font-size:8pt !important;}
+  tr.tot td{font-size:9.5pt !important;}
+  tr.grand td{font-size:10pt !important;}
+  tr.grand td:last-child{font-size:11.5pt !important;color:#c4943a !important;}
+  .io-amount{font-size:14pt !important;}
+  .io-label{font-size:8.5pt !important;}
+  .gb-amount{font-size:19pt !important;color:#c4943a !important;}
+  .gb-label{font-size:9.5pt !important;}
+  .section-head>span:first-child{font-size:9pt !important;}
+  .section-sub{font-size:8.5pt !important;}
+  .disclaimer{font-size:8.5pt !important;line-height:1.6;}
+  .doc-footer{font-size:7.5pt !important;}
+  .title-band h1{font-size:10pt !important;}
+  .title-band p{font-size:8.5pt !important;}
+  .lh-bill-name{font-size:11.5pt !important;}
+  .lh-meta-val{font-size:8.5pt !important;}
 }
 </style>
 </head>
@@ -2110,6 +2173,52 @@ function printTotRow(desc, amt, cls) {
 function secHead(label, badge) {
   const badgeHtml = badge ? `<span class="sh-accent">${badge}</span>` : '';
   return `<div class="section-head"><span>${label}</span>${badgeHtml}</div>`;
+}
+
+function openPrintPreview(html, title, billRef, isCargo) {
+  const dialog   = document.getElementById('ppvDialog');
+  const frame    = document.getElementById('ppvFrame');
+  const titleEl  = document.getElementById('ppvTitle');
+  const refEl    = document.getElementById('ppvRef');
+  const bar      = document.getElementById('ppvBar');
+  const printBtn = document.getElementById('ppvPrintBtn');
+  const closeBtn = document.getElementById('ppvCloseBtn');
+
+  const accentColor = isCargo ? 'var(--sky)' : 'var(--gold)';
+  const btnTextColor = '#fff';
+  bar.style.borderTopColor = accentColor;
+  bar.querySelector('.ppv-logo-mark').style.color = accentColor;
+  printBtn.style.background = accentColor;
+  printBtn.style.color = btnTextColor;
+
+  titleEl.textContent = title;
+  refEl.textContent = billRef;
+
+  frame.style.height = '';
+  frame.onload = () => {
+    try {
+      const h = frame.contentDocument.documentElement.scrollHeight;
+      if (h > 200) frame.style.height = (h + 40) + 'px';
+    } catch (e) {}
+  };
+  frame.srcdoc = html;
+
+  printBtn.onclick = () => {
+    const fw = frame.contentWindow;
+    if (!fw) return;
+    const fontsApi = frame.contentDocument && 'fonts' in frame.contentDocument
+      ? frame.contentDocument.fonts : null;
+    if (fontsApi) {
+      fontsApi.ready.finally(() => setTimeout(() => fw.print(), 180));
+    } else {
+      setTimeout(() => fw.print(), 600);
+    }
+  };
+
+  closeBtn.onclick = () => dialog.close();
+  dialog.onclose = () => { frame.srcdoc = ''; frame.style.height = ''; };
+
+  dialog.showModal();
 }
 
 function printBill(type) {
@@ -2418,55 +2527,7 @@ function printBill(type) {
   }
 
   const html = buildInvoiceHtml(opts);
-  const win = window.open('', '_blank', 'width=870,height=1150,scrollbars=yes');
-  if (win === null) {
-    alert('Pop-up blocked. Please allow pop-ups for this page and try again.');
-    return;
-  }
-  const parsedDoc = new DOMParser().parseFromString(html, 'text/html');
-  const importedRoot = win.document.importNode(parsedDoc.documentElement, true);
-  win.document.replaceChild(importedRoot, win.document.documentElement);
-  win.focus();
-  const applySinglePageFit = () => {
-    const invoice = win.document.querySelector('.invoice');
-    if (!invoice) return;
-    invoice.style.zoom = '1';
-    invoice.style.transform = 'none';
-    invoice.style.width = '100%';
-    invoice.style.transformOrigin = 'top center';
-    // A4 printable area matching @page{margin:11mm 13mm;size:A4 portrait}
-    const printableHeightPx = (297 - 11 - 11) / 25.4 * 96; // 275mm → ~1039px
-    const printableWidthPx  = (210 - 13 - 13) / 25.4 * 96; // 184mm →  ~695px
-    const contentHeight = Math.max(invoice.scrollHeight, invoice.offsetHeight);
-    const contentWidth = Math.max(invoice.scrollWidth, invoice.offsetWidth);
-    const hScale = printableHeightPx / Math.max(1, contentHeight);
-    const wScale = printableWidthPx / Math.max(1, contentWidth);
-    const scale = Math.min(1, hScale, wScale);
-    if (scale < 1) {
-      invoice.style.zoom = String(scale);
-    }
-  };
-  const printWhenReady = () => {
-    const fontsApi =
-      win.document && 'fonts' in win.document ? win.document.fonts : null;
-    const ready = fontsApi ? fontsApi.ready : null;
-    if (ready !== null) {
-      ready.finally(() => {
-        applySinglePageFit();
-        setTimeout(() => win.print(), 220);
-      });
-      return;
-    }
-    setTimeout(() => {
-      applySinglePageFit();
-      win.print();
-    }, 900);
-  };
-  if (win.document.readyState === 'complete') {
-    printWhenReady();
-  } else {
-    win.addEventListener('load', printWhenReady, { once: true });
-  }
+  openPrintPreview(html, opts.title, billRef, type === 'cargo');
 }
 
 // ════════════════════════════════════════

@@ -1366,6 +1366,49 @@
       <p>&copy; <span id="year"></span> samiulAsumel. All rights reserved.</p>
     </footer>
 
+    <!-- PRINT PREVIEW DIALOG -->
+    <dialog class="ppv-dialog" id="ppvDialog" aria-label="Print Preview">
+      <div class="ppv-bar" id="ppvBar">
+        <div class="ppv-bar-left">
+          <div class="ppv-logo-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 46 46" fill="none">
+              <circle cx="23" cy="23" r="21" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="23" cy="23" r="7" stroke="currentColor" stroke-width="1.8"/>
+              <line x1="23" y1="2" x2="23" y2="44" stroke="currentColor" stroke-width="1.2"/>
+              <line x1="2" y1="23" x2="44" y2="23" stroke="currentColor" stroke-width="1.2"/>
+              <line x1="8.2" y1="8.2" x2="37.8" y2="37.8" stroke="currentColor" stroke-width="1.2"/>
+              <line x1="37.8" y1="8.2" x2="8.2" y2="37.8" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </div>
+          <div class="ppv-bar-label">
+            <span class="ppv-bar-app">PORT / BILLING</span>
+            <span class="ppv-bar-tag">PRINT PREVIEW</span>
+          </div>
+        </div>
+        <div class="ppv-bar-center" id="ppvTitle"></div>
+        <div class="ppv-bar-right">
+          <div class="ppv-bar-ref" id="ppvRef"></div>
+          <button class="ppv-btn-print" id="ppvPrintBtn" aria-label="Print document">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="6 9 6 2 18 2 18 9"/>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+              <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Print
+          </button>
+          <button class="ppv-btn-close" id="ppvCloseBtn" aria-label="Close preview">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="ppv-stage">
+        <iframe class="ppv-frame" id="ppvFrame" title="Bill Preview" sandbox="allow-same-origin allow-scripts allow-modals"></iframe>
+      </div>
+    </dialog>
+
     <script src="main.js"></script>
   </body>
 </html>
