@@ -414,6 +414,7 @@ function applyAdmin() {
   document.getElementById('adminTxt').textContent = isAdmin
     ? 'Logout'
     : '🔒 Admin';
+  document.getElementById('modeBadge').style.display = isAdmin ? '' : 'none';
   document.getElementById('modeBadge').textContent = isAdmin ? 'ADMIN' : 'USER';
   isAdmin
     ? document.getElementById('adminBtn').classList.add('active')
@@ -630,17 +631,17 @@ function carCompute() {
       amt: nn('rWeighment') * weight,
     });
   const levyAmt = gb('chkLevy') ? nn('rLevy') * weight : 0;
-  const r2 = v => Math.round(v * 100) / 100;
+  const r2 = v => Math.floor(v * 100 + 0.5 - 1e-9) / 100;
   const paySub = payables.reduce((a, p) => a + p.amt, 0);
-  const iBase = insideStor + paySub;
+  const iBase = r2(insideStor + paySub);
   const iVat = r2(iBase * vatRate);
   const iLevy = levyAmt;
   const iTotal = r2(iBase + iVat + iLevy);
-  const oBase = outsideHalf + paySub;
+  const oBase = r2(outsideHalf + paySub);
   const oVat = r2(oBase * vatRate);
   const oLevy = levyAmt;
   const oTotal = r2(oBase + oVat + oLevy);
-  const nBase = paySub;
+  const nBase = r2(paySub);
   const nVat = r2(nBase * vatRate);
   const nLevy = levyAmt;
   const nTotal = r2(nBase + nVat + nLevy);
@@ -1226,20 +1227,20 @@ function cargoCompute() {
   const outsidePaySub = outsidePayables.reduce((a, p) => a + p.amt, 0);
   const paySub = payables.reduce((a, p) => a + p.amt, 0);
 
-  const r2 = v => Math.round(v * 100) / 100;
+  const r2 = v => Math.floor(v * 100 + 0.5 - 1e-9) / 100;
   // Bills
   // Inside: (insideWharfrent + insidePaySub) → VAT → + insideLevy
-  const iBase = insideWharfrent + insidePaySub;
+  const iBase = r2(insideWharfrent + insidePaySub);
   const iVat = r2(iBase * vatRate);
   const iLevy = insideLevy;
   const iTotal = r2(iBase + iVat + iLevy);
   // Outside: (outsideWharfrent + outsidePaySub) → VAT → + outsideLevy
-  const oBase = outsideWharfrent + outsidePaySub;
+  const oBase = r2(outsideWharfrent + outsidePaySub);
   const oVat = r2(oBase * vatRate);
   const oLevy = outsideLevy;
   const oTotal = r2(oBase + oVat + oLevy);
   // No wharfrent
-  const nBase = paySub;
+  const nBase = r2(paySub);
   const nVat = r2(nBase * vatRate);
   const nLevy = totalLevy;
   const nTotal = r2(nBase + nVat + nLevy);
