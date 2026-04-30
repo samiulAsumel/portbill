@@ -1423,6 +1423,186 @@ function buildCargoBillTable(b, side) {
   return `<div class="btw"><table class="bt"><thead><tr><th>Description</th><th>Rate</th><th>From</th><th>To</th><th>Days</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
+// ────────────────────────────────────────────────
+//  Charge Breakdown — Wharfrent vs Payable composition
+// ────────────────────────────────────────────────
+//  Layout (hasWharfrent):
+//    Charge Type        | Inside | Outside | VAT | Levy | Total
+//    Wharfrent Charge   |   iW   |   oW    | wVat|  0   | wTotal
+//    Payable Charge     | iPaySub| oPaySub | pVat| levy | pTotal
+//    Grand Total        |  iBase |  oBase  | tVat| levy | grand
+//
+//  VAT split: vatRate × wharfrentBase → wVat ; pVat = totalVat − wVat (residual,
+//             so wVat + pVat exactly equals the actual VAT charged on the bill)
+//  Levy:      Per-ton port charge — entirely attributed to Payable row
+function cargoBreakdownData(b) {
+  const r2 = v => Math.floor(v * 100 + 0.5 - 1e-9) / 100;
+  if (!b.hasWharfrent) {
+    return {
+      hasWharfrent: false,
+      vatPct: (b.vatRate * 100).toFixed(1),
+      // Wharfrent row — all zero, within free time
+      wInside: 0, wOutside: 0, wVat: 0, wLevy: 0, wTotal: 0,
+      // Payable row — uses no-wharfrent flat values (payables not split inside/outside)
+      pInside: 0, pOutside: 0, pBase: b.paySub,
+      pVat: b.nVat, pLevy: b.nLevy, pTotal: b.nTotal,
+      // Grand row
+      gInside: 0, gOutside: 0, gBase: b.nBase,
+      gVat: b.nVat, gLevy: b.nLevy, gTotal: b.nTotal,
+    };
+  }
+  const wharfrentBase = b.insideWharfrent + b.outsideWharfrent;
+  const payableBase = b.insidePaySub + b.outsidePaySub;
+  const totalVat = b.iVat + b.oVat;
+  const totalLevy = b.iLevy + b.oLevy;
+  const grand = b.iTotal + b.oTotal;
+  const wVat = r2(wharfrentBase * b.vatRate);
+  const pVat = r2(totalVat - wVat);
+  const wLevy = 0;
+  const pLevy = totalLevy;
+  const wTotal = r2(wharfrentBase + wVat + wLevy);
+  const pTotal = r2(payableBase + pVat + pLevy);
+  return {
+    hasWharfrent: true,
+    vatPct: (b.vatRate * 100).toFixed(1),
+    wInside: b.insideWharfrent, wOutside: b.outsideWharfrent,
+    wVat, wLevy, wTotal,
+    pInside: b.insidePaySub, pOutside: b.outsidePaySub,
+    pVat, pLevy, pTotal,
+    gInside: b.iBase, gOutside: b.oBase,
+    gVat: totalVat, gLevy: totalLevy, gTotal: grand,
+  };
+}
+
+function buildCargoBreakdownHtml(b) {
+  const d = cargoBreakdownData(b);
+  if (!d.hasWharfrent) {
+    return `<div style="margin-bottom:20px;">
+      <div class="slbl sl-cin">▪ Charge Composition Breakdown</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="btw">
+          <table class="bt">
+            <thead>
+              <tr>
+                <th>Charge Component</th>
+                <th style="text-align:right">Base Amount</th>
+                <th style="text-align:right">VAT (${d.vatPct}%)</th>
+                <th style="text-align:right">Levy (no VAT)</th>
+                <th style="text-align:right">Sub-Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Total Wharfrent Charge</td>
+                <td style="text-align:right;color:var(--green);font-style:italic">Within Free Time</td>
+                <td style="text-align:right">${fmt(0)}</td>
+                <td style="text-align:right">${fmt(0)}</td>
+                <td style="text-align:right;font-weight:700">${fmt(0)}</td>
+              </tr>
+              <tr>
+                <td>Total Payable Charge</td>
+                <td style="text-align:right;font-weight:600">${fmt(d.pBase)}</td>
+                <td style="text-align:right;color:var(--sky)">${fmt(d.pVat)}</td>
+                <td style="text-align:right;color:var(--green)">${fmt(d.pLevy)}</td>
+                <td style="text-align:right;font-weight:700">${fmt(d.pTotal)}</td>
+              </tr>
+              <tr class="grand">
+                <td>GRAND TOTAL</td>
+                <td style="text-align:right">${fmt(d.gBase)}</td>
+                <td style="text-align:right">${fmt(d.gVat)}</td>
+                <td style="text-align:right">${fmt(d.gLevy)}</td>
+                <td style="text-align:right;color:var(--cargo-accent)">${fmt(d.gTotal)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+  }
+  return `<div style="margin-bottom:20px;">
+    <div class="slbl sl-cin">▪ Charge Composition Breakdown</div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="btw">
+        <table class="bt">
+          <thead>
+            <tr>
+              <th>Charge Component</th>
+              <th style="text-align:right">Inside (${fmtN(b.insideW)}t)</th>
+              <th style="text-align:right">Outside (${fmtN(b.outsideW)}t)</th>
+              <th style="text-align:right">VAT (${d.vatPct}%)</th>
+              <th style="text-align:right">Levy (no VAT)</th>
+              <th style="text-align:right">Sub-Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Total Wharfrent Charge</td>
+              <td style="text-align:right;color:var(--blue);font-weight:600">${fmt(d.wInside)}</td>
+              <td style="text-align:right;color:var(--purple);font-weight:600">${fmt(d.wOutside)}</td>
+              <td style="text-align:right;color:var(--sky)">${fmt(d.wVat)}</td>
+              <td style="text-align:right;color:var(--green)">${fmt(d.wLevy)}</td>
+              <td style="text-align:right;font-weight:700">${fmt(d.wTotal)}</td>
+            </tr>
+            <tr>
+              <td>Total Payable Charge</td>
+              <td style="text-align:right;color:var(--blue);font-weight:600">${fmt(d.pInside)}</td>
+              <td style="text-align:right;color:var(--purple);font-weight:600">${fmt(d.pOutside)}</td>
+              <td style="text-align:right;color:var(--sky)">${fmt(d.pVat)}</td>
+              <td style="text-align:right;color:var(--green)">${fmt(d.pLevy)}</td>
+              <td style="text-align:right;font-weight:700">${fmt(d.pTotal)}</td>
+            </tr>
+            <tr class="grand">
+              <td>GRAND TOTAL</td>
+              <td style="text-align:right">${fmt(d.gInside)}</td>
+              <td style="text-align:right">${fmt(d.gOutside)}</td>
+              <td style="text-align:right">${fmt(d.gVat)}</td>
+              <td style="text-align:right">${fmt(d.gLevy)}</td>
+              <td style="text-align:right;color:var(--cargo-accent)">${fmt(d.gTotal)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildCargoBreakdownPrintHtml(b) {
+  const d = cargoBreakdownData(b);
+  const head = secHead('CHARGE COMPOSITION BREAKDOWN', 'Wharfrent vs Payable');
+  const sub = '<div class="section-sub">Inside + Outside + VAT + Levy attribution per charge type</div>';
+  if (!d.hasWharfrent) {
+    return `${head}${sub}<div class="no-break"><div style="overflow-x:auto;"><table>
+      <thead><tr>
+        <th style="width:35%">Charge Component</th>
+        <th style="text-align:right">Base Amount</th>
+        <th style="text-align:right">VAT (${d.vatPct}%)</th>
+        <th style="text-align:right">Levy</th>
+        <th style="text-align:right">Sub-Total</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>Total Wharfrent Charge</td><td style="text-align:right;font-style:italic">Within Free Time</td><td style="text-align:right">${fmt(0)}</td><td style="text-align:right">${fmt(0)}</td><td style="text-align:right;font-weight:700">${fmt(0)}</td></tr>
+        <tr><td>Total Payable Charge</td><td style="text-align:right">${fmt(d.pBase)}</td><td style="text-align:right">${fmt(d.pVat)}</td><td style="text-align:right">${fmt(d.pLevy)}</td><td style="text-align:right;font-weight:700">${fmt(d.pTotal)}</td></tr>
+        <tr class="grand"><td>GRAND TOTAL</td><td style="text-align:right">${fmt(d.gBase)}</td><td style="text-align:right">${fmt(d.gVat)}</td><td style="text-align:right">${fmt(d.gLevy)}</td><td style="text-align:right">${fmt(d.gTotal)}</td></tr>
+      </tbody>
+    </table></div></div>`;
+  }
+  return `${head}${sub}<div class="no-break"><div style="overflow-x:auto;"><table>
+    <thead><tr>
+      <th style="width:28%">Charge Component</th>
+      <th style="text-align:right">Inside (${fmtN(b.insideW)}t)</th>
+      <th style="text-align:right">Outside (${fmtN(b.outsideW)}t)</th>
+      <th style="text-align:right">VAT (${d.vatPct}%)</th>
+      <th style="text-align:right">Levy</th>
+      <th style="text-align:right">Sub-Total</th>
+    </tr></thead>
+    <tbody>
+      <tr><td>Total Wharfrent Charge</td><td style="text-align:right">${fmt(d.wInside)}</td><td style="text-align:right">${fmt(d.wOutside)}</td><td style="text-align:right">${fmt(d.wVat)}</td><td style="text-align:right">${fmt(d.wLevy)}</td><td style="text-align:right;font-weight:700">${fmt(d.wTotal)}</td></tr>
+      <tr><td>Total Payable Charge</td><td style="text-align:right">${fmt(d.pInside)}</td><td style="text-align:right">${fmt(d.pOutside)}</td><td style="text-align:right">${fmt(d.pVat)}</td><td style="text-align:right">${fmt(d.pLevy)}</td><td style="text-align:right;font-weight:700">${fmt(d.pTotal)}</td></tr>
+      <tr class="grand"><td>GRAND TOTAL</td><td style="text-align:right">${fmt(d.gInside)}</td><td style="text-align:right">${fmt(d.gOutside)}</td><td style="text-align:right">${fmt(d.gVat)}</td><td style="text-align:right">${fmt(d.gLevy)}</td><td style="text-align:right">${fmt(d.gTotal)}</td></tr>
+    </tbody>
+  </table></div></div>`;
+}
+
 function cargoCalculate() {
   if (!cargoValidateSplit()) {
     alert(
@@ -1459,6 +1639,10 @@ function cargoCalculate() {
     document.getElementById('cargo-outsideSec').innerHTML =
       `<div style="margin-bottom:20px;"><div class="slbl sl-payable">▪ Only General Cargo Payable Charges — INSIDE/OUTSIDE</div><div class="card" style="padding:0;overflow:hidden;">${buildCargoBillTable(b, 'noWharfrent')}</div></div>`;
   }
+
+  // Charge Breakdown — Wharfrent vs Payable composition of the bill
+  document.getElementById('cargo-breakdownSec').innerHTML =
+    buildCargoBreakdownHtml(b);
 
   const grand = b.hasWharfrent ? b.iTotal + b.oTotal : b.nTotal;
   const cargoGrandSplitHtml = b.hasWharfrent
@@ -2507,6 +2691,8 @@ function printBill(type) {
       grandTotal = b.nTotal;
       grandLabel = 'GENERAL CARGO WHARFRENT GRAND TOTAL';
     }
+    // Charge composition breakdown — appended after bill detail sections
+    sectionsHtml += buildCargoBreakdownPrintHtml(b);
     opts = {
       title: 'GENERAL CARGO BILL',
       subtitle: 'Port Authority — General Cargo Wharfrent & Payable Charges',
