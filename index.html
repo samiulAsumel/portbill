@@ -16,9 +16,12 @@
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
+    <meta name="robots" content="noindex,nofollow" />
     <title>Port Billing System</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
@@ -32,13 +35,12 @@
         PORT<span class="logo-sub"> / BILLING SYSTEM</span>
       </div>
       <div class="hright">
-        <div class="hbadge" id="modeBadge" style="display:none">USER</div>
+        <div class="hbadge" id="modeBadge">USER</div>
         <button
           class="admin-btn"
           id="adminBtn"
           onclick="toggleAdmin()"
           aria-label="Admin login"
-          style="display:none"
         >
           <span class="adot" id="adot"></span>
           <span id="adminTxt">🔒 Admin</span>
@@ -122,11 +124,9 @@
           Port Authority — CAR Wharfrent &amp; Payable Charges
         </div>
         <div class="weight-note">
-          ⚠ <strong>Module Limitation:</strong> This module covers billing for
-          vehicles up to <strong>3 tons</strong>. Any vehicle with a weight of
-          <strong>4 tons or more</strong> will not be billed here. <br /><strong
-            >⚠ Disclaimer:</strong
-          >
+          ⚠ <strong>Hoisting Charge:</strong> When vehicle weight exceeds
+          <strong>3 tons</strong>, a hoisting charge (125% of landing charge) is
+          automatically applied. <br /><strong>⚠ Disclaimer:</strong>
           This bill cannot be used as an official reference; it is for
           <strong>informational purposes only</strong>.
         </div>
@@ -179,21 +179,7 @@
                   />
                 </div>
               </div>
-              <div
-                id="car-ftStrip"
-                style="
-                  background: var(--s2);
-                  border: 1px solid var(--border);
-                  border-radius: 8px;
-                  padding: 10px 14px;
-                  margin-bottom: 10px;
-                  font-family: 'DM Mono', monospace;
-                  font-size: 13px;
-                  color: var(--m1);
-                  line-height: 1.9;
-                  display: none;
-                "
-              >
+              <div id="car-ftStrip" class="ft-strip">
                 <span id="car-ftDays" style="color: var(--gold)"></span>
               </div>
               <div class="r2">
@@ -226,19 +212,18 @@
                   />
                 </div>
                 <div class="fg">
-                  <label class="lbl" for="weight">Weight (Tons) — max 3</label>
+                  <label class="lbl" for="weight">Weight (Tons)</label>
                   <input
                     type="number"
                     id="weight"
                     class="cyan-glow"
                     value="2"
                     min="1"
-                    max="3"
                     step="1"
                     oninput="onWeightChange()"
                   />
                   <div class="weight-warn" id="weightWarn">
-                    ⚠ Max 3 tons for this module
+                    ⚠ Hoisting charge auto-applied above 3 tons
                   </div>
                 </div>
               </div>
@@ -341,6 +326,40 @@
                           id="rWeighment"
                           value="2.5"
                           step="0.5"
+                          class="ro rate-input"
+                          readonly
+                          oninput="carRefresh()"
+                        />
+                      </td>
+                      <td class="ntcell" style="color: var(--gold)">Yes</td>
+                    </tr>
+                    <tr>
+                      <td class="ckcell">
+                        <input
+                          type="checkbox"
+                          id="chkHoisting"
+                          oninput="carRefresh()"
+                        />
+                      </td>
+                      <td>
+                        Hoisting Charge
+                        <div
+                          style="
+                            font-size: 10px;
+                            color: var(--m2);
+                            line-height: 1.4;
+                            margin-top: 2px;
+                          "
+                        >
+                          125% of landing charge (>3t)
+                        </div>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          id="rHoisting"
+                          value="0"
+                          step="0.01"
                           class="ro rate-input"
                           readonly
                           oninput="carRefresh()"
@@ -631,8 +650,8 @@
                 </div>
                 <div>⑦ Payable charges always apply</div>
                 <div>⑧ Levy added without VAT</div>
-                <div>⑨ 🔒 Rates editable by Admin only</div>
-                <div>⑩ Max weight: 3 tons</div>
+                <div>⑨ Hoisting = 125% of landing charge (auto-enabled >3t)</div>
+                <div>⑩ 🔒 Rates editable by Admin only</div>
               </div>
             </div>
           </div>
@@ -741,21 +760,7 @@
                   />
                 </div>
               </div>
-              <div
-                id="cargo-ftStrip"
-                style="
-                  background: var(--s2);
-                  border: 1px solid rgba(34, 211, 238, 0.15);
-                  border-radius: 8px;
-                  padding: 10px 14px;
-                  margin-bottom: 10px;
-                  font-family: 'DM Mono', monospace;
-                  font-size: 13px;
-                  color: var(--m1);
-                  line-height: 1.9;
-                  display: none;
-                "
-              >
+              <div id="cargo-ftStrip" class="ft-strip ft-strip--cargo">
                 <span
                   id="cargo-ftDays"
                   style="color: var(--cargo-accent)"
@@ -1063,20 +1068,7 @@
                   </tbody>
                 </table>
               </div>
-              <div
-                id="cargo-tier-info"
-                style="
-                  background: rgba(34, 211, 238, 0.06);
-                  border: 1px solid rgba(34, 211, 238, 0.15);
-                  border-radius: 6px;
-                  padding: 7px 12px;
-                  margin: 8px 0 10px;
-                  font-family: 'DM Mono', monospace;
-                  font-size: 11.5px;
-                  color: var(--m1);
-                  line-height: 1.8;
-                "
-              >
+              <div id="cargo-tier-info" class="cargo-tier-info">
                 <span style="color: var(--m2)">Landing Tier: </span
                 ><strong style="color: var(--cargo-accent)">—</strong>
               </div>
@@ -1406,10 +1398,15 @@
         </div>
       </div>
       <div class="ppv-stage">
-        <iframe class="ppv-frame" id="ppvFrame" title="Bill Preview" sandbox="allow-same-origin allow-scripts allow-modals"></iframe>
+        <iframe class="ppv-frame" id="ppvFrame" title="Bill Preview" sandbox="allow-same-origin allow-modals"></iframe>
       </div>
     </dialog>
 
+    <noscript>
+      <div style="position:fixed;inset:0;z-index:9999;background:#07090f;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:15px;color:#7e96b0;text-align:center;padding:32px;line-height:2;">
+        <div><strong style="color:#c9a832;display:block;margin-bottom:8px;font-size:18px">JavaScript Required</strong>Port Billing System requires JavaScript to function.<br>Please enable JavaScript in your browser settings.</div>
+      </div>
+    </noscript>
     <script src="main.js"></script>
   </body>
 </html>
