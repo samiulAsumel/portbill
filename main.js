@@ -517,7 +517,7 @@ function onWeightChange() {
   const rLanding = nn('rLanding');
   if (w > 3) {
     chkHoisting.checked = true;
-    rHoisting.value = rLanding * 1.25;
+    rHoisting.value = (rLanding * 1.25 * 0.50).toFixed(3);
     warn.classList.add('show');
   } else {
     chkHoisting.checked = false;
@@ -648,7 +648,8 @@ function carCompute() {
     payables.push({
       label: 'Hoisting Charge',
       rate: nn('rHoisting'),
-      amt: nn('rHoisting') * weight,
+      rateStr: Number(nn('rHoisting')).toLocaleString('en-BD', { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+      amt: nn('rLanding') * 1.25 * 0.50 * weight,
     });
   const levyAmt = gb('chkLevy') ? nn('rLevy') * weight : 0;
   const r2 = v => Math.floor(v * 100 + 0.5 - 1e-9) / 100;
@@ -745,7 +746,7 @@ function carRefreshNow() {
     const rLanding = nn('rLanding');
     const rHoistingEl = document.getElementById('rHoisting');
     if (w > 3) {
-      rHoistingEl.value = rLanding * 1.25;
+      rHoistingEl.value = (rLanding * 1.25 * 0.50).toFixed(3);
     } else {
       rHoistingEl.value = 0;
     }
@@ -829,14 +830,14 @@ function buildCarBillTable(b, side) {
     if (b.payables.length > 0) {
       rows += `<tr class="sep"><td colspan="6">Payable Charges</td></tr>`;
       b.payables.forEach(p => {
-        rows += `<tr class="sub"><td>${p.label}</td><td>${fmtN(p.rate)}/ton</td><td colspan="2">${b.weight} ton(s)</td><td></td><td>${fmt(p.amt)}</td></tr>`;
+        rows += `<tr class="sub"><td>${p.label}</td><td>${p.rateStr ?? fmtN(p.rate)}/ton</td><td colspan="2">${b.weight} ton(s)</td><td></td><td>${fmt(p.amt)}</td></tr>`;
       });
     }
     rows += `<tr class="tot"><td colspan="5">Total Car Bill (Base for VAT)</td><td>${fmt(baseAmt)}</td></tr><tr class="vrow"><td colspan="5">VAT (${(b.vatRate * 100).toFixed(1)}%)</td><td>${fmt(vatAmt)}</td></tr><tr class="lrow"><td colspan="5">Levy Charge (no VAT)</td><td>${fmt(levyAmt)}</td></tr><tr class="grand"><td colspan="5">Car Wharfrent Grand Total</td><td>${fmt(totalAmt)}</td></tr>`;
   } else {
     if (b.payables.length > 0) {
       b.payables.forEach(p => {
-        rows += `<tr class="sub"><td>${p.label}</td><td>${fmtN(p.rate)}/ton</td><td colspan="2">${b.weight} ton(s)</td><td></td><td>${fmt(p.amt)}</td></tr>`;
+        rows += `<tr class="sub"><td>${p.label}</td><td>${p.rateStr ?? fmtN(p.rate)}/ton</td><td colspan="2">${b.weight} ton(s)</td><td></td><td>${fmt(p.amt)}</td></tr>`;
       });
     }
     rows += `<tr class="tot"><td colspan="5">Total Car Payable (Base for VAT)</td><td>${fmt(b.nBase)}</td></tr><tr class="vrow"><td colspan="5">VAT (${(b.vatRate * 100).toFixed(1)}%)</td><td>${fmt(b.nVat)}</td></tr><tr class="lrow"><td colspan="5">Levy Charge (no VAT)</td><td>${fmt(b.nLevy)}</td></tr><tr class="grand"><td colspan="5">Car Wharfrent Grand Total</td><td>${fmt(b.nTotal)}</td></tr>`;
@@ -2680,7 +2681,7 @@ function printBill(type) {
           b.payables.forEach(p => {
             rows += printTr(
               p.label,
-              `${fmtN(p.rate)}/ton`,
+              `${p.rateStr ?? fmtN(p.rate)}/ton`,
               `${b.weight} ton(s)`,
               '—',
               '—',
@@ -2715,7 +2716,7 @@ function printBill(type) {
       b.payables.forEach(p => {
         rows += printTr(
           p.label,
-          `${fmtN(p.rate)}/ton`,
+          `${p.rateStr ?? fmtN(p.rate)}/ton`,
           `${b.weight} ton(s)`,
           '—',
           '—',
