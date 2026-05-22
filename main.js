@@ -848,9 +848,16 @@ function buildCarBillTable(b, side) {
 // eslint-disable-next-line sonarjs/cognitive-complexity
 function carCalculate() {
   //NOSONAR
-  const b = carCompute();
+  let b;
+  try {
+    b = carCompute();
+  } catch (e) {
+    console.error('carCalculate compute error', e);
+    return;
+  }
   if (!b) return;
   lastCarBill = b;
+  try {
   document.getElementById('results').style.display = 'block';
   const wharfrentStarts = b.hasWharfrent ? fd(b.storStart) : '—';
   const wharfrentDaysText = b.hasWharfrent
@@ -891,6 +898,9 @@ function carCalculate() {
           .scrollIntoView({ behavior: 'smooth', block: 'start' }),
       80
     );
+  }
+  } catch (e) {
+    console.error('carCalculate render error', e);
   }
 }
 
@@ -1017,6 +1027,35 @@ function cargoValidateRemovalTon(showAlert = false) {
   if (!valid && showAlert) {
     alert(`⚠ ${msg}`);
   }
+  return valid;
+}
+
+function cargoValidateSelfDriveTon(showAlert = false) {
+  const insideChecked = gb('c-chkSelfDriveInside');
+  const outsideChecked = gb('c-chkSelfDriveOutside');
+  const insideEl = document.getElementById('c-selfDriveTonInside');
+  const outsideEl = document.getElementById('c-selfDriveTonOutside');
+  const insideTon = Math.round(Number.parseFloat(insideEl?.value) || 0);
+  const outsideTon = Math.round(Number.parseFloat(outsideEl?.value) || 0);
+  const insideW = Math.max(0, Math.round(Number.parseFloat(document.getElementById('c-inside').value) || 0));
+  const outsideW = Math.max(0, Math.round(Number.parseFloat(document.getElementById('c-outside').value) || 0));
+
+  let insideMsg = '';
+  let outsideMsg = '';
+  if (insideChecked && insideTon <= 0) {
+    insideMsg = 'Enter inside self drive weight greater than 0.';
+  } else if (insideChecked && insideTon > insideW) {
+    insideMsg = 'Inside self drive weight cannot exceed inside tons.';
+  }
+  if (outsideChecked && outsideTon <= 0) {
+    outsideMsg = 'Enter outside self drive weight greater than 0.';
+  } else if (outsideChecked && outsideTon > outsideW) {
+    outsideMsg = 'Outside self drive weight cannot exceed outside tons.';
+  }
+  if (insideEl) insideEl.setCustomValidity(insideMsg);
+  if (outsideEl) outsideEl.setCustomValidity(outsideMsg);
+  const valid = insideMsg === '' && outsideMsg === '';
+  if (!valid && showAlert) alert(`⚠ ${insideMsg || outsideMsg}`);
   return valid;
 }
 
@@ -1214,35 +1253,38 @@ function cargoCompute() {
     }
   }
   if (gb('c-chkHoisting')) {
+    const insideSelfDriveTon = gb('c-chkSelfDriveInside')
+      ? Math.min(Math.max(0, Math.round(Number.parseFloat(document.getElementById('c-selfDriveTonInside')?.value) || 0)), insideW)
+      : 0;
+    const outsideSelfDriveTon = gb('c-chkSelfDriveOutside')
+      ? Math.min(Math.max(0, Math.round(Number.parseFloat(document.getElementById('c-selfDriveTonOutside')?.value) || 0)), outsideW)
+      : 0;
+    const halfRate = dynamicHoistingRate * 0.5;
+
     if (hasWharfrent) {
-      // Split by portion when wharfrent applies - only for tons > 0
-      if (insideW > 0) {
-        payables.push({
-          label: 'Hoisting Charge',
-          rate: dynamicHoistingRate,
-          tons: insideW,
-          amt: dynamicHoistingRate * insideW,
-          portion: 'inside',
-        });
+      const insideNormal = insideW - insideSelfDriveTon;
+      const outsideNormal = outsideW - outsideSelfDriveTon;
+      if (insideNormal > 0) {
+        payables.push({ label: 'Hoisting Charge', rate: dynamicHoistingRate, tons: insideNormal, amt: dynamicHoistingRate * insideNormal, portion: 'inside' });
       }
-      if (outsideW > 0) {
-        payables.push({
-          label: 'Hoisting Charge',
-          rate: dynamicHoistingRate,
-          tons: outsideW,
-          amt: dynamicHoistingRate * outsideW,
-          portion: 'outside',
-        });
+      if (insideSelfDriveTon > 0) {
+        payables.push({ label: 'Hoisting Charge (Self Drive)', rate: halfRate, tons: insideSelfDriveTon, amt: halfRate * insideSelfDriveTon, portion: 'inside' });
+      }
+      if (outsideNormal > 0) {
+        payables.push({ label: 'Hoisting Charge', rate: dynamicHoistingRate, tons: outsideNormal, amt: dynamicHoistingRate * outsideNormal, portion: 'outside' });
+      }
+      if (outsideSelfDriveTon > 0) {
+        payables.push({ label: 'Hoisting Charge (Self Drive)', rate: halfRate, tons: outsideSelfDriveTon, amt: halfRate * outsideSelfDriveTon, portion: 'outside' });
       }
     } else {
-      // Use total tons when in free time
-      payables.push({
-        label: 'Hoisting Charge',
-        rate: dynamicHoistingRate,
-        tons: totalWeight,
-        amt: dynamicHoistingRate * totalWeight,
-        portion: 'total',
-      });
+      const totalSelfDrive = insideSelfDriveTon + outsideSelfDriveTon;
+      const normalTons = totalWeight - totalSelfDrive;
+      if (normalTons > 0) {
+        payables.push({ label: 'Hoisting Charge', rate: dynamicHoistingRate, tons: normalTons, amt: dynamicHoistingRate * normalTons, portion: 'total' });
+      }
+      if (totalSelfDrive > 0) {
+        payables.push({ label: 'Hoisting Charge (Self Drive)', rate: halfRate, tons: totalSelfDrive, amt: halfRate * totalSelfDrive, portion: 'total' });
+      }
     }
   }
   // Levy charge based on inside/outside tons
@@ -1323,6 +1365,7 @@ function cargoRefreshNow() {
     cargoValidateSplit();
     cargoValidateRemovalTon();
     cargoValidateWeighmentTon();
+    cargoValidateSelfDriveTon();
     const cld_ = pd(document.getElementById('c-cld').value);
     const fd_ =
       Number.parseInt(document.getElementById('c-freeDays').value, 10) || 4;
@@ -1361,6 +1404,35 @@ function cargoRefreshNow() {
     });
     const b = cargoCompute();
     if (!b) return;
+    // Toggle self-drive row visibility based on hoisting checkbox
+    const hoistingOn = document.getElementById('c-chkHoisting').checked;
+    const selfDriveRow = document.getElementById('c-selfDriveRow');
+    if (selfDriveRow) selfDriveRow.style.display = hoistingOn ? '' : 'none';
+    if (!hoistingOn) {
+      ['c-chkSelfDriveInside', 'c-chkSelfDriveOutside'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.checked = false;
+      });
+    }
+    // Sync ton field active/inactive state + inline error
+    const syncTon = (chkId, inputId, errId) => {
+      const on = document.getElementById(chkId)?.checked;
+      const inp = document.getElementById(inputId);
+      const err = document.getElementById(errId);
+      if (!inp) return;
+      if (on) {
+        inp.classList.remove('ton-inactive');
+        const v = Math.round(Number.parseFloat(inp.value) || 0);
+        if (err) err.classList.toggle('show', v <= 0);
+      } else {
+        inp.classList.add('ton-inactive');
+        if (err) err.classList.remove('show');
+      }
+    };
+    syncTon('c-chkRemoval',          'c-removalTon',          'c-removalTon-err');
+    syncTon('c-chkWeighment',        'c-weighmentTon',         'c-weighmentTon-err');
+    syncTon('c-chkSelfDriveInside',  'c-selfDriveTonInside',   'c-selfDriveTonInside-err');
+    syncTon('c-chkSelfDriveOutside', 'c-selfDriveTonOutside',  'c-selfDriveTonOutside-err');
     // Sync derived rate display fields (always readonly — formula-based)
     document.getElementById('c-rLanding').value = b.dynamicLandingRate;
     document.getElementById('c-rRemoval').value = b.dynamicRemovalRate;
@@ -1648,9 +1720,22 @@ function cargoCalculate() {
     document.getElementById('c-weighmentTon').focus();
     return;
   }
-  const b = cargoCompute();
+  if (!cargoValidateSelfDriveTon(true)) {
+    const iEl = document.getElementById('c-selfDriveTonInside');
+    const oEl = document.getElementById('c-selfDriveTonOutside');
+    (iEl?.validationMessage ? iEl : oEl)?.focus();
+    return;
+  }
+  let b;
+  try {
+    b = cargoCompute();
+  } catch (e) {
+    console.error('cargoCalculate compute error', e);
+    return;
+  }
   if (!b) return;
   lastCargoBill = b;
+  try {
   document.getElementById('cargo-results').style.display = 'block';
 
   document.getElementById('cargo-ibar').innerHTML =
@@ -1690,11 +1775,33 @@ function cargoCalculate() {
       80
     );
   }
+  } catch (e) {
+    console.error('cargoCalculate render error', e);
+  }
 }
 
 function cargoReset() {
   document.getElementById('cargo-results').style.display = 'none';
   document.getElementById('cargo-preview').innerHTML = SP_CARGO_IDLE;
+  // Uncheck and reset self-drive inputs
+  ['c-chkSelfDriveInside', 'c-chkSelfDriveOutside'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = false;
+  });
+  ['c-selfDriveTonInside', 'c-selfDriveTonOutside'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = 0; el.classList.add('ton-inactive'); el.setCustomValidity(''); }
+  });
+  // Reset removal and weighment ton inputs to 0 and clear state
+  ['c-removalTon', 'c-weighmentTon'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = 0; el.classList.add('ton-inactive'); el.setCustomValidity(''); }
+  });
+  // Clear all inline error messages
+  ['c-removalTon-err', 'c-weighmentTon-err', 'c-selfDriveTonInside-err', 'c-selfDriveTonOutside-err'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('show');
+  });
   globalThis.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -2586,7 +2693,7 @@ function printBill(type) {
     alert('Please generate the bill first before printing.');
     return;
   }
-
+  try {
   const today = new Date().toLocaleDateString('en-GB', {
     day: '2-digit',
     month: '2-digit',
@@ -2888,6 +2995,10 @@ function printBill(type) {
 
   const html = buildInvoiceHtml(opts);
   openPrintPreview(html, opts.title, billRef, type === 'cargo');
+  } catch (e) {
+    console.error('printBill error', e);
+    alert('An error occurred while building the print preview. Please try again.');
+  }
 }
 
 // ════════════════════════════════════════
@@ -2895,7 +3006,7 @@ function printBill(type) {
 // ════════════════════════════════════════
 document.getElementById('year').textContent = new Date().getFullYear();
 globalThis.scrollTo(0, 0);
-history.scrollRestoration = 'manual';
+try { history.scrollRestoration = 'manual'; } catch (_) {}
 
 // Native <dialog> event wiring
 const overlay = document.getElementById('overlay');

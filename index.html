@@ -233,165 +233,105 @@
             <!-- PAYABLE CHARGES — CAR -->
             <div class="card">
               <div class="ctitle">Payable Charges</div>
-              <div class="ptw">
-                <table class="ptbl">
-                  <thead>
-                    <tr>
-                      <th class="ckcell">Pay</th>
-                      <th>Charge Name</th>
-                      <th>Rate (Tk/ton)</th>
-                      <th class="ntcell">VAT</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td class="ckcell">
-                        <input
-                          type="checkbox"
-                          id="chkRiver"
-                          checked
-                          oninput="carRefresh()"
-                        />
-                      </td>
-                      <td>River Dues</td>
-                      <td>
-                        <input
-                          type="number"
-                          id="rRiver"
-                          value="33"
-                          class="ro rate-input"
-                          readonly
-                          oninput="carRefresh()"
-                        />
-                      </td>
-                      <td class="ntcell" style="color: var(--gold)">Yes</td>
-                    </tr>
-                    <tr>
-                      <td class="ckcell">
-                        <input
-                          type="checkbox"
-                          id="chkLanding"
-                          checked
-                          oninput="carRefresh()"
-                        />
-                      </td>
-                      <td>Landing Charge</td>
-                      <td>
-                        <input
-                          type="number"
-                          id="rLanding"
-                          value="175"
-                          class="ro rate-input"
-                          readonly
-                          oninput="carRefresh()"
-                        />
-                      </td>
-                      <td class="ntcell" style="color: var(--gold)">Yes</td>
-                    </tr>
-                    <tr>
-                      <td class="ckcell">
-                        <input
-                          type="checkbox"
-                          id="chkRemoval"
-                          checked
-                          oninput="carRefresh()"
-                        />
-                      </td>
-                      <td>Removal Charge</td>
-                      <td>
-                        <input
-                          type="number"
-                          id="rRemoval"
-                          value="350"
-                          class="ro rate-input"
-                          readonly
-                          oninput="carRefresh()"
-                        />
-                      </td>
-                      <td class="ntcell" style="color: var(--gold)">Yes</td>
-                    </tr>
-                    <tr>
-                      <td class="ckcell">
-                        <input
-                          type="checkbox"
-                          id="chkWeighment"
-                          checked
-                          oninput="carRefresh()"
-                        />
-                      </td>
-                      <td>Weighment Charge</td>
-                      <td>
-                        <input
-                          type="number"
-                          id="rWeighment"
-                          value="2.5"
-                          step="0.5"
-                          class="ro rate-input"
-                          readonly
-                          oninput="carRefresh()"
-                        />
-                      </td>
-                      <td class="ntcell" style="color: var(--gold)">Yes</td>
-                    </tr>
-                    <tr>
-                      <td class="ckcell">
-                        <input
-                          type="checkbox"
-                          id="chkHoisting"
-                          oninput="carRefresh()"
-                        />
-                      </td>
-                      <td>
-                        Hoisting Charge
-                        <div
-                          style="
-                            font-size: 10px;
-                            color: var(--m2);
-                            line-height: 1.4;
-                            margin-top: 2px;
-                          "
-                        >
-                          125% of landing charge × 0.50 (>3t)
-                        </div>
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          id="rHoisting"
-                          value="0"
-                          step="0.01"
-                          class="ro rate-input"
-                          readonly
-                          oninput="carRefresh()"
-                        />
-                      </td>
-                      <td class="ntcell" style="color: var(--gold)">Yes</td>
-                    </tr>
-                    <tr>
-                      <td class="ckcell">
-                        <input
-                          type="checkbox"
-                          id="chkLevy"
-                          checked
-                          oninput="carRefresh()"
-                        />
-                      </td>
-                      <td>Levy Charge</td>
-                      <td>
-                        <input
-                          type="number"
-                          id="rLevy"
-                          value="1.5"
-                          step="0.5"
-                          class="ro rate-input"
-                          readonly
-                          oninput="carRefresh()"
-                        />
-                      </td>
-                      <td class="ntcell" style="color: var(--green)">No VAT</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="pc-list">
+
+                <div class="pc-row" style="--pc-color:var(--sky);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="chkRiver" checked oninput="carRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--sky);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">River Dues</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="rRiver" value="33" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-yes">VAT</div>
+                </div>
+
+                <div class="pc-row" style="--pc-color:var(--gold);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="chkLanding" checked oninput="carRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--gold);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">Landing Charge</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="rLanding" value="175" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-yes">VAT</div>
+                </div>
+
+                <div class="pc-row" style="--pc-color:var(--purple);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="chkRemoval" checked oninput="carRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--purple);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">Removal Charge</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="rRemoval" value="350" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-yes">VAT</div>
+                </div>
+
+                <div class="pc-row" style="--pc-color:var(--gold);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="chkWeighment" checked oninput="carRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--gold);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">Weighment Charge</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="rWeighment" value="2.5" step="0.5" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-yes">VAT</div>
+                </div>
+
+                <div class="pc-row" style="--pc-color:var(--gold-hi);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="chkHoisting" oninput="carRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--gold-hi);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">Hoisting Charge</div>
+                    <div class="pc-note">125% of landing charge × 0.50 (&gt;3t)</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="rHoisting" value="0" step="0.01" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-yes">VAT</div>
+                </div>
+
+                <div class="pc-row" style="--pc-color:var(--green);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="chkLevy" checked oninput="carRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--green);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">Levy Charge</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="rLevy" value="1.5" step="0.5" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-no">No VAT</div>
+                </div>
+
               </div>
               <div class="vatr">
                 <label class="lbl" for="vatRate"
@@ -869,206 +809,152 @@
             <!-- CARGO PAYABLE CHARGES -->
             <div class="card">
               <div class="ctitle cargo-title">Payable Charges</div>
-              <div class="ptw">
-                <table class="ptbl">
-                  <thead>
-                    <tr>
-                      <th class="ckcell">Pay</th>
-                      <th>Charge Name</th>
-                      <th>Rate (Tk/ton)</th>
-                      <th class="ntcell">VAT</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td class="ckcell">
-                        <label for="c-chkRiver" class="sr-only"
-                          >River Dues</label
-                        >
+              <div class="pc-list">
+
+                <div class="pc-row" style="--pc-color:var(--sky);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="c-chkRiver" checked oninput="cargoRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--sky);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">River Dues</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="c-rRiver" value="33" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-yes">VAT</div>
+                </div>
+
+                <div class="pc-row" style="--pc-color:var(--cargo-accent);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="c-chkLanding" checked oninput="cargoRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--cargo-accent);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">Landing Charge</div>
+                    <div class="pc-note">≤3t: 90 · &gt;3–20t: 180 · &gt;20t: 250 Tk/ton</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="c-rLanding" value="250" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-yes">VAT</div>
+                </div>
+
+                <div class="pc-row" style="--pc-color:var(--purple);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="c-chkRemoval" oninput="cargoRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--purple);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">Removal Charge</div>
+                    <div class="pc-note">7× slab (landing ✓) · 8× slab (landing ✗)</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="c-rRemoval" value="1750" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-yes">VAT</div>
+                </div>
+
+                <div class="pc-row" style="--pc-color:var(--gold);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="c-chkWeighment" oninput="cargoRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--gold);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">Weighment Charge</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="c-rWeighment" value="2.5" step="0.5" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-yes">VAT</div>
+                </div>
+
+                <div class="pc-row" style="--pc-color:var(--gold-hi);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="c-chkHoisting" checked oninput="cargoRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--gold-hi);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">Hoisting Charge</div>
+                    <div class="pc-note">125% of landing slab rate</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="c-rHoisting" value="312.5" step="0.01" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-yes">VAT</div>
+                </div>
+
+                <div id="c-selfDriveRow" style="display:none;padding:4px 0 6px 52px;border-left:2px solid rgba(201,168,50,0.18);margin-left:8px;margin-top:-3px;">
+                  <div class="r2" style="gap:14px;">
+                    <div class="fg">
+                      <label class="lbl" for="c-selfDriveTonInside">
                         <input
                           type="checkbox"
-                          id="c-chkRiver"
-                          checked
+                          id="c-chkSelfDriveInside"
                           oninput="cargoRefresh()"
-                        />
-                      </td>
-                      <td>River Dues</td>
-                      <td>
-                        <input
-                          type="number"
-                          id="c-rRiver"
-                          value="33"
-                          class="ro rate-input"
-                          readonly
-                          oninput="cargoRefresh()"
-                        />
-                      </td>
-                      <td class="ntcell" style="color: var(--gold)">Yes</td>
-                    </tr>
-                    <tr>
-                      <td class="ckcell">
-                        <label for="c-chkLanding" class="sr-only"
-                          >Landing Charge</label
-                        >
+                          style="margin-right:5px;vertical-align:middle;cursor:pointer;accent-color:var(--gold-hi);"
+                        /><span style="color:var(--blue)">Inside</span> Self Drive (ton)
+                      </label>
+                      <input
+                        type="number"
+                        id="c-selfDriveTonInside"
+                        class="cargo-glow ton-inactive"
+                        value="0"
+                        min="0"
+                        step="1"
+                        oninput="cargoRefresh()"
+                      />
+                      <span class="ton-err-msg" id="c-selfDriveTonInside-err">⚠ Enter inside self drive weight &gt; 0</span>
+                    </div>
+                    <div class="fg">
+                      <label class="lbl" for="c-selfDriveTonOutside">
                         <input
                           type="checkbox"
-                          id="c-chkLanding"
-                          checked
+                          id="c-chkSelfDriveOutside"
                           oninput="cargoRefresh()"
-                        />
-                      </td>
-                      <td>
-                        Landing Charge
-                        <div
-                          style="
-                            font-size: 10px;
-                            color: var(--m2);
-                            line-height: 1.4;
-                            margin-top: 2px;
-                          "
-                        >
-                          ≤3t:90 / &gt;3t–≤20t:180 / &gt;20t:250
-                        </div>
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          id="c-rLanding"
-                          value="250"
-                          class="ro rate-input"
-                          readonly
-                          oninput="cargoRefresh()"
-                        />
-                      </td>
-                      <td class="ntcell" style="color: var(--gold)">Yes</td>
-                    </tr>
-                    <tr>
-                      <td class="ckcell">
-                        <label for="c-chkRemoval" class="sr-only"
-                          >Removal Charge</label
-                        >
-                        <input
-                          type="checkbox"
-                          id="c-chkRemoval"
-                          oninput="cargoRefresh()"
-                        />
-                      </td>
-                      <td>
-                        Removal Charge
-                        <div
-                          style="
-                            font-size: 10px;
-                            color: var(--m2);
-                            line-height: 1.4;
-                            margin-top: 2px;
-                          "
-                        >
-                          7× slab (landing ✓) / 8× slab (landing ✗)
-                        </div>
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          id="c-rRemoval"
-                          value="1750"
-                          class="ro rate-input"
-                          readonly
-                          oninput="cargoRefresh()"
-                        />
-                      </td>
-                      <td class="ntcell" style="color: var(--gold)">Yes</td>
-                    </tr>
-                    <tr>
-                      <td class="ckcell">
-                        <label for="c-chkWeighment" class="sr-only"
-                          >Weighment Charge</label
-                        >
-                        <input
-                          type="checkbox"
-                          id="c-chkWeighment"
-                          oninput="cargoRefresh()"
-                        />
-                      </td>
-                      <td>Weighment Charge</td>
-                      <td>
-                        <input
-                          type="number"
-                          id="c-rWeighment"
-                          value="2.5"
-                          step="0.5"
-                          class="ro rate-input"
-                          readonly
-                          oninput="cargoRefresh()"
-                        />
-                      </td>
-                      <td class="ntcell" style="color: var(--gold)">Yes</td>
-                    </tr>
-                    <tr>
-                      <td class="ckcell">
-                        <label for="c-chkHoisting" class="sr-only"
-                          >Hoisting Charge</label
-                        >
-                        <input
-                          type="checkbox"
-                          id="c-chkHoisting"
-                          checked
-                          oninput="cargoRefresh()"
-                        />
-                      </td>
-                      <td>
-                        Hoisting Charge
-                        <div
-                          style="
-                            font-size: 10px;
-                            color: var(--m2);
-                            line-height: 1.4;
-                            margin-top: 2px;
-                          "
-                        >
-                          125% of landing slab
-                        </div>
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          id="c-rHoisting"
-                          value="312.5"
-                          step="0.01"
-                          class="ro rate-input"
-                          readonly
-                          oninput="cargoRefresh()"
-                        />
-                      </td>
-                      <td class="ntcell" style="color: var(--gold)">Yes</td>
-                    </tr>
-                    <tr>
-                      <td class="ckcell">
-                        <label for="c-chkLevy" class="sr-only"
-                          >Levy Charge</label
-                        >
-                        <input
-                          type="checkbox"
-                          id="c-chkLevy"
-                          checked
-                          oninput="cargoRefresh()"
-                        />
-                      </td>
-                      <td>Levy Charge</td>
-                      <td>
-                        <input
-                          type="number"
-                          id="c-rLevy"
-                          value="1.5"
-                          step="0.5"
-                          class="ro rate-input"
-                          readonly
-                          oninput="cargoRefresh()"
-                        />
-                      </td>
-                      <td class="ntcell" style="color: var(--green)">No VAT</td>
-                    </tr>
-                  </tbody>
-                </table>
+                          style="margin-right:5px;vertical-align:middle;cursor:pointer;accent-color:var(--gold-hi);"
+                        /><span style="color:var(--purple)">Outside</span> Self Drive (ton)
+                      </label>
+                      <input
+                        type="number"
+                        id="c-selfDriveTonOutside"
+                        class="cargo-glow ton-inactive"
+                        value="0"
+                        min="0"
+                        step="1"
+                        oninput="cargoRefresh()"
+                      />
+                      <span class="ton-err-msg" id="c-selfDriveTonOutside-err">⚠ Enter outside self drive weight &gt; 0</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pc-row" style="--pc-color:var(--green);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="c-chkLevy" checked oninput="cargoRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--green);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">Levy Charge</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="c-rLevy" value="1.5" step="0.5" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-no">No VAT</div>
+                </div>
+
               </div>
               <div id="cargo-tier-info" class="cargo-tier-info">
                 <span style="color: var(--m2)">Landing Tier: </span
@@ -1082,12 +968,13 @@
                   <input
                     type="number"
                     id="c-removalTon"
-                    class="cargo-glow"
+                    class="cargo-glow ton-inactive"
                     value="0"
                     min="0"
                     step="1"
                     oninput="cargoRefresh()"
                   />
+                  <span class="ton-err-msg" id="c-removalTon-err">⚠ Enter removal weight greater than 0</span>
                 </div>
                 <div class="fg">
                   <label class="lbl" for="c-weighmentTon"
@@ -1096,12 +983,13 @@
                   <input
                     type="number"
                     id="c-weighmentTon"
-                    class="cargo-glow"
+                    class="cargo-glow ton-inactive"
                     value="0"
                     min="0"
                     step="1"
                     oninput="cargoRefresh()"
                   />
+                  <span class="ton-err-msg" id="c-weighmentTon-err">⚠ Enter weighment weight greater than 0</span>
                 </div>
               </div>
               <div class="vatr">
@@ -1302,7 +1190,7 @@
                   <span style="color: var(--gold)">7× slab</span> (landing ✓) or
                   <span style="color: var(--gold)">8× slab</span> (landing ✗)
                 </div>
-                <div>⑦ Hoisting = 125% of landing slab rate</div>
+                <div>⑦ Hoisting = 125% of landing slab rate · Self Drive = 50% of hoisting rate</div>
                 <div>
                   ⑧ <span style="color: var(--blue)">Inside</span> = full
                   wharfrent (inside tons)
