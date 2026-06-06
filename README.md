@@ -89,13 +89,30 @@ Landing, Removal, and Hoisting rates are always formula-derived and are read-onl
 A `● LIVE` panel updates on every keystroke, showing running inside/outside estimates before the full bill is generated.
 
 ### Print Preview & Invoice
-Clicking **Print Bill** opens a full-screen print preview dialog with a clean, light-mode toolbar (white bar with gold accent, soft gray canvas background) — designed to look like a professional document viewer. From there, click **Print** to send to the browser print dialog. The invoice includes:
+Clicking **Print Bill** opens a full-screen print preview dialog with a clean, light-mode toolbar — white bar, gold top accent, soft gray canvas background — designed to look like a professional document viewer. From there, click **Print** to send to the browser print dialog.
+
+The invoice uses a unified **Maritime Authority** color palette across both modules:
+
+| Element | Color |
+|---|---|
+| Letterhead / primary borders | Deep navy `#0c2046` |
+| Gold rule, title accent, grand total bar | Warm gold `#c4943a` |
+| Inside Port section & summary | Royal blue `#1450a8` |
+| Outside Port section & summary | Indigo `#5528b0` |
+| Payable Charges section | Forest green `#0c6e48` |
+| Grand total amount | Gold `#a87828` |
+
+The invoice includes:
 
 - Port authority letterhead with document reference and timestamp
 - Itemised charge tables (wharfrent slabs, payable charges, VAT, levy, grand totals)
-- Inside / Outside split summary
+- Color-coded Inside / Outside section headers and split summary
+- Grand total bar with VAT note
 - Three-column authorisation signature block
 - `NOT AN OFFICIAL DOCUMENT` disclaimer
+
+### Part Billing (Cargo)
+General Cargo supports multi-stage part delivery — enter a balance date and partial tonnage per stage. Each stage computes its own wharfrent independently, and results are summed for the final bill.
 
 ### Custom Calendar Picker
 Date inputs use a built-in popup calendar with smart viewport positioning (flips above when space is limited below), month navigation, and gold-highlighted selection. Manual `DD/MM/YYYY` typed input is also supported.
