@@ -100,7 +100,7 @@
           />
         </div>
         <div class="mbtns">
-          <button class="btn bsm" style="flex: 1" onclick="doLogin()">
+          <button type="button" class="btn bsm" style="flex: 1" onclick="doLogin()">
             🔑 LOGIN
           </button>
           <button
@@ -124,11 +124,7 @@
           Port Authority — CAR Wharfrent &amp; Payable Charges
         </div>
         <div class="weight-note">
-          ⚠ <strong>Hoisting Charge:</strong> When vehicle weight exceeds
-          <strong>3 tons</strong>, hoisting charge (125% of landing charge) is
-          automatically applied. <br /><strong>⚠ Disclaimer:</strong>
-          This bill cannot be used as an official reference; it is for
-          <strong>informational purposes only</strong>.
+          <div><strong>Hoisting Charge:</strong> When vehicle weight exceeds <strong>3 tons</strong>, hoisting charge (125% of landing) is auto-applied. &nbsp;<strong>Disclaimer:</strong> This bill is for <strong>informational purposes only</strong> and cannot be used as an official reference.</div>
         </div>
 
         <div class="layout" id="car-inputSection">
@@ -523,8 +519,8 @@
                 </div>
               </div>
               <div class="sp-actions sp-actions-car">
-                <button class="car-gen-btn" onclick="carCalculate()">
-                  <span class="cgb-icon">
+                <button type="button" class="car-gen-btn" onclick="carCalculate()" aria-label="Generate car bill">
+                  <span class="cgb-icon" aria-hidden="true">
                     <svg
                       width="14"
                       height="14"
@@ -548,7 +544,7 @@
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </button>
-                <button class="car-reset-btn" onclick="carReset()">
+                <button type="button" class="car-reset-btn" onclick="carReset()">
                   <svg
                     class="crb-icon"
                     width="13"
@@ -604,7 +600,7 @@
           <hr />
           <div class="rh">
             <div class="rtitle">CAR WHARFRENT BILL STATEMENT</div>
-            <button class="print-btn" onclick="printBill('car')">
+            <button type="button" class="print-btn" onclick="printBill('car')" aria-label="Print car bill">
               <svg
                 width="14"
                 height="14"
@@ -612,6 +608,7 @@
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
+                aria-hidden="true"
               >
                 <polyline points="6 9 6 2 18 2 18 9" />
                 <path
@@ -643,14 +640,7 @@
           Port Authority — GENERAL Cargo Wharfrent &amp; Payable Charges
         </div>
         <div class="cargo-note">
-          ⚠ <strong>General Cargo Module:</strong> Enter
-          <strong>total cargo weight</strong>, then specify how much is stored
-          <strong>Inside</strong> vs <strong>Outside</strong> the
-          shed/warehouse. Outside wharfrent is always
-          <strong>½ of inside rate</strong>. Portions must equal total weight.
-          <br /><strong>⚠ Disclaimer:</strong> This bill cannot be used as an
-          official reference; it is for
-          <strong>informational purposes only</strong>.
+          <div><strong>General Cargo Module:</strong> Enter <strong>total cargo weight</strong>, then specify Inside vs Outside portions — they must equal total weight. Outside wharfrent is always <strong>½ of inside rate</strong>. &nbsp;<strong>Disclaimer:</strong> For <strong>informational purposes only</strong>.</div>
         </div>
 
         <div class="layout" id="cargo-inputSection">
@@ -723,7 +713,7 @@
                 </div>
               </div>
               <div class="r2">
-                <div class="fg">
+                <div class="fg" id="c-deliveryFg">
                   <label class="lbl" for="c-delivery">Delivery Date</label>
                   <input
                     type="text"
@@ -749,6 +739,17 @@
                     oninput="cargoRefresh()"
                   />
                 </div>
+              </div>
+              <!-- PART BILLING TOGGLE -->
+              <div class="pb-mode-row">
+                <div class="pb-mode-text">
+                  <span class="pb-mode-title">Part Billing Mode</span>
+                  <span class="pb-mode-hint">For cargo delivered in multiple stages — payable charges off by default</span>
+                </div>
+                <label class="pb-toggle">
+                  <input type="checkbox" id="c-partBilling" onchange="onPartBillingChange()">
+                  <span class="pb-toggle-track"><span class="pb-toggle-thumb"></span></span>
+                </label>
               </div>
               <div id="cargo-rbadge"></div>
             </div>
@@ -803,6 +804,28 @@
                   Outside wharfrent = ½ × inside rate. Inside + Outside must
                   equal Total Weight.
                 </div>
+              </div>
+            </div>
+
+            <!-- PART BILLING STAGES CARD -->
+            <div class="card" id="c-pbStagesCard" style="display:none">
+              <div class="ctitle cargo-title">Part Delivery Stages</div>
+              <div class="pb-stages-info">
+                Enter each partial delivery date and the remaining cargo balance (Inside / Outside separately) after that delivery.
+                Wharf rent is calculated per period using the weight during that period.
+                Slab progression is continuous from the original CLD — only weight changes after each delivery.
+              </div>
+              <div id="c-pbStagesContainer"></div>
+              <div class="pb-add-row">
+                <button type="button" class="pb-add-btn" onclick="addPartBillingStage()">+ Add Delivery Stage</button>
+                <span class="pb-stage-count" id="c-pbStageCount"></span>
+              </div>
+              <div class="pb-uptodate-row">
+                <label class="pb-toggle">
+                  <input type="checkbox" id="c-pbUpToDate" onchange="onPbUpToDateChange()">
+                  <span class="pb-toggle-track"><span class="pb-toggle-thumb"></span></span>
+                </label>
+                <span class="pb-uptodate-label">Up to current date — include running period from last delivery to today</span>
               </div>
             </div>
 
@@ -1089,7 +1112,7 @@
 
           <!-- RIGHT -->
           <div>
-            <div class="sp" style="border-color: rgba(34, 211, 238, 0.15)">
+            <div class="sp sp-cargo">
               <div class="ctitle cargo-title">
                 Quick Preview
                 <span class="sp-live-badge sp-live-cargo">● LIVE</span>
@@ -1118,8 +1141,8 @@
                 </div>
               </div>
               <div class="sp-actions sp-actions-cargo">
-                <button class="cargo-gen-btn" onclick="cargoCalculate()">
-                  <span class="cgb-icon">
+                <button type="button" class="cargo-gen-btn" onclick="cargoCalculate()" aria-label="Generate cargo bill">
+                  <span class="cgb-icon" aria-hidden="true">
                     <svg
                       width="14"
                       height="14"
@@ -1143,7 +1166,7 @@
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </button>
-                <button class="cargo-reset-btn" onclick="cargoReset()">
+                <button type="button" class="cargo-reset-btn" onclick="cargoReset()">
                   <svg
                     class="crb-icon"
                     width="13"
@@ -1205,6 +1228,9 @@
                 </div>
                 <div>⑪ Levy added without VAT</div>
                 <div>⑫ 🔒 Landing/Removal/Hoisting auto-computed</div>
+                <div style="color:var(--sky);margin-top:4px;">
+                  ⑬ <strong>Part Billing:</strong> Slab progression never resets — only weight changes per stage
+                </div>
               </div>
             </div>
           </div>
@@ -1217,7 +1243,15 @@
             <div class="rtitle cargo">
               GENERAL CARGO WHARFRENT BILL STATEMENT
             </div>
-            <button class="print-btn cargo" onclick="printBill('cargo')">
+            <div class="print-opts-group">
+              <div class="print-opt-toggle">
+                <label class="pb-toggle">
+                  <input type="checkbox" id="c-chkPrintWharfrent" checked onchange="onCargoWharfrentToggle()">
+                  <span class="pb-toggle-track"><span class="pb-toggle-thumb"></span></span>
+                </label>
+                <span class="print-opt-label">Wharfrent</span>
+              </div>
+            <button type="button" class="print-btn cargo" onclick="printBill('cargo')" aria-label="Print cargo bill">
               <svg
                 width="14"
                 height="14"
@@ -1225,6 +1259,7 @@
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
+                aria-hidden="true"
               >
                 <polyline points="6 9 6 2 18 2 18 9" />
                 <path
@@ -1234,6 +1269,7 @@
               </svg>
               Print Bill
             </button>
+            </div>
           </div>
           <div id="cargo-ibar"></div>
           <div class="sr" id="cargo-srow"></div>
