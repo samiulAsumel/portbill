@@ -89,7 +89,7 @@ Landing, Removal, and Hoisting rates are always formula-derived and are read-onl
 A `● LIVE` panel updates on every keystroke, showing running inside/outside estimates before the full bill is generated.
 
 ### Print Preview & Invoice
-Clicking **Print Bill** opens a full-screen print preview dialog. From there, click **Print** to send to the browser print dialog. The invoice includes:
+Clicking **Print Bill** opens a full-screen print preview dialog with a clean, light-mode toolbar (white bar with gold accent, soft gray canvas background) — designed to look like a professional document viewer. From there, click **Print** to send to the browser print dialog. The invoice includes:
 
 - Port authority letterhead with document reference and timestamp
 - Itemised charge tables (wharfrent slabs, payable charges, VAT, levy, grand totals)
