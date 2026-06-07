@@ -13,6 +13,108 @@ const SP_CARGO_IDLE =
   '<circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>' +
   '<span>Fill in cargo details<br>to see live cost preview</span></div>';
 let isAdmin = false;
+
+// ════════════════════════════════════════
+//  ADMIN RATE PERSISTENCE  (localStorage)
+// ════════════════════════════════════════
+const RATE_STORAGE_KEY = 'pb_admin_rates';
+const RATE_DEFAULTS = {
+  // CAR rates
+  freeDays: '4', rRiver: '33', rLanding: '175', rRemoval: '350',
+  rWeighment: '2.5', rLevy: '1.5', vatRate: '15',
+  nr1: '70', nr2: '185', nr3: '295',
+  or1: '40', or2: '115', or3: '185',
+  // CARGO rates
+  'c-freeDays': '4', 'c-rRiver': '33', 'c-rWeighment': '2.5',
+  'c-rLevy': '1.5', 'c-vatRate': '15',
+  'c-or1': '10', 'c-or2': '20', 'c-or3': '25',
+};
+
+// ════════════════════════════════════════
+//  TOAST NOTIFICATIONS
+// ════════════════════════════════════════
+let _toastTimer = null;
+function showToast(msg, type = 'info') {
+  let el = document.getElementById('pb-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'pb-toast';
+    document.body.appendChild(el);
+  }
+  el.className = 'pb-toast pb-toast-' + type;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ════════════════════════════════════════
+//  FIELD VALIDATION HELPERS
+// ════════════════════════════════════════
+function isValidDateStr(s) {
+  if (!s || s.length < 10) return false;
+  const parts = s.split('/');
+  if (parts.length !== 3) return false;
+  const d = new Date(+parts[2], +parts[1] - 1, +parts[0]);
+  return !Number.isNaN(d.getTime()) && +parts[1] >= 1 && +parts[1] <= 12 && +parts[0] >= 1 && +parts[0] <= 31;
+}
+function setFieldState(inputId, hintId, state, msg) {
+  const inp = document.getElementById(inputId);
+  const hint = document.getElementById(hintId);
+  if (!inp) return;
+  if (state === 'error') {
+    inp.classList.add('field-invalid');
+    if (hint) { hint.className = 'field-hint hint-error'; hint.textContent = msg || 'Invalid value'; }
+  } else if (state === 'ok') {
+    inp.classList.remove('field-invalid');
+    if (hint) { hint.className = 'field-hint hint-ok'; hint.textContent = msg || ''; }
+  } else {
+    inp.classList.remove('field-invalid');
+    if (hint) { hint.className = 'field-hint hint-muted'; hint.textContent = msg || ''; }
+  }
+}
+function validateDateField(inputId, hintId, label) {
+  const el = document.getElementById(inputId);
+  if (!el) return true;
+  const v = el.value.trim();
+  if (!v) { setFieldState(inputId, hintId, 'muted', 'DD/MM/YYYY'); return false; }
+  if (!isValidDateStr(v)) { setFieldState(inputId, hintId, 'error', `Invalid ${label}`); return false; }
+  setFieldState(inputId, hintId, 'ok', v);
+  return true;
+}
+
+function saveRates() {
+  const saved = {};
+  Object.keys(RATE_DEFAULTS).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) saved[id] = el.value;
+  });
+  localStorage.setItem(RATE_STORAGE_KEY, JSON.stringify(saved));
+}
+
+function loadSavedRates() {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(RATE_STORAGE_KEY) || '{}'); } catch (_) { saved = {}; }
+  Object.keys(RATE_DEFAULTS).forEach(id => {
+    const val = saved[id] !== undefined ? saved[id] : RATE_DEFAULTS[id];
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = val;
+    const spn = document.getElementById(id.startsWith('c-') ? 'c-d' + id.slice(2) : 'd' + id);
+    if (spn) spn.textContent = val;
+  });
+}
+
+function resetRatesToDefaults() {
+  if (!isAdmin) return;
+  if (!confirm('সব rate factory default-এ reset হবে। নিশ্চিত?')) return;
+  localStorage.removeItem(RATE_STORAGE_KEY);
+  loadSavedRates();
+  carRefresh();
+  cargoRefresh();
+  showToast('Rates reset to factory defaults', 'warning');
+}
+
 // Persist attempt count for the session so a page refresh doesn't reset the lockout
 const _getAttempts = () => parseInt(sessionStorage.getItem('_la') ?? '0', 10);
 const _setAttempts = v => sessionStorage.setItem('_la', String(v));
@@ -359,6 +461,7 @@ function toggleAdmin() {
   if (isAdmin) {
     isAdmin = false;
     applyAdmin();
+    showToast('Logged out of admin mode', 'info');
     return;
   }
   document.getElementById('muser').value = '';
@@ -394,6 +497,7 @@ async function doLogin() {
       isAdmin = true;
       closeModal();
       applyAdmin();
+      showToast('Admin mode activated', 'success');
     } else {
       loginAttempts++;
       _setAttempts(loginAttempts);
@@ -417,14 +521,16 @@ function applyAdmin() {
   document.getElementById('adot').style.background = isAdmin
     ? 'var(--gold)'
     : 'var(--m2)';
-  document.getElementById('adminTxt').textContent = isAdmin
-    ? 'Logout'
-    : '🔒 Admin';
+  document.getElementById('adminTxt').textContent = isAdmin ? 'Logout' : 'Admin';
+  const adminIcon = document.getElementById('adminIcon');
+  if (adminIcon) adminIcon.style.display = isAdmin ? 'none' : 'block';
   document.getElementById('modeBadge').style.display = isAdmin ? 'inline-flex' : 'none';
   document.getElementById('modeBadge').textContent = isAdmin ? 'ADMIN' : 'USER';
   isAdmin
     ? document.getElementById('adminBtn').classList.add('active')
     : document.getElementById('adminBtn').classList.remove('active');
+  const rrb = document.getElementById('resetRatesBtn');
+  if (rrb) rrb.style.display = isAdmin ? 'inline-flex' : 'none';
 
   // CAR admin fields
   [
@@ -704,6 +810,8 @@ function carCompute() {
 
 function carRefreshNow() {
   try {
+    validateDateField('cld', 'cld-hint', 'CLD');
+    validateDateField('delivery', 'delivery-hint', 'delivery date');
     const cld_ = pd(document.getElementById('cld').value);
     const fd_ =
       Number.parseInt(document.getElementById('freeDays').value, 10) || 4;
@@ -775,6 +883,7 @@ function carRefreshNow() {
         `<div class="pvr"><span class="pvr-lbl">Car Payable Charges</span><span class="pvr-val">${fmt(b.paySub)}</span></div>` +
         `<div class="pvr pvr-grand"><span class="pvr-lbl">Car Grand Total</span><span class="pvr-val v-gold">${fmt(b.nTotal)}</span></div>`;
     }
+  if (isAdmin && !isInitialLoad) saveRates();
   } catch (e) {
     console.error('carRefreshNow error', e);
     document.getElementById('car-preview').innerHTML = SP_CAR_IDLE;
@@ -893,6 +1002,8 @@ function carCalculate() {
     : `<div><div class="glbl">Car Payable Charges</div><div class="gval" style="color:var(--green)">${fmt(b.nBase)}</div><div class="gsub">No Car Wharfrent — flat only</div></div><div></div>`;
   document.getElementById('car-grandSec').innerHTML =
     `<div class="gbox"><div class="ginn">${carGrandSplitHtml}<div class="gfin"><div class="glbl">CAR GRAND TOTAL</div><div class="gval">${fmt(grand)}</div><div class="gsub">Tk — All inclusive</div></div></div></div>`;
+  const carEmpty = document.getElementById('car-empty');
+  if (carEmpty) carEmpty.style.display = 'none';
   if (!isInitialLoad) {
     setTimeout(
       () =>
@@ -986,9 +1097,7 @@ function cargoValidateWeighmentTon(showAlert = false) {
     msg = 'Weighment cargo ton cannot be greater than total weight.';
   }
   weighmentInput.setCustomValidity(valid ? '' : msg);
-  if (!valid && showAlert) {
-    alert(`⚠ ${msg}`);
-  }
+  if (!valid && showAlert) showToast(msg, 'error');
   return valid;
 }
 
@@ -1027,9 +1136,7 @@ function cargoValidateRemovalTon(showAlert = false) {
     }
   }
   removalInput.setCustomValidity(valid ? '' : msg);
-  if (!valid && showAlert) {
-    alert(`⚠ ${msg}`);
-  }
+  if (!valid && showAlert) showToast(msg, 'error');
   return valid;
 }
 
@@ -1058,7 +1165,7 @@ function cargoValidateSelfDriveTon(showAlert = false) {
   if (insideEl) insideEl.setCustomValidity(insideMsg);
   if (outsideEl) outsideEl.setCustomValidity(outsideMsg);
   const valid = insideMsg === '' && outsideMsg === '';
-  if (!valid && showAlert) alert(`⚠ ${insideMsg || outsideMsg}`);
+  if (!valid && showAlert) showToast(insideMsg || outsideMsg, 'error');
   return valid;
 }
 
@@ -1073,11 +1180,20 @@ function onCargoWharfrentToggle() {
   cargoIncludeWharfrent = !!document.getElementById('c-chkPrintWharfrent')?.checked;
 }
 
+let _pbSavedCharges = null;
+
 function onPartBillingChange() {
   const enabled = !!document.getElementById('c-partBilling')?.checked;
   const pbCard = document.getElementById('c-pbStagesCard');
   const deliveryFg = document.getElementById('c-deliveryFg');
+  const chkIds = ['c-chkRiver','c-chkLanding','c-chkRemoval','c-chkWeighment','c-chkHoisting','c-chkLevy'];
   if (enabled) {
+    // Save current checkbox states before disabling them
+    _pbSavedCharges = {};
+    chkIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) _pbSavedCharges[id] = el.checked;
+    });
     if (partBillingStages.length === 0) {
       partBillingStages = [{ date: document.getElementById('c-delivery').value || '', insideAfter: 0, outsideAfter: 0 }];
     } else if (!partBillingStages[0].date) {
@@ -1085,8 +1201,7 @@ function onPartBillingChange() {
     }
     if (pbCard) pbCard.style.display = '';
     if (deliveryFg) deliveryFg.style.display = 'none';
-    // Turn off all payable charges by default
-    ['c-chkRiver','c-chkLanding','c-chkRemoval','c-chkWeighment','c-chkHoisting','c-chkLevy'].forEach(id => {
+    chkIds.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.checked = false;
     });
@@ -1094,11 +1209,12 @@ function onPartBillingChange() {
   } else {
     if (pbCard) pbCard.style.display = 'none';
     if (deliveryFg) deliveryFg.style.display = '';
-    // Restore all payable charges when Part Billing is turned off
-    ['c-chkRiver','c-chkLanding','c-chkRemoval','c-chkWeighment','c-chkHoisting','c-chkLevy'].forEach(id => {
+    // Restore saved states; if none saved, default to true
+    chkIds.forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.checked = true;
+      if (el) el.checked = _pbSavedCharges ? !!_pbSavedCharges[id] : true;
     });
+    _pbSavedCharges = null;
   }
   cargoRefresh();
 }
@@ -1112,43 +1228,60 @@ function renderPartBillingStages() {
     if (picker && picker.calendar && picker.calendar.parentNode) picker.calendar.parentNode.removeChild(picker.calendar);
     delete globalThis.calendarPickers[k];
   });
+  const total = partBillingStages.length;
   container.innerHTML = partBillingStages.map((stage, idx) => {
     const isFirst = idx === 0;
-    const periodLabel = isFirst ? '1st Delivery' : `${idx + 1}${['th','st','nd','rd'][Math.min(idx,3)]} Delivery`;
+    const isLast  = idx === total - 1;
+    const _n = idx + 1, _v = _n % 10, _h = _n % 100;
+    const _suf = (_h >= 11 && _h <= 13) ? 'th' : _v === 1 ? 'st' : _v === 2 ? 'nd' : _v === 3 ? 'rd' : 'th';
+    const periodLabel = `${_n}${_suf} Delivery`;
     const maxIn  = pbMaxWeight(idx, 'inside');
     const maxOut = pbMaxWeight(idx, 'outside');
-    // Clamp stored values immediately in case a prior stage's balance was reduced
     if ((stage.insideAfter  || 0) > maxIn)  { partBillingStages[idx].insideAfter  = maxIn;  stage.insideAfter  = maxIn; }
     if ((stage.outsideAfter || 0) > maxOut) { partBillingStages[idx].outsideAfter = maxOut; stage.outsideAfter = maxOut; }
-    return `<div class="pb-stage-row" id="pb-stage-${idx}">
-      <div class="pb-stage-header">
-        <span class="pb-stage-num">Stage ${idx + 1} — ${periodLabel}</span>
-        ${!isFirst ? `<button type="button" class="pb-remove-btn" onclick="removePartBillingStage(${idx})">✕ Remove</button>` : ''}
+    return `<div class="pbs-row${isLast ? ' pbs-row-last' : ''}" id="pb-stage-${idx}">
+      <div class="pbs-connector">
+        <div class="pbs-dot"><span>${_n}</span></div>
+        ${!isLast ? '<div class="pbs-line"></div>' : ''}
       </div>
-      <div class="r2">
-        <div class="fg">
-          <label class="lbl" for="pb-date-${idx}">Delivery Date</label>
-          <input type="text" id="pb-date-${idx}" class="cargo-glow" placeholder="DD/MM/YYYY" maxlength="10"
-            value="${stage.date}"
-            oninput="formatDate(this); partBillingStages[${idx}].date=this.value; cargoRefresh();"
-          />
+      <div class="pbs-body">
+        <div class="pbs-head">
+          <div>
+            <div class="pbs-title">${periodLabel}</div>
+            <div class="pbs-sub">Stage ${_n} of ${total}</div>
+          </div>
+          ${!isFirst ? `<button type="button" class="pbs-del-btn" onclick="removePartBillingStage(${idx})" title="Remove stage">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>` : ''}
         </div>
-        <div class="fg">
-          <div class="pb-stage-weight-label">Remaining Balance After This Delivery</div>
-          <div class="r2" style="gap:8px;margin-top:0;">
-            <div class="fg">
-              <label class="lbl pb-bal-lbl" for="pb-inside-${idx}"><span style="color:var(--blue);">Inside (tons)</span>${maxIn > 0 ? `<span class="pb-max-note">max ${maxIn}</span>` : ''}</label>
-              <input type="number" id="pb-inside-${idx}" class="cargo-glow pb-balance-input" value="${stage.insideAfter}"
-                min="0" ${maxIn > 0 ? `max="${maxIn}"` : ''} step="1"
-                oninput="pbBalanceChange(${idx},'inside',+this.value);"
-              />
-            </div>
-            <div class="fg">
-              <label class="lbl pb-bal-lbl" for="pb-outside-${idx}"><span style="color:var(--purple);">Outside (tons)</span>${maxOut > 0 ? `<span class="pb-max-note">max ${maxOut}</span>` : ''}</label>
-              <input type="number" id="pb-outside-${idx}" class="cargo-glow pb-balance-input" value="${stage.outsideAfter}"
-                min="0" ${maxOut > 0 ? `max="${maxOut}"` : ''} step="1"
-                oninput="pbBalanceChange(${idx},'outside',+this.value);"
-              />
+        <div class="pbs-fields">
+          <div class="fg">
+            <label class="lbl" for="pb-date-${idx}">Delivery Date</label>
+            <input type="text" id="pb-date-${idx}" class="cargo-glow" placeholder="DD/MM/YYYY" maxlength="10"
+              value="${stage.date}"
+              oninput="formatDate(this); partBillingStages[${idx}].date=this.value; cargoRefresh();" />
+          </div>
+          <div class="pbs-balance-wrap">
+            <div class="pbs-balance-title">Remaining balance after this delivery</div>
+            <div class="pbs-balance-grid">
+              <div class="fg">
+                <label class="lbl pbs-bal-lbl" for="pb-inside-${idx}">
+                  <span class="pbs-bal-dot" style="background:var(--blue)"></span>Inside
+                  ${maxIn > 0 ? `<span class="pbs-max-note">max&nbsp;${maxIn}t</span>` : ''}
+                </label>
+                <input type="number" id="pb-inside-${idx}" class="cargo-glow pb-balance-input"
+                  value="${stage.insideAfter}" min="0" ${maxIn > 0 ? `max="${maxIn}"` : ''} step="1"
+                  oninput="pbBalanceChange(${idx},'inside',+this.value);" />
+              </div>
+              <div class="fg">
+                <label class="lbl pbs-bal-lbl" for="pb-outside-${idx}">
+                  <span class="pbs-bal-dot" style="background:var(--purple)"></span>Outside
+                  ${maxOut > 0 ? `<span class="pbs-max-note">max&nbsp;${maxOut}t</span>` : ''}
+                </label>
+                <input type="number" id="pb-outside-${idx}" class="cargo-glow pb-balance-input"
+                  value="${stage.outsideAfter}" min="0" ${maxOut > 0 ? `max="${maxOut}"` : ''} step="1"
+                  oninput="pbBalanceChange(${idx},'outside',+this.value);" />
+              </div>
             </div>
           </div>
         </div>
@@ -1391,6 +1524,8 @@ function buildPartBillingPrintSection(b, side) { //NOSONAR
 
 function cargoCompute() {
   // NOSONAR
+  const blNumber = (document.getElementById('c-blNumber')?.value || '').trim();
+  const cnfName  = (document.getElementById('c-cnfName')?.value  || '').trim();
   const cld = pd(document.getElementById('c-cld').value);
   const freeDays =
     Number.parseInt(document.getElementById('c-freeDays').value, 10) || 4;
@@ -1684,6 +1819,8 @@ function cargoCompute() {
     nTotal,
     isPartBilling,
     pbPeriods,
+    blNumber,
+    cnfName,
   };
 }
 
@@ -1698,13 +1835,13 @@ function syncPbMaxLabels() {
     if (inpIn) { if (maxIn > 0) inpIn.max = maxIn; else inpIn.removeAttribute('max'); }
     if (inpOut){ if (maxOut > 0) inpOut.max = maxOut; else inpOut.removeAttribute('max'); }
     if (lblIn) {
-      let note = lblIn.querySelector('.pb-max-note');
-      if (maxIn > 0) { if (!note) { note = document.createElement('span'); note.className = 'pb-max-note'; lblIn.appendChild(note); } note.textContent = `max ${maxIn}`; }
+      let note = lblIn.querySelector('.pbs-max-note');
+      if (maxIn > 0) { if (!note) { note = document.createElement('span'); note.className = 'pbs-max-note'; lblIn.appendChild(note); } note.textContent = `max ${maxIn}t`; }
       else if (note) note.remove();
     }
     if (lblOut) {
-      let note = lblOut.querySelector('.pb-max-note');
-      if (maxOut > 0) { if (!note) { note = document.createElement('span'); note.className = 'pb-max-note'; lblOut.appendChild(note); } note.textContent = `max ${maxOut}`; }
+      let note = lblOut.querySelector('.pbs-max-note');
+      if (maxOut > 0) { if (!note) { note = document.createElement('span'); note.className = 'pbs-max-note'; lblOut.appendChild(note); } note.textContent = `max ${maxOut}t`; }
       else if (note) note.remove();
     }
   });
@@ -1712,6 +1849,8 @@ function syncPbMaxLabels() {
 
 function cargoRefreshNow() {
   try {
+    validateDateField('c-cld', 'c-cld-hint', 'CLD');
+    validateDateField('c-delivery', 'c-delivery-hint', 'delivery date');
     cargoValidateSplit();
     cargoValidateRemovalTon();
     cargoValidateWeighmentTon();
@@ -1827,6 +1966,7 @@ function cargoRefreshNow() {
         `<div class="pvr"><span class="pvr-lbl">General Cargo Payable Charges</span><span class="pvr-val">${fmt(b.paySub)}</span></div>` +
         `<div class="pvr pvr-grand pvr-grand-cargo"><span class="pvr-lbl">General Cargo Wharfrent Grand Total</span><span class="pvr-val v-cyan">${fmt(b.nTotal)}</span></div>`;
     }
+  if (isAdmin && !isInitialLoad) saveRates();
   } catch (e) {
     console.error('cargoRefreshNow error', e);
     document.getElementById('cargo-preview').innerHTML = SP_CARGO_IDLE;
@@ -2068,9 +2208,7 @@ function buildCargoBreakdownPrintHtml(b) {
 
 function cargoCalculate() {
   if (!cargoValidateSplit()) {
-    alert(
-      '⚠ Inside + Outside weight must equal Total Weight. Please correct the allocation before generating the bill.'
-    );
+    showToast('Inside + Outside weight must equal Total Weight.', 'error');
     return;
   }
   if (!cargoValidateRemovalTon(true)) {
@@ -2104,7 +2242,7 @@ function cargoCalculate() {
     const firstDel = vp.length > 0 ? fd(vp[0].deliveryDate)  : '—';
     const lastDel  = vp.length > 0 ? fd(vp[vp.length - 1].deliveryDate) : '—';
     document.getElementById('cargo-ibar').innerHTML =
-      `<div class="ibar"><div><div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${fd(b.storStart)}</div></div><div class="ii"><div class="il">First Delivery</div><div class="iv">${firstDel}</div></div><div class="ii"><div class="il">Last Delivery</div><div class="iv">${lastDel}</div></div><div class="ii"><div class="il">Delivery Stages</div><div class="iv" style="color:var(--cargo-accent)">${vp.length} stages</div></div><div class="ii"><div class="il">Initial Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Total Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.totalDays} days</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
+      `<div class="ibar"><div>${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>` : ''}${b.cnfName ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>` : ''}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${fd(b.storStart)}</div></div><div class="ii"><div class="il">First Delivery</div><div class="iv">${firstDel}</div></div><div class="ii"><div class="il">Last Delivery</div><div class="iv">${lastDel}</div></div><div class="ii"><div class="il">Delivery Stages</div><div class="iv" style="color:var(--cargo-accent)">${vp.length} stages</div></div><div class="ii"><div class="il">Initial Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Total Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.totalDays} days</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
     document.getElementById('cargo-srow').innerHTML =
       `<div class="sc cg"><div class="sl">General Cargo Grand Total (Part Billing)</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(b.iTotal + b.oTotal)}</div><div class="ss">${vp.length} stages · Inside + Outside</div></div><div class="sc cb"><div class="sl">Inside Wharfrent Total (${fmtN(b.insideW)}t initial)</div><div class="sv">${fmtN(b.iTotal)}</div><div class="ss">Full rate · ${b.totalDays} days total</div></div><div class="sc cp"><div class="sl">Outside Wharfrent Total (${fmtN(b.outsideW)}t initial)</div><div class="sv">${fmtN(b.oTotal)}</div><div class="ss">½ rate · ${b.totalDays} days total</div></div>`;
     document.getElementById('cargo-insideSec').innerHTML =
@@ -2113,7 +2251,7 @@ function cargoCalculate() {
       `<div style="margin-bottom:20px;"><div class="cargo-split-info" style="background:rgba(192,132,252,0.06);border-color:rgba(192,132,252,0.2);color:var(--purple);">📦 Part Billing — ${vp.length} stage(s) | Initial Outside: <strong>${fmtN(b.outsideW)} ton(s)</strong> — ½ wharfrent rate</div><div class="slbl sl-cout">▪ General Cargo Wharfrent — OUTSIDE — Part Billing (${vp.length} stages) — ½ Rate</div><div class="card" style="padding:0;overflow:hidden;">${buildPartBillingBillTable(b, 'outside')}</div></div>`;
   } else {
     document.getElementById('cargo-ibar').innerHTML =
-      `<div class="ibar"><div><div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">General Cargo Wharfrent Starts</div><div class="iv">${b.hasWharfrent ? fd(b.storStart) : '—'}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Total Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">General Cargo Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.hasWharfrent ? b.totalDays + ' days' : 'In free time'}</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
+      `<div class="ibar"><div>${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>` : ''}${b.cnfName ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>` : ''}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">General Cargo Wharfrent Starts</div><div class="iv">${b.hasWharfrent ? fd(b.storStart) : '—'}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Total Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">General Cargo Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.hasWharfrent ? b.totalDays + ' days' : 'In free time'}</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
     if (b.hasWharfrent) {
       document.getElementById('cargo-srow').innerHTML =
         `<div class="sc cg"><div class="sl">General Cargo Wharfrent Grand Total</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(b.iTotal + b.oTotal)}</div><div class="ss">Inside + Outside</div></div><div class="sc cb"><div class="sl">Inside General Cargo Wharfrent Bill (${fmtN(b.insideW)}t)</div><div class="sv">${fmtN(b.iTotal)}</div><div class="ss">Full rate, incl. VAT</div></div><div class="sc cp"><div class="sl">Outside General Cargo Wharfrent Bill (${fmtN(b.outsideW)}t)</div><div class="sv">${fmtN(b.oTotal)}</div><div class="ss">½ rate, incl. VAT</div></div>`;
@@ -2139,6 +2277,8 @@ function cargoCalculate() {
     : `<div><div class="glbl">General Cargo Payable Charges</div><div class="gval" style="color:var(--green)">${fmt(b.nBase)}</div><div class="gsub">No General Cargo Wharfrent — flat only</div></div><div></div>`;
   document.getElementById('cargo-grandSec').innerHTML =
     `<div class="gbox cargo-grand"><div class="ginn">${cargoGrandSplitHtml}<div class="gfin"><div class="glbl">GENERAL CARGO GRAND TOTAL${b.isPartBilling ? ' (PART BILLING)' : ''}</div><div class="gval" style="color:var(--cargo-accent)">${fmt(grand)}</div><div class="gsub">Tk — All inclusive</div></div></div></div>`;
+  const cargoEmpty = document.getElementById('cargo-empty');
+  if (cargoEmpty) cargoEmpty.style.display = 'none';
 
   if (!isInitialLoad) {
     setTimeout(
@@ -2896,7 +3036,7 @@ tr.grand td:last-child{font-size:13pt;}
       <div>
         <div class="lh-logo">Port Authority</div>
         <div class="lh-rule"></div>
-        <div class="lh-sub">Wharfrent &amp; Payable Charge Computation</div>
+        <div class="lh-sub">Wharfrent &amp; Payable Charge Computation System</div>
       </div>
     </div>
     <div class="lh-right">
@@ -3051,7 +3191,7 @@ function printBill(type) {
   // NOSONAR
   const b = type === 'car' ? lastCarBill : lastCargoBill;
   if (!b) {
-    alert('Please generate the bill first before printing.');
+    showToast('Generate the bill first before printing.', 'warning');
     return;
   }
   try {
@@ -3229,6 +3369,8 @@ function printBill(type) {
       const firstDel = vp.length > 0 ? fd(vp[0].deliveryDate) : '—';
       const lastDel  = vp.length > 0 ? fd(vp[vp.length - 1].deliveryDate) : '—';
       infoHtml = `<div class="info-grid">
+        ${b.blNumber ? `<div class="info-cell"><div class="info-label">BL Number</div><div class="info-value">${b.blNumber}</div></div>` : ''}
+        ${b.cnfName  ? `<div class="info-cell"><div class="info-label">C&amp;F Agent</div><div class="info-value">${b.cnfName}</div></div>` : ''}
         <div class="info-cell"><div class="info-label">CLD</div><div class="info-value">${fd(b.cld)}</div></div>
         <div class="info-cell"><div class="info-label">Free Time Ends</div><div class="info-value">${fd(b.freeEnd)}</div></div>
         <div class="info-cell"><div class="info-label">Wharfrent Starts</div><div class="info-value">${fd(b.storStart)}</div></div>
@@ -3244,6 +3386,8 @@ function printBill(type) {
       </div>`;
     } else {
       infoHtml = `<div class="info-grid">
+        ${b.blNumber ? `<div class="info-cell"><div class="info-label">BL Number</div><div class="info-value">${b.blNumber}</div></div>` : ''}
+        ${b.cnfName  ? `<div class="info-cell"><div class="info-label">C&amp;F Agent</div><div class="info-value">${b.cnfName}</div></div>` : ''}
         <div class="info-cell"><div class="info-label">CLD</div><div class="info-value">${fd(b.cld)}</div></div>
         <div class="info-cell"><div class="info-label">Free Time Ends</div><div class="info-value">${fd(b.freeEnd)}</div></div>
         <div class="info-cell"><div class="info-label">General Cargo Wharfrent Starts</div><div class="info-value">${b.hasWharfrent ? fd(b.storStart) : '—'}</div></div>
@@ -3402,7 +3546,7 @@ function printBill(type) {
   openPrintPreview(html, opts.title, billRef, type === 'cargo');
   } catch (e) {
     console.error('printBill error', e);
-    alert('An error occurred while building the print preview. Please try again.');
+    showToast('Error building print preview. Please try again.', 'error');
   }
 }
 
@@ -3459,6 +3603,7 @@ setTimeout(() => {
   globalThis.calendarPickers['c-delivery'] = new CalendarPicker('c-delivery');
 }, 100);
 
+loadSavedRates();
 carRefresh();
 cargoRefresh();
 isInitialLoad = false;
@@ -3476,23 +3621,6 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// IntersectionObserver for [data-reveal] elements
-if ('IntersectionObserver' in globalThis) {
-  const revealObs = new IntersectionObserver(
-    entries => {
-      entries.forEach(en => {
-        if (en.isIntersecting) {
-          en.target.classList.add('revealed');
-          revealObs.unobserve(en.target);
-        }
-      });
-    },
-    { threshold: 0.12 }
-  );
-  document.querySelectorAll('[data-reveal]').forEach(el => {
-    revealObs.observe(el);
-  });
-}
 
 // Floating particles
 (function () {

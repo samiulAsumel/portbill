@@ -1,4 +1,4 @@
-# Port Billing System
+# Port Billing System — v3.0
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles and general cargo with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -111,8 +111,20 @@ The invoice includes:
 - Three-column authorisation signature block
 - `NOT AN OFFICIAL DOCUMENT` disclaimer
 
+### BL Number & C&F Agent Name (Cargo)
+Two optional header fields in the Cargo module — **BL Number** (Bill of Lading) and **C&F Agent Name** (Clearing & Forwarding agent) — flow through to the invoice header for document reference.
+
 ### Part Billing (Cargo)
-General Cargo supports multi-stage part delivery — enter a balance date and partial tonnage per stage. Each stage computes its own wharfrent independently, and results are summed for the final bill.
+General Cargo supports multi-stage part delivery — enter a balance date and partial tonnage per stage. Each stage computes its own wharfrent independently, and results are summed for the final bill. The stages UI uses a **timeline layout** with numbered dots, a stage-count badge, and a *Bill up to today* toggle. Charge-checkbox states are saved and restored when toggling part billing on or off.
+
+### Toast Notifications
+Validation errors and admin events (login, logout, rate reset) surface as non-blocking **toast banners** at the bottom of the screen — replacing `alert()` dialogs. Toasts are colour-coded: green (success), blue (info), gold (warning), red (error).
+
+### Inline Date Validation
+Date fields display a `DD/MM/YYYY` placeholder hint below the input. As the user types, the hint turns red with an error message for invalid dates and green once a valid date is recognised.
+
+### Empty-State Placeholders
+When no bill has been generated yet, both the Car and Cargo result areas show a centred empty-state graphic with a prompt to fill in the required fields.
 
 ### Custom Calendar Picker
 Date inputs use a built-in popup calendar with smart viewport positioning (flips above when space is limited below), month navigation, and gold-highlighted selection. Manual `DD/MM/YYYY` typed input is also supported.
@@ -124,11 +136,11 @@ Single-column on mobile, two-column grid at ≥ 768 px. Tested from 360 px up to
 
 ## Admin Mode
 
-The admin button is hidden from end users by default. To reveal it:
+The admin button is hidden from end users by default (CSS `display:none`). To reveal it:
 
 ```js
 // Open browser DevTools → Console, then run:
-document.getElementById('adminBtn').style.display = '';
+document.getElementById('adminBtn').style.display = 'inline-flex';
 ```
 
 **Credentials:** `admin` / `admin`
@@ -136,6 +148,10 @@ document.getElementById('adminBtn').style.display = '';
 Admin mode unlocks all rate fields (wharfrent slabs, payable charge rates, free-time days, VAT rate) for editing. The password is SHA-256 hashed in `main.js` — never stored in plain text. Login is locked after 5 failed attempts; a page refresh resets the counter.
 
 To set a custom password, replace `AP_HASH` in `main.js` with `SHA-256(yourNewPassword)`.
+
+### Rate Persistence
+
+Edited rates are automatically saved to **`localStorage`** (`pb_admin_rates`) and restored on every page load. An **↺ Reset Rates** button (visible only in Admin mode) wipes saved rates and restores factory defaults.
 
 ---
 
@@ -184,8 +200,8 @@ ES2022+, CSS Grid, CSS Custom Properties, native `<dialog>`, `IntersectionObserv
 ```
 portbill/
 ├── index.html    — Markup: header, tabs, admin dialog, print-preview dialog, both module pages
-├── style.css     — All styles: design tokens, components, print, responsive (360 px → 4 K)
-├── main.js       — All logic: CalendarPicker, billing engines, admin auth, print preview, animations
+├── style.css     — All styles: design tokens, components, toast, validation, print, responsive (360 px → 4 K)
+├── main.js       — All logic: CalendarPicker, billing engines, rate persistence, toast, admin auth, print preview
 └── favicon.svg   — SVG favicon (also used as apple-touch-icon)
 ```
 

@@ -32,10 +32,28 @@
     <!-- HEADER -->
     <header>
       <div class="logo">
+        <span class="logo-mark" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="5" r="2"/>
+            <path d="M12 7v13"/>
+            <path d="M5 15a7 7 0 0 0 14 0"/>
+            <path d="M9 10H3m0 0 2-3m-2 3 2 3"/>
+            <path d="M15 10h6m0 0-2-3m2 3-2 3"/>
+          </svg>
+        </span>
         PORT<span class="logo-sub"> / BILLING SYSTEM</span>
       </div>
       <div class="hright">
         <div class="hbadge" id="modeBadge">USER</div>
+        <button
+          class="admin-btn"
+          id="resetRatesBtn"
+          onclick="resetRatesToDefaults()"
+          aria-label="Reset rates to defaults"
+          style="display:none;"
+        >
+          ↺ Reset Rates
+        </button>
         <button
           class="admin-btn"
           id="adminBtn"
@@ -43,7 +61,11 @@
           aria-label="Admin login"
         >
           <span class="adot" id="adot"></span>
-          <span id="adminTxt">🔒 Admin</span>
+          <svg id="adminIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span id="adminTxt">Admin</span>
         </button>
       </div>
     </header>
@@ -58,7 +80,7 @@
         aria-controls="page-car"
         onclick="switchModule('car')"
       >
-        <span class="tab-icon">🚗</span> Car Billing
+        Car Billing
       </button>
       <button
         class="tab-btn cargo"
@@ -68,7 +90,7 @@
         aria-controls="page-cargo"
         onclick="switchModule('cargo')"
       >
-        <span class="tab-icon">📦</span> General Cargo Billing
+        General Cargo Billing
       </button>
     </div>
 
@@ -156,6 +178,7 @@
                       carRefresh();
                     "
                   />
+                  <div class="field-hint hint-muted" id="cld-hint">DD/MM/YYYY</div>
                 </div>
                 <div class="fg">
                   <label class="lbl" for="freeDays"
@@ -206,6 +229,7 @@
                       carRefresh();
                     "
                   />
+                  <div class="field-hint hint-muted" id="delivery-hint">DD/MM/YYYY</div>
                 </div>
                 <div class="fg">
                   <label class="lbl" for="weight">Weight (Tons)</label>
@@ -623,7 +647,13 @@
           <div class="sr" id="car-srow"></div>
           <div id="car-insideSec"></div>
           <div id="car-outsideSec"></div>
-          <div id="car-grandSec"></div>
+          <div id="car-grandSec">
+            <div class="bill-empty-state" id="car-empty">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <div class="bes-title">No bill generated yet</div>
+              <div class="bes-sub">Fill in CLD, delivery date and weight above</div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
@@ -656,6 +686,31 @@
               </div>
               <div class="r2">
                 <div class="fg">
+                  <label class="lbl" for="c-blNumber">BL Number</label>
+                  <input
+                    type="text"
+                    id="c-blNumber"
+                    class="cargo-glow"
+                    placeholder="e.g. COSU1234567890"
+                    oninput="cargoRefresh()"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                </div>
+                <div class="fg">
+                  <label class="lbl" for="c-cnfName">C&amp;F Agent Name</label>
+                  <input
+                    type="text"
+                    id="c-cnfName"
+                    class="cargo-glow"
+                    placeholder="Clearing &amp; Forwarding Agent"
+                    oninput="cargoRefresh()"
+                    autocomplete="off"
+                  />
+                </div>
+              </div>
+              <div class="r2">
+                <div class="fg">
                   <label class="lbl" for="c-cld"
                     >CLD
                     <span style="font-size: 12px; color: var(--m2)"
@@ -673,6 +728,7 @@
                       cargoRefresh();
                     "
                   />
+                  <div class="field-hint hint-muted" id="c-cld-hint">DD/MM/YYYY</div>
                 </div>
                 <div class="fg">
                   <label class="lbl" for="c-freeDays"
@@ -726,6 +782,7 @@
                       cargoRefresh();
                     "
                   />
+                  <div class="field-hint hint-muted" id="c-delivery-hint">DD/MM/YYYY</div>
                 </div>
                 <div class="fg">
                   <label class="lbl" for="c-weight">Total Weight (Tons)</label>
@@ -809,23 +866,30 @@
 
             <!-- PART BILLING STAGES CARD -->
             <div class="card" id="c-pbStagesCard" style="display:none">
-              <div class="ctitle cargo-title">Part Delivery Stages</div>
-              <div class="pb-stages-info">
-                Enter each partial delivery date and the remaining cargo balance (Inside / Outside separately) after that delivery.
-                Wharf rent is calculated per period using the weight during that period.
-                Slab progression is continuous from the original CLD — only weight changes after each delivery.
+              <div class="pbs-card-header">
+                <div class="pbs-card-title">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Part Delivery Stages
+                </div>
+                <span class="pbs-count-badge" id="c-pbStageCount"></span>
               </div>
-              <div id="c-pbStagesContainer"></div>
-              <div class="pb-add-row">
-                <button type="button" class="pb-add-btn" onclick="addPartBillingStage()">+ Add Delivery Stage</button>
-                <span class="pb-stage-count" id="c-pbStageCount"></span>
+              <div class="pbs-info-bar">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Slab progression runs continuously from CLD — only weight changes per delivery stage.
               </div>
-              <div class="pb-uptodate-row">
-                <label class="pb-toggle">
-                  <input type="checkbox" id="c-pbUpToDate" onchange="onPbUpToDateChange()">
-                  <span class="pb-toggle-track"><span class="pb-toggle-thumb"></span></span>
-                </label>
-                <span class="pb-uptodate-label">Up to current date — include running period from last delivery to today</span>
+              <div class="pbs-timeline" id="c-pbStagesContainer"></div>
+              <div class="pbs-footer">
+                <button type="button" class="pbs-add-btn" onclick="addPartBillingStage()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Add Delivery Stage
+                </button>
+                <div class="pbs-uptodate">
+                  <label class="pb-toggle">
+                    <input type="checkbox" id="c-pbUpToDate" onchange="onPbUpToDateChange()">
+                    <span class="pb-toggle-track"><span class="pb-toggle-thumb"></span></span>
+                  </label>
+                  <span class="pbs-uptodate-lbl">Bill up to today</span>
+                </div>
               </div>
             </div>
 
@@ -1276,13 +1340,34 @@
           <div id="cargo-insideSec"></div>
           <div id="cargo-outsideSec"></div>
           <div id="cargo-breakdownSec"></div>
-          <div id="cargo-grandSec"></div>
+          <div id="cargo-grandSec">
+            <div class="bill-empty-state" id="cargo-empty">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <div class="bes-title">No bill generated yet</div>
+              <div class="bes-sub">Fill in CLD, delivery date and weight above</div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
 
     <footer class="copyright-footer">
-      <p>&copy; <span id="year"></span> samiulAsumel. All rights reserved.</p>
+      <div class="footer-top">
+        <div class="footer-brand">
+          <span class="footer-brand-dot" aria-hidden="true"></span>
+          PORT / BILLING SYSTEM
+        </div>
+        <div class="footer-tagline">Port Authority Wharfrent Calculator</div>
+        <div class="footer-copy">
+          <span class="footer-ver">v3.0</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <span>&copy; <span id="year"></span> samiulAsumel</span>
+        </div>
+      </div>
+      <div class="footer-rule" aria-hidden="true"></div>
+      <div class="footer-disclaimer">
+        For <strong>informational and estimation purposes only</strong> — computations are non-binding and do not constitute an official invoice or legal document.
+      </div>
     </footer>
 
     <!-- PRINT PREVIEW DIALOG -->
