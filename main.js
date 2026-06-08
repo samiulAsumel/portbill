@@ -2501,11 +2501,20 @@ function cargoReset() {
   document.getElementById('cargo-results').style.display = 'none';
   document.getElementById('cargo-preview').innerHTML = SP_CARGO_IDLE;
   cargoIncludePayables = true;
+  cargoIncludeWharfrent = true;
   const allPayEl = document.getElementById('c-chkAllPayables');
   if (allPayEl) allPayEl.checked = true;
-  // Reset part billing state
+  const whEl = document.getElementById('c-chkPrintWharfrent');
+  if (whEl) whEl.checked = true;
+  // Reset part billing state — restore charge checkboxes bypassed when pb mode was active
   const pbChk = document.getElementById('c-partBilling');
   if (pbChk) pbChk.checked = false;
+  const _chargeDefaults = { 'c-chkRiver': true, 'c-chkLanding': true, 'c-chkRemoval': false, 'c-chkWeighment': false, 'c-chkHoisting': true, 'c-chkLevy': true };
+  Object.entries(_chargeDefaults).forEach(([id, def]) => {
+    const el = document.getElementById(id);
+    if (el) el.checked = _pbSavedCharges ? !!_pbSavedCharges[id] : def;
+  });
+  _pbSavedCharges = null;
   partBillingStages = [{ date: '', insideAfter: 0, outsideAfter: 0, sdInsideAfter: 0, sdOutsideAfter: 0 }];
   partBillingUpToDate = false;
   const pbUtd = document.getElementById('c-pbUpToDate');
