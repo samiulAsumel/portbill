@@ -1277,7 +1277,7 @@ function renderPartBillingStages() {
                   ${maxIn > 0 ? `<span class="pbs-max-note">max&nbsp;${maxIn}t</span>` : ''}
                 </label>
                 <input type="number" id="pb-inside-${idx}" class="cargo-glow pb-balance-input"
-                  value="${stage.insideAfter}" min="0" ${maxIn > 0 ? `max="${maxIn}"` : ''} step="1"
+                  ${stage.insideAfter ? `value="${stage.insideAfter}"` : ''} placeholder="0" min="0" ${maxIn > 0 ? `max="${maxIn}"` : ''} step="1"
                   oninput="pbBalanceChange(${idx},'inside',+this.value);" />
               </div>
               <div class="fg">
@@ -1286,7 +1286,7 @@ function renderPartBillingStages() {
                   ${maxOut > 0 ? `<span class="pbs-max-note">max&nbsp;${maxOut}t</span>` : ''}
                 </label>
                 <input type="number" id="pb-outside-${idx}" class="cargo-glow pb-balance-input"
-                  value="${stage.outsideAfter}" min="0" ${maxOut > 0 ? `max="${maxOut}"` : ''} step="1"
+                  ${stage.outsideAfter ? `value="${stage.outsideAfter}"` : ''} placeholder="0" min="0" ${maxOut > 0 ? `max="${maxOut}"` : ''} step="1"
                   oninput="pbBalanceChange(${idx},'outside',+this.value);" />
               </div>
               ${showSdIn ? `<div class="fg">
@@ -1295,7 +1295,7 @@ function renderPartBillingStages() {
                   ${maxSdIn > 0 ? `<span class="pbs-max-note">max&nbsp;${maxSdIn}t</span>` : ''}
                 </label>
                 <input type="number" id="pb-sd-inside-${idx}" class="cargo-glow pb-balance-input"
-                  value="${stage.sdInsideAfter || 0}" min="0" ${maxSdIn > 0 ? `max="${maxSdIn}"` : ''} step="1"
+                  ${stage.sdInsideAfter ? `value="${stage.sdInsideAfter}"` : ''} placeholder="0" min="0" ${maxSdIn > 0 ? `max="${maxSdIn}"` : ''} step="1"
                   oninput="pbSdBalanceChange(${idx},'inside',+this.value);" />
               </div>` : ''}
               ${showSdOut ? `<div class="fg">
@@ -1304,7 +1304,7 @@ function renderPartBillingStages() {
                   ${maxSdOut > 0 ? `<span class="pbs-max-note">max&nbsp;${maxSdOut}t</span>` : ''}
                 </label>
                 <input type="number" id="pb-sd-outside-${idx}" class="cargo-glow pb-balance-input"
-                  value="${stage.sdOutsideAfter || 0}" min="0" ${maxSdOut > 0 ? `max="${maxSdOut}"` : ''} step="1"
+                  ${stage.sdOutsideAfter ? `value="${stage.sdOutsideAfter}"` : ''} placeholder="0" min="0" ${maxSdOut > 0 ? `max="${maxSdOut}"` : ''} step="1"
                   oninput="pbSdBalanceChange(${idx},'outside',+this.value);" />
               </div>` : ''}
             </div>
@@ -1346,13 +1346,13 @@ function pbBalanceChange(idx, side, rawVal) {
   const clamped = Math.min(maxVal, Math.max(0, Math.round(rawVal || 0)));
   partBillingStages[idx][key] = clamped;
   const inp = document.getElementById(`pb-${side}-${idx}`);
-  if (inp && +inp.value !== clamped) inp.value = clamped;
+  if (inp) inp.value = clamped || '';
   // Clamp sd for same stage (sd can't exceed total balance)
   const sdMaxNow = pbMaxSdWeight(idx, side);
   if ((partBillingStages[idx][sdKey] || 0) > sdMaxNow) {
     partBillingStages[idx][sdKey] = sdMaxNow;
     const sdInp = document.getElementById(`pb-sd-${side}-${idx}`);
-    if (sdInp) { sdInp.value = sdMaxNow; sdInp.max = sdMaxNow; }
+    if (sdInp) { sdInp.value = sdMaxNow || ''; sdInp.max = sdMaxNow; }
   }
   // Cascade clamp to all subsequent stages
   for (let i = idx + 1; i < partBillingStages.length; i++) {
@@ -1360,14 +1360,14 @@ function pbBalanceChange(idx, side, rawVal) {
     if ((partBillingStages[i][key] || 0) > prevVal) {
       partBillingStages[i][key] = prevVal;
       const next = document.getElementById(`pb-${side}-${i}`);
-      if (next) { next.value = prevVal; next.max = prevVal; }
+      if (next) { next.value = prevVal || ''; next.max = prevVal; }
     }
     const prevSd = partBillingStages[i - 1][sdKey] || 0;
     const sdStageMax = Math.min(prevSd, pbMaxWeight(i, side));
     if ((partBillingStages[i][sdKey] || 0) > sdStageMax) {
       partBillingStages[i][sdKey] = sdStageMax;
       const sdNext = document.getElementById(`pb-sd-${side}-${i}`);
-      if (sdNext) { sdNext.value = sdStageMax; sdNext.max = sdStageMax; }
+      if (sdNext) { sdNext.value = sdStageMax || ''; sdNext.max = sdStageMax; }
     }
   }
   cargoRefresh();
@@ -1379,7 +1379,7 @@ function pbSdBalanceChange(idx, side, rawVal) {
   const clamped = Math.min(maxVal, Math.max(0, Math.round(rawVal || 0)));
   partBillingStages[idx][key] = clamped;
   const inp = document.getElementById(`pb-sd-${side}-${idx}`);
-  if (inp && +inp.value !== clamped) inp.value = clamped;
+  if (inp) inp.value = clamped || '';
   // Cascade clamp to subsequent stages
   for (let i = idx + 1; i < partBillingStages.length; i++) {
     const prevSd = partBillingStages[i - 1][key] || 0;
@@ -1387,7 +1387,7 @@ function pbSdBalanceChange(idx, side, rawVal) {
     if ((partBillingStages[i][key] || 0) > stageMax) {
       partBillingStages[i][key] = stageMax;
       const next = document.getElementById(`pb-sd-${side}-${i}`);
-      if (next) { next.value = stageMax; next.max = stageMax; }
+      if (next) { next.value = stageMax || ''; next.max = stageMax; }
     }
   }
   cargoRefresh();
