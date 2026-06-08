@@ -1,4 +1,4 @@
-# Port Billing System — v3.0
+# Port Billing System — v3.1
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles and general cargo with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -11,7 +11,7 @@ A zero-dependency, browser-native billing calculator for **Port Authority wharfr
 | Module | Scope | Weight range | Split billing |
 |---|---|---|---|
 | **Car Billing** | Vehicles (passenger cars, SUVs, etc.) | 1 – 3 tons | Yes — rate cut 23 Jul 2024 |
-| **General Cargo Billing** | Bulk / general cargo | Unlimited | No |
+| **General Cargo Billing** | Bulk / general cargo | Unlimited | Self-drive tons — rate cut 23 Jul 2024 |
 
 ---
 
@@ -80,6 +80,17 @@ The user enters **Inside tons** (full rate) and **Outside tons** (½ rate) separ
 | Levy Charge | 1.5 Tk / ton | **None** |
 
 Landing, Removal, and Hoisting rates are always formula-derived and are read-only even in Admin mode.
+
+### Self-Drive Wharfrent
+When **Hoisting Charge** is enabled, a **Self Drive** sub-row appears below it. The user can enter separate inside and outside self-drive tonnages. Those tons are charged at **Car Billing wharfrent slab rates** (instead of General Cargo rates), including old/new rate split on the 23/07/2024 cut-off — identical to the Car module.
+
+| Self-drive | Wharfrent rate applied |
+|---|---|
+| Normal cargo tons | General Cargo rates (10 / 20 / 25 Tk/t/d) |
+| Self-drive tons (inside) | Car Billing rates — full rate |
+| Self-drive tons (outside) | Car Billing rates — ½ rate |
+
+The bill table shows General Cargo and Self-Drive sections separately. Self-drive billing works in both standard and Part Billing mode. Self-drive ton inputs validate that each value does not exceed the corresponding inside/outside tonnage.
 
 ---
 
