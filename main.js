@@ -638,9 +638,9 @@ function onWeightChange() {
 
 function carCompute() {
   const cld = pd(document.getElementById('cld').value);
-  const freeDays =
-    Number.parseInt(document.getElementById('freeDays').value, 10) || 4;
-  const freeEnd = addD(cld, freeDays - 1);
+  const _fdRaw = Number.parseInt(document.getElementById('freeDays').value, 10);
+  const freeDays = Number.isNaN(_fdRaw) ? 4 : Math.max(0, _fdRaw);
+  const freeEnd = freeDays === 0 ? addD(cld, -1) : addD(cld, freeDays - 1);
   const storStart = addD(freeEnd, 1);
   const delivery = pd(document.getElementById('delivery').value);
   const weight = Math.max(
@@ -813,9 +813,9 @@ function carRefreshNow() {
     validateDateField('cld', 'cld-hint', 'CLD');
     validateDateField('delivery', 'delivery-hint', 'delivery date');
     const cld_ = pd(document.getElementById('cld').value);
-    const fd_ =
-      Number.parseInt(document.getElementById('freeDays').value, 10) || 4;
-    const freeEnd = addD(cld_, fd_ - 1);
+    const _fd_raw = Number.parseInt(document.getElementById('freeDays').value, 10);
+    const fd_ = Number.isNaN(_fd_raw) ? 4 : Math.max(0, _fd_raw);
+    const freeEnd = fd_ === 0 ? addD(cld_, -1) : addD(cld_, fd_ - 1);
     const storStartDate = addD(freeEnd, 1);
     document.getElementById('car-freeEnd').textContent = fd(freeEnd);
     document.getElementById('car-storStart').textContent = fd(storStartDate);
@@ -833,15 +833,11 @@ function carRefreshNow() {
           })
         );
       }
-      ftDaysEl.innerHTML =
-        '<span style="color:var(--m2)">Free: </span>' +
-        dayLabels
-          .map(
-            d =>
-              `<span style="background:rgba(212,175,55,0.13);border:1px solid rgba(212,175,55,0.20);color:var(--gold);border-radius:4px;padding:1px 7px;margin:0 2px;">${d}</span>`
-          )
-          .join('') +
-        `<span style="color:var(--m2)"> → Car Wharfrent starts </span><span style="color:var(--green);font-weight:600;">${storStartDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}</span>`;
+      ftDaysEl.innerHTML = fd_ === 0
+        ? `<span style="color:var(--m2)">No free time — </span><span style="color:var(--green);font-weight:600;">Car Wharfrent starts ${storStartDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}</span>`
+        : '<span style="color:var(--m2)">Free: </span>' +
+          dayLabels.map(d => `<span style="background:rgba(212,175,55,0.13);border:1px solid rgba(212,175,55,0.20);color:var(--gold);border-radius:4px;padding:1px 7px;margin:0 2px;">${d}</span>`).join('') +
+          `<span style="color:var(--m2)"> → Car Wharfrent starts </span><span style="color:var(--green);font-weight:600;">${storStartDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}</span>`;
       strip.style.display = 'block';
     }
     ['nr1', 'nr2', 'nr3', 'or1', 'or2', 'or3'].forEach(id => {
@@ -1172,12 +1168,17 @@ function cargoValidateSelfDriveTon(showAlert = false) {
 // ════════════════════════════════════════
 //  ── PART BILLING ──
 // ════════════════════════════════════════
-let partBillingStages = [{ date: '', insideAfter: 0, outsideAfter: 0 }];
+let partBillingStages = [{ date: '', insideAfter: 0, outsideAfter: 0, sdInsideAfter: 0, sdOutsideAfter: 0 }];
 let partBillingUpToDate = false;
 let cargoIncludeWharfrent = true;
+let cargoIncludePayables  = true;
 
 function onCargoWharfrentToggle() {
   cargoIncludeWharfrent = !!document.getElementById('c-chkPrintWharfrent')?.checked;
+}
+
+function onToggleAllPayables(on) {
+  cargoIncludePayables = on;
 }
 
 let _pbSavedCharges = null;
@@ -1195,7 +1196,7 @@ function onPartBillingChange() {
       if (el) _pbSavedCharges[id] = el.checked;
     });
     if (partBillingStages.length === 0) {
-      partBillingStages = [{ date: document.getElementById('c-delivery').value || '', insideAfter: 0, outsideAfter: 0 }];
+      partBillingStages = [{ date: document.getElementById('c-delivery').value || '', insideAfter: 0, outsideAfter: 0, sdInsideAfter: 0, sdOutsideAfter: 0 }];
     } else if (!partBillingStages[0].date) {
       partBillingStages[0].date = document.getElementById('c-delivery').value || '';
     }
@@ -1229,6 +1230,8 @@ function renderPartBillingStages() {
     delete globalThis.calendarPickers[k];
   });
   const total = partBillingStages.length;
+  const showSdIn  = !!document.getElementById('c-chkSelfDriveInside')?.checked  && pbMaxSdWeight(0, 'inside')  > 0;
+  const showSdOut = !!document.getElementById('c-chkSelfDriveOutside')?.checked && pbMaxSdWeight(0, 'outside') > 0;
   container.innerHTML = partBillingStages.map((stage, idx) => {
     const isFirst = idx === 0;
     const isLast  = idx === total - 1;
@@ -1237,8 +1240,12 @@ function renderPartBillingStages() {
     const periodLabel = `${_n}${_suf} Delivery`;
     const maxIn  = pbMaxWeight(idx, 'inside');
     const maxOut = pbMaxWeight(idx, 'outside');
+    const maxSdIn  = pbMaxSdWeight(idx, 'inside');
+    const maxSdOut = pbMaxSdWeight(idx, 'outside');
     if ((stage.insideAfter  || 0) > maxIn)  { partBillingStages[idx].insideAfter  = maxIn;  stage.insideAfter  = maxIn; }
     if ((stage.outsideAfter || 0) > maxOut) { partBillingStages[idx].outsideAfter = maxOut; stage.outsideAfter = maxOut; }
+    if ((stage.sdInsideAfter  || 0) > maxSdIn)  { partBillingStages[idx].sdInsideAfter  = maxSdIn;  stage.sdInsideAfter  = maxSdIn; }
+    if ((stage.sdOutsideAfter || 0) > maxSdOut) { partBillingStages[idx].sdOutsideAfter = maxSdOut; stage.sdOutsideAfter = maxSdOut; }
     return `<div class="pbs-row${isLast ? ' pbs-row-last' : ''}" id="pb-stage-${idx}">
       <div class="pbs-connector">
         <div class="pbs-dot"><span>${_n}</span></div>
@@ -1282,6 +1289,24 @@ function renderPartBillingStages() {
                   value="${stage.outsideAfter}" min="0" ${maxOut > 0 ? `max="${maxOut}"` : ''} step="1"
                   oninput="pbBalanceChange(${idx},'outside',+this.value);" />
               </div>
+              ${showSdIn ? `<div class="fg">
+                <label class="lbl pbs-bal-lbl" for="pb-sd-inside-${idx}">
+                  <span class="pbs-bal-dot" style="background:var(--gold-hi)"></span><span style="color:var(--gold-hi)">SD</span> Inside
+                  ${maxSdIn > 0 ? `<span class="pbs-max-note">max&nbsp;${maxSdIn}t</span>` : ''}
+                </label>
+                <input type="number" id="pb-sd-inside-${idx}" class="cargo-glow pb-balance-input"
+                  value="${stage.sdInsideAfter || 0}" min="0" ${maxSdIn > 0 ? `max="${maxSdIn}"` : ''} step="1"
+                  oninput="pbSdBalanceChange(${idx},'inside',+this.value);" />
+              </div>` : ''}
+              ${showSdOut ? `<div class="fg">
+                <label class="lbl pbs-bal-lbl" for="pb-sd-outside-${idx}">
+                  <span class="pbs-bal-dot" style="background:var(--gold-hi)"></span><span style="color:var(--gold-hi)">SD</span> Outside
+                  ${maxSdOut > 0 ? `<span class="pbs-max-note">max&nbsp;${maxSdOut}t</span>` : ''}
+                </label>
+                <input type="number" id="pb-sd-outside-${idx}" class="cargo-glow pb-balance-input"
+                  value="${stage.sdOutsideAfter || 0}" min="0" ${maxSdOut > 0 ? `max="${maxSdOut}"` : ''} step="1"
+                  oninput="pbSdBalanceChange(${idx},'outside',+this.value);" />
+              </div>` : ''}
             </div>
           </div>
         </div>
@@ -1305,13 +1330,30 @@ function pbMaxWeight(idx, side) {
   return idx === 0 ? init : Math.max(0, partBillingStages[idx - 1][side === 'inside' ? 'insideAfter' : 'outsideAfter'] || 0);
 }
 
+function pbMaxSdWeight(idx, side) {
+  const sdKey = side === 'inside' ? 'c-selfDriveTonInside' : 'c-selfDriveTonOutside';
+  const initTotal = Math.max(0, Math.round(parseFloat(document.getElementById(side === 'inside' ? 'c-inside' : 'c-outside')?.value) || 0));
+  const initSd = Math.min(Math.max(0, Math.round(parseFloat(document.getElementById(sdKey)?.value) || 0)), initTotal);
+  if (idx === 0) return initSd;
+  const prevSd = Math.max(0, partBillingStages[idx - 1][side === 'inside' ? 'sdInsideAfter' : 'sdOutsideAfter'] || 0);
+  return Math.min(prevSd, pbMaxWeight(idx, side));
+}
+
 function pbBalanceChange(idx, side, rawVal) {
   const key = side === 'inside' ? 'insideAfter' : 'outsideAfter';
+  const sdKey = side === 'inside' ? 'sdInsideAfter' : 'sdOutsideAfter';
   const maxVal = pbMaxWeight(idx, side);
   const clamped = Math.min(maxVal, Math.max(0, Math.round(rawVal || 0)));
   partBillingStages[idx][key] = clamped;
   const inp = document.getElementById(`pb-${side}-${idx}`);
   if (inp && +inp.value !== clamped) inp.value = clamped;
+  // Clamp sd for same stage (sd can't exceed total balance)
+  const sdMaxNow = pbMaxSdWeight(idx, side);
+  if ((partBillingStages[idx][sdKey] || 0) > sdMaxNow) {
+    partBillingStages[idx][sdKey] = sdMaxNow;
+    const sdInp = document.getElementById(`pb-sd-${side}-${idx}`);
+    if (sdInp) { sdInp.value = sdMaxNow; sdInp.max = sdMaxNow; }
+  }
   // Cascade clamp to all subsequent stages
   for (let i = idx + 1; i < partBillingStages.length; i++) {
     const prevVal = partBillingStages[i - 1][key] || 0;
@@ -1320,12 +1362,39 @@ function pbBalanceChange(idx, side, rawVal) {
       const next = document.getElementById(`pb-${side}-${i}`);
       if (next) { next.value = prevVal; next.max = prevVal; }
     }
+    const prevSd = partBillingStages[i - 1][sdKey] || 0;
+    const sdStageMax = Math.min(prevSd, pbMaxWeight(i, side));
+    if ((partBillingStages[i][sdKey] || 0) > sdStageMax) {
+      partBillingStages[i][sdKey] = sdStageMax;
+      const sdNext = document.getElementById(`pb-sd-${side}-${i}`);
+      if (sdNext) { sdNext.value = sdStageMax; sdNext.max = sdStageMax; }
+    }
+  }
+  cargoRefresh();
+}
+
+function pbSdBalanceChange(idx, side, rawVal) {
+  const key = side === 'inside' ? 'sdInsideAfter' : 'sdOutsideAfter';
+  const maxVal = pbMaxSdWeight(idx, side);
+  const clamped = Math.min(maxVal, Math.max(0, Math.round(rawVal || 0)));
+  partBillingStages[idx][key] = clamped;
+  const inp = document.getElementById(`pb-sd-${side}-${idx}`);
+  if (inp && +inp.value !== clamped) inp.value = clamped;
+  // Cascade clamp to subsequent stages
+  for (let i = idx + 1; i < partBillingStages.length; i++) {
+    const prevSd = partBillingStages[i - 1][key] || 0;
+    const stageMax = Math.min(prevSd, pbMaxWeight(i, side));
+    if ((partBillingStages[i][key] || 0) > stageMax) {
+      partBillingStages[i][key] = stageMax;
+      const next = document.getElementById(`pb-sd-${side}-${i}`);
+      if (next) { next.value = stageMax; next.max = stageMax; }
+    }
   }
   cargoRefresh();
 }
 
 function addPartBillingStage() {
-  partBillingStages.push({ date: '', insideAfter: 0, outsideAfter: 0 });
+  partBillingStages.push({ date: '', insideAfter: 0, outsideAfter: 0, sdInsideAfter: 0, sdOutsideAfter: 0 });
   renderPartBillingStages();
   cargoRefresh();
 }
@@ -1390,8 +1459,10 @@ function computePartBillingWharfrent(cld, freeEnd, storStart, initialInside, ini
     }
     hasWharfrent = true;
     totalDays += periodDays;
-    const pSdInside  = Math.min(insideSdTon,  insideW);
-    const pSdOutside = Math.min(outsideSdTon, outsideW);
+    const sdInsideStart  = i === 0 ? insideSdTon  : Math.max(0, partBillingStages[i - 1].sdInsideAfter  || 0);
+    const sdOutsideStart = i === 0 ? outsideSdTon : Math.max(0, partBillingStages[i - 1].sdOutsideAfter || 0);
+    const pSdInside  = Math.min(sdInsideStart,  insideW);
+    const pSdOutside = Math.min(sdOutsideStart, outsideW);
     const pNormalInside  = insideW  - pSdInside;
     const pNormalOutside = outsideW - pSdOutside;
     const insideNormalSlabs  = pNormalInside  > 0 ? calcSlabs(periodDays, or1, or2, or3, pNormalInside,  blockStart, deliveryDate, daysOffset) : [];
@@ -1437,8 +1508,8 @@ function computePartBillingWharfrent(cld, freeEnd, storStart, initialInside, ini
       if (cwPeriodDays > 0) {
         hasWharfrent = true;
         totalDays += cwPeriodDays;
-        const cwSdInside  = Math.min(insideSdTon,  cwInside);
-        const cwSdOutside = Math.min(outsideSdTon, cwOutside);
+        const cwSdInside  = Math.min(Math.max(0, lastStage.sdInsideAfter  || 0), cwInside);
+        const cwSdOutside = Math.min(Math.max(0, lastStage.sdOutsideAfter || 0), cwOutside);
         const cwNormalInside  = cwInside  - cwSdInside;
         const cwNormalOutside = cwOutside - cwSdOutside;
         const cwInsideNormalSlabs  = cwNormalInside  > 0 ? calcSlabs(cwPeriodDays, or1, or2, or3, cwNormalInside,  cwBlockStart, todayD, cwDaysOffset) : [];
@@ -1573,18 +1644,20 @@ function buildPartBillingPrintSection(b, side) { //NOSONAR
       });
     }
   });
-  const wharfTotal   = isIn ? b.insideWharfrent  : b.outsideWharfrent;
-  const baseAmt      = isIn ? b.iBase  : b.oBase;
-  const vatAmt       = isIn ? b.iVat   : b.oVat;
-  const levyAmt      = isIn ? b.iLevy  : b.oLevy;
-  const totAmt       = isIn ? b.iTotal : b.oTotal;
-  const billPayables = isIn ? b.insidePayables : b.outsidePayables;
-  const halfNote     = isIn ? '' : ' (½ Rate)';
-  const hasSdPb2     = isIn ? (b.wharfSdInside > 0) : (b.wharfSdOutside > 0);
+  const rp2 = v => Math.floor(v * 100 + 0.5 - 1e-9) / 100;
+  const wharfTotal      = isIn ? b.insideWharfrent  : b.outsideWharfrent;
+  const filteredPay     = cargoIncludePayables ? (isIn ? b.insidePayables : b.outsidePayables) : [];
+  const paySubAdj2      = cargoIncludePayables ? 0 : (isIn ? b.insidePaySub : b.outsidePaySub);
+  const baseAmt         = rp2((isIn ? b.iBase : b.oBase) - paySubAdj2);
+  const vatAmt          = rp2(baseAmt * b.vatRate);
+  const levyAmt         = cargoIncludePayables ? (isIn ? b.iLevy : b.oLevy) : 0;
+  const totAmt          = rp2(baseAmt + vatAmt + levyAmt);
+  const halfNote        = isIn ? '' : ' (½ Rate)';
+  const hasSdPb2        = isIn ? (b.wharfSdInside > 0) : (b.wharfSdOutside > 0);
   rows += printTotRow(`${hasSdPb2 ? 'Wharfrent' : 'General Cargo Wharfrent'}${halfNote} Sub Total — ${b.totalDays} days`, fmt(wharfTotal), 'sub');
-  if (billPayables.length > 0) {
+  if (filteredPay.length > 0) {
     rows += `<tr class="sep"><td colspan="6">PAYABLE CHARGES</td></tr>`;
-    billPayables.forEach(p => rows += printTr(p.label, `${fmtN(p.rate)}/ton`, `${fmtN(p.tons)} ton(s)`, '—', '—', fmt(p.amt), 'sub'));
+    filteredPay.forEach(p => rows += printTr(p.label, `${fmtN(p.rate)}/ton`, `${fmtN(p.tons)} ton(s)`, '—', '—', fmt(p.amt), 'sub'));
     rows += printTotRow('Total Bill (Base for VAT)', fmt(baseAmt));
   }
   if (vatAmt  > 0) rows += printTotRow(`VAT @ ${(b.vatRate * 100).toFixed(1)}%`, fmt(vatAmt), 'vrow');
@@ -1601,9 +1674,9 @@ function cargoCompute() {
   const blNumber = (document.getElementById('c-blNumber')?.value || '').trim();
   const cnfName  = (document.getElementById('c-cnfName')?.value  || '').trim();
   const cld = pd(document.getElementById('c-cld').value);
-  const freeDays =
-    Number.parseInt(document.getElementById('c-freeDays').value, 10) || 4;
-  const freeEnd = addD(cld, freeDays - 1);
+  const _cfdRaw = Number.parseInt(document.getElementById('c-freeDays').value, 10);
+  const freeDays = Number.isNaN(_cfdRaw) ? 4 : Math.max(0, _cfdRaw);
+  const freeEnd = freeDays === 0 ? addD(cld, -1) : addD(cld, freeDays - 1);
   const storStart = addD(freeEnd, 1);
   const delivery = pd(document.getElementById('c-delivery').value);
   const totalWeight = Math.max(
@@ -1653,10 +1726,11 @@ function cargoCompute() {
   const nr1Car = nn('nr1'), nr2Car = nn('nr2'), nr3Car = nn('nr3');
 
   // Self-drive tons for wharf rent: these tons use Car Billing slab rates instead of GC rates
-  const wharfSdInside = gb('c-chkHoisting') && gb('c-chkSelfDriveInside')
+  // Independent of hoisting checkbox — self-drive affects wharfrent rate regardless of hoisting
+  const wharfSdInside = gb('c-chkSelfDriveInside')
     ? Math.min(Math.max(0, Math.round(Number.parseFloat(document.getElementById('c-selfDriveTonInside')?.value) || 0)), insideW)
     : 0;
-  const wharfSdOutside = gb('c-chkHoisting') && gb('c-chkSelfDriveOutside')
+  const wharfSdOutside = gb('c-chkSelfDriveOutside')
     ? Math.min(Math.max(0, Math.round(Number.parseFloat(document.getElementById('c-selfDriveTonOutside')?.value) || 0)), outsideW)
     : 0;
   const insideNormalW  = insideW  - wharfSdInside;
@@ -1924,24 +1998,29 @@ function cargoCompute() {
 
 function syncPbMaxLabels() {
   partBillingStages.forEach((stage, idx) => {
-    const maxIn  = pbMaxWeight(idx, 'inside');
-    const maxOut = pbMaxWeight(idx, 'outside');
-    const inpIn  = document.getElementById(`pb-inside-${idx}`);
-    const inpOut = document.getElementById(`pb-outside-${idx}`);
-    const lblIn  = document.querySelector(`label[for="pb-inside-${idx}"]`);
-    const lblOut = document.querySelector(`label[for="pb-outside-${idx}"]`);
-    if (inpIn) { if (maxIn > 0) inpIn.max = maxIn; else inpIn.removeAttribute('max'); }
-    if (inpOut){ if (maxOut > 0) inpOut.max = maxOut; else inpOut.removeAttribute('max'); }
-    if (lblIn) {
-      let note = lblIn.querySelector('.pbs-max-note');
-      if (maxIn > 0) { if (!note) { note = document.createElement('span'); note.className = 'pbs-max-note'; lblIn.appendChild(note); } note.textContent = `max ${maxIn}t`; }
+    const maxIn    = pbMaxWeight(idx, 'inside');
+    const maxOut   = pbMaxWeight(idx, 'outside');
+    const maxSdIn  = pbMaxSdWeight(idx, 'inside');
+    const maxSdOut = pbMaxSdWeight(idx, 'outside');
+    const inpIn    = document.getElementById(`pb-inside-${idx}`);
+    const inpOut   = document.getElementById(`pb-outside-${idx}`);
+    const inpSdIn  = document.getElementById(`pb-sd-inside-${idx}`);
+    const inpSdOut = document.getElementById(`pb-sd-outside-${idx}`);
+    const lblIn    = document.querySelector(`label[for="pb-inside-${idx}"]`);
+    const lblOut   = document.querySelector(`label[for="pb-outside-${idx}"]`);
+    const lblSdIn  = document.querySelector(`label[for="pb-sd-inside-${idx}"]`);
+    const lblSdOut = document.querySelector(`label[for="pb-sd-outside-${idx}"]`);
+    const syncInp = (inp, max) => { if (!inp) return; if (max > 0) inp.max = max; else inp.removeAttribute('max'); };
+    const syncLbl = (lbl, max) => {
+      if (!lbl) return;
+      let note = lbl.querySelector('.pbs-max-note');
+      if (max > 0) { if (!note) { note = document.createElement('span'); note.className = 'pbs-max-note'; lbl.appendChild(note); } note.textContent = `max ${max}t`; }
       else if (note) note.remove();
-    }
-    if (lblOut) {
-      let note = lblOut.querySelector('.pbs-max-note');
-      if (maxOut > 0) { if (!note) { note = document.createElement('span'); note.className = 'pbs-max-note'; lblOut.appendChild(note); } note.textContent = `max ${maxOut}t`; }
-      else if (note) note.remove();
-    }
+    };
+    syncInp(inpIn,   maxIn);   syncLbl(lblIn,   maxIn);
+    syncInp(inpOut,  maxOut);  syncLbl(lblOut,  maxOut);
+    syncInp(inpSdIn, maxSdIn); syncLbl(lblSdIn, maxSdIn);
+    syncInp(inpSdOut,maxSdOut);syncLbl(lblSdOut,maxSdOut);
   });
 }
 
@@ -1953,11 +2032,18 @@ function cargoRefreshNow() {
     cargoValidateRemovalTon();
     cargoValidateWeighmentTon();
     cargoValidateSelfDriveTon();
-    if (document.getElementById('c-partBilling')?.checked) syncPbMaxLabels();
+    if (document.getElementById('c-partBilling')?.checked) {
+      const wantSdIn  = !!document.getElementById('c-chkSelfDriveInside')?.checked  && pbMaxSdWeight(0, 'inside')  > 0;
+      const wantSdOut = !!document.getElementById('c-chkSelfDriveOutside')?.checked && pbMaxSdWeight(0, 'outside') > 0;
+      const hasSdIn   = !!document.getElementById('pb-sd-inside-0');
+      const hasSdOut  = !!document.getElementById('pb-sd-outside-0');
+      if (wantSdIn !== hasSdIn || wantSdOut !== hasSdOut) renderPartBillingStages();
+      else syncPbMaxLabels();
+    }
     const cld_ = pd(document.getElementById('c-cld').value);
-    const fd_ =
-      Number.parseInt(document.getElementById('c-freeDays').value, 10) || 4;
-    const freeEnd = addD(cld_, fd_ - 1);
+    const _cfd_raw = Number.parseInt(document.getElementById('c-freeDays').value, 10);
+    const fd_ = Number.isNaN(_cfd_raw) ? 4 : Math.max(0, _cfd_raw);
+    const freeEnd = fd_ === 0 ? addD(cld_, -1) : addD(cld_, fd_ - 1);
     const storStartDate = addD(freeEnd, 1);
     document.getElementById('cargo-freeEnd').textContent = fd(freeEnd);
     document.getElementById('cargo-storStart').textContent = fd(storStartDate);
@@ -1975,15 +2061,11 @@ function cargoRefreshNow() {
           })
         );
       }
-      ftDaysEl.innerHTML =
-        '<span style="color:var(--m2)">Free: </span>' +
-        dayLabels
-          .map(
-            d =>
-              `<span style="background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.2);color:var(--cargo-accent);border-radius:4px;padding:1px 7px;margin:0 2px;">${d}</span>`
-          )
-          .join('') +
-        `<span style="color:var(--m2)"> → General Cargo Wharfrent starts </span><span style="color:var(--green);font-weight:600;">${storStartDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}</span>`;
+      ftDaysEl.innerHTML = fd_ === 0
+        ? `<span style="color:var(--m2)">No free time — </span><span style="color:var(--green);font-weight:600;">General Cargo Wharfrent starts ${storStartDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}</span>`
+        : '<span style="color:var(--m2)">Free: </span>' +
+          dayLabels.map(d => `<span style="background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.2);color:var(--cargo-accent);border-radius:4px;padding:1px 7px;margin:0 2px;">${d}</span>`).join('') +
+          `<span style="color:var(--m2)"> → General Cargo Wharfrent starts </span><span style="color:var(--green);font-weight:600;">${storStartDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}</span>`;
       strip.style.display = 'block';
     }
     ['c-or1', 'c-or2', 'c-or3'].forEach(id => {
@@ -1993,16 +2075,6 @@ function cargoRefreshNow() {
     });
     const b = cargoCompute();
     if (!b) return;
-    // Toggle self-drive row visibility based on hoisting checkbox
-    const hoistingOn = !!document.getElementById('c-chkHoisting')?.checked;
-    const selfDriveRow = document.getElementById('c-selfDriveRow');
-    if (selfDriveRow) selfDriveRow.style.display = hoistingOn ? '' : 'none';
-    if (!hoistingOn) {
-      ['c-chkSelfDriveInside', 'c-chkSelfDriveOutside'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.checked = false;
-      });
-    }
     // Sync ton field active/inactive state + inline error
     // maxVal: if > 0, also validates that entered value does not exceed this limit
     const syncTon = (chkId, inputId, errId, maxVal = 0) => {
@@ -2428,10 +2500,13 @@ function cargoCalculate() {
 function cargoReset() {
   document.getElementById('cargo-results').style.display = 'none';
   document.getElementById('cargo-preview').innerHTML = SP_CARGO_IDLE;
+  cargoIncludePayables = true;
+  const allPayEl = document.getElementById('c-chkAllPayables');
+  if (allPayEl) allPayEl.checked = true;
   // Reset part billing state
   const pbChk = document.getElementById('c-partBilling');
   if (pbChk) pbChk.checked = false;
-  partBillingStages = [{ date: '', insideAfter: 0, outsideAfter: 0 }];
+  partBillingStages = [{ date: '', insideAfter: 0, outsideAfter: 0, sdInsideAfter: 0, sdOutsideAfter: 0 }];
   partBillingUpToDate = false;
   const pbUtd = document.getElementById('c-pbUpToDate');
   if (pbUtd) pbUtd.checked = false;
@@ -2448,12 +2523,12 @@ function cargoReset() {
   });
   ['c-selfDriveTonInside', 'c-selfDriveTonOutside'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) { el.value = 0; el.classList.add('ton-inactive'); el.setCustomValidity(''); }
+    if (el) { el.value = ''; el.classList.add('ton-inactive'); el.setCustomValidity(''); }
   });
   // Reset removal and weighment ton inputs to 0 and clear state
   ['c-removalTon', 'c-weighmentTon'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) { el.value = 0; el.classList.add('ton-inactive'); el.setCustomValidity(''); }
+    if (el) { el.value = ''; el.classList.add('ton-inactive'); el.setCustomValidity(''); }
   });
   // Clear all inline error messages
   ['c-removalTon-err', 'c-weighmentTon-err', 'c-selfDriveTonInside-err', 'c-selfDriveTonOutside-err'].forEach(id => {
@@ -3540,7 +3615,10 @@ function printBill(type) {
       ['inside', 'outside'].forEach(side => {
         sectionsHtml += buildPartBillingPrintSection(b, side);
       });
-      grandTotal = b.iTotal + b.oTotal;
+      const _rp = v => Math.floor(v * 100 + 0.5 - 1e-9) / 100;
+      const _pbIn  = (() => { const base = _rp(b.iBase - (cargoIncludePayables ? 0 : b.insidePaySub));  return _rp(base + _rp(base * b.vatRate) + (cargoIncludePayables ? b.iLevy : 0)); })();
+      const _pbOut = (() => { const base = _rp(b.oBase - (cargoIncludePayables ? 0 : b.outsidePaySub)); return _rp(base + _rp(base * b.vatRate) + (cargoIncludePayables ? b.oLevy : 0)); })();
+      grandTotal = _pbIn + _pbOut;
       grandLabel = 'GENERAL CARGO WHARFRENT GRAND TOTAL — PART BILLING (INSIDE + OUTSIDE)';
     } else if (b.hasWharfrent && includeWharfrent) {
       ['inside', 'outside'].forEach(side => {
@@ -3551,11 +3629,14 @@ function printBill(type) {
         const sdW          = isIn ? b.wharfSdInside  : b.wharfSdOutside;
         const wharfAmt     = isIn ? b.insideWharfrent : b.outsideWharfrent;
         const weight       = isIn ? b.insideW : b.outsideW;
-        const baseAmt      = isIn ? b.iBase : b.oBase;
-        const vatAmt       = isIn ? b.iVat : b.oVat;
-        const levyAmt      = isIn ? b.iLevy : b.oLevy;
-        const totAmt       = isIn ? b.iTotal : b.oTotal;
-        const billPayables = isIn ? b.insidePayables : b.outsidePayables;
+        const rp = v => Math.floor(v * 100 + 0.5 - 1e-9) / 100;
+        const rawBillPayables = isIn ? b.insidePayables : b.outsidePayables;
+        const filteredPayables = cargoIncludePayables ? rawBillPayables : [];
+        const paySubAdj = cargoIncludePayables ? 0 : (isIn ? b.insidePaySub : b.outsidePaySub);
+        const baseAmt = rp((isIn ? b.iBase : b.oBase) - paySubAdj);
+        const vatAmt  = rp(baseAmt * b.vatRate);
+        const levyAmt = cargoIncludePayables ? (isIn ? b.iLevy : b.oLevy) : 0;
+        const totAmt  = rp(baseAmt + vatAmt + levyAmt);
         const rateSuffix   = isIn ? '' : ' (½)';
         let rows = '';
         // Normal GC-rate slabs
@@ -3585,32 +3666,16 @@ function printBill(type) {
             : `General Cargo Wharfrent${wharfrentHalfNote} — ${fmtN(weight)} ton(s) × ${b.totalDays} days`;
           rows += printTotRow(subLbl, fmt(wharfAmt), 'sub');
         }
-        if (billPayables.length > 0) {
+        if (filteredPayables.length > 0) {
           rows += `<tr class="sep"><td colspan="6">PAYABLE CHARGES</td></tr>`;
-          billPayables.forEach(p => {
-            rows += printTr(
-              p.label,
-              `${fmtN(p.rate)}/ton`,
-              `${fmtN(p.tons)} ton(s)`,
-              '—',
-              '—',
-              fmt(p.amt),
-              'sub'
-            );
+          filteredPayables.forEach(p => {
+            rows += printTr(p.label, `${fmtN(p.rate)}/ton`, `${fmtN(p.tons)} ton(s)`, '—', '—', fmt(p.amt), 'sub');
           });
         }
         rows += printTotRow('Total Bill (Base for VAT)', fmt(baseAmt));
-        rows += printTotRow(
-          `VAT @ ${(b.vatRate * 100).toFixed(1)}%`,
-          fmt(vatAmt),
-          'vrow'
-        );
+        rows += printTotRow(`VAT @ ${(b.vatRate * 100).toFixed(1)}%`, fmt(vatAmt), 'vrow');
         rows += printTotRow('Levy Charge (No VAT)', fmt(levyAmt), 'lrow');
-        rows += printTotRow(
-          `${isIn ? 'INSIDE' : 'OUTSIDE'} GRAND TOTAL (${fmtN(weight)}t)`,
-          fmt(totAmt),
-          'grand'
-        );
+        rows += printTotRow(`${isIn ? 'INSIDE' : 'OUTSIDE'} GRAND TOTAL (${fmtN(weight)}t)`, fmt(totAmt), 'grand');
         const headLabel = isIn ? `INSIDE WHARFRENT` : `OUTSIDE WHARFRENT`;
         const headBadge = isIn
           ? `${fmtN(b.insideW)} ton(s) — Full Rate`
@@ -3618,13 +3683,16 @@ function printBill(type) {
         const subNote = isIn ? 'Full rate applied — inside shed / warehouse' : '½ rate applied — outside shed / warehouse';
         sectionsHtml += `${secHead(headLabel, headBadge)}<div class="section-sub">${subNote}</div><div class="no-break">${buildPrintTable(rows)}</div>`;
       });
-      grandTotal = b.iTotal + b.oTotal;
+      const adjIn  = (() => { const rp = v => Math.floor(v*100+0.5-1e-9)/100; const base = rp(b.iBase - (cargoIncludePayables ? 0 : b.insidePaySub));  const vat = rp(base * b.vatRate); const levy = cargoIncludePayables ? b.iLevy : 0; return rp(base + vat + levy); })();
+      const adjOut = (() => { const rp = v => Math.floor(v*100+0.5-1e-9)/100; const base = rp(b.oBase - (cargoIncludePayables ? 0 : b.outsidePaySub)); const vat = rp(base * b.vatRate); const levy = cargoIncludePayables ? b.oLevy : 0; return rp(base + vat + levy); })();
+      grandTotal = adjIn + adjOut;
       grandLabel = 'GENERAL CARGO WHARFRENT GRAND TOTAL (INSIDE + OUTSIDE)';
     } else {
       // Payable-only: either free time OR wharfrent toggled off
       let rows = '';
-      const rawPayList = b.payables && b.payables.length > 0 ? b.payables
-        : [...(b.insidePayables || []), ...(b.outsidePayables || [])];
+      const rawPayList = cargoIncludePayables
+        ? (b.payables && b.payables.length > 0 ? b.payables : [...(b.insidePayables || []), ...(b.outsidePayables || [])])
+        : [];
       // When wharfrent is excluded, merge inside+outside rows of the same charge into one total-tons row
       const payList = !includeWharfrent
         ? (() => {
@@ -3644,20 +3712,24 @@ function printBill(type) {
       payList.forEach(p => {
         rows += printTr(p.label, `${fmtN(p.rate)}/ton`, `${fmtN(p.tons ?? b.totalWeight)} ton(s)`, '—', '—', fmt(p.amt), 'sub');
       });
-      if (b.nBase > 0) rows += printTotRow('Total Payable (Base for VAT)', fmt(b.nBase));
-      if (b.nVat  > 0) rows += printTotRow(`VAT @ ${(b.vatRate * 100).toFixed(1)}%`, fmt(b.nVat), 'vrow');
-      if (b.nLevy > 0) rows += printTotRow('Levy Charge (No VAT)', fmt(b.nLevy), 'lrow');
-      rows += printTotRow('GRAND TOTAL', fmt(b.nTotal), 'grand');
+      const adjNBase = cargoIncludePayables ? b.nBase : 0;
+      const adjNVat  = cargoIncludePayables ? b.nVat  : 0;
+      const adjNLevy = cargoIncludePayables ? b.nLevy : 0;
+      const adjNTotal = adjNBase + adjNVat + adjNLevy;
+      if (adjNBase > 0) rows += printTotRow('Total Payable (Base for VAT)', fmt(adjNBase));
+      if (adjNVat  > 0) rows += printTotRow(`VAT @ ${(b.vatRate * 100).toFixed(1)}%`, fmt(adjNVat), 'vrow');
+      if (adjNLevy > 0) rows += printTotRow('Levy Charge (No VAT)', fmt(adjNLevy), 'lrow');
+      rows += printTotRow('GRAND TOTAL', fmt(adjNTotal), 'grand');
       const payableBadge = `${fmtN(b.totalWeight)} ton(s)${!includeWharfrent ? ' — Wharfrent Excluded' : ' — Within Free Time'}`;
       const payableNote  = !includeWharfrent
         ? 'Wharfrent charges excluded — payable charges only'
         : 'No wharfrent — delivery within free storage period';
       sectionsHtml += `${secHead('PAYABLE CHARGES', payableBadge)}<div class="section-sub">${payableNote}</div><div class="no-break">${buildPrintTable(rows)}</div>`;
-      grandTotal = b.nTotal;
+      grandTotal = adjNTotal;
       grandLabel = 'GENERAL CARGO GRAND TOTAL';
     }
     // Charge composition breakdown — only when wharfrent is included
-    if (includeWharfrent) sectionsHtml += buildCargoBreakdownPrintHtml(b);
+    if (includeWharfrent && cargoIncludePayables) sectionsHtml += buildCargoBreakdownPrintHtml(b);
     const hasW = (b.hasWharfrent || b.isPartBilling) && includeWharfrent;
     opts = {
       title: !includeWharfrent ? 'GENERAL CARGO BILL — PAYABLE CHARGES' : (b.isPartBilling ? 'GENERAL CARGO BILL — PART BILLING' : 'GENERAL CARGO BILL'),
@@ -3754,9 +3826,9 @@ document.querySelectorAll('.card').forEach((card, i) => {
   card.style.setProperty('--card-delay', `${0.7 + i * 0.1}s`);
 });
 
-// Hidden admin access: Ctrl+Shift+A
-document.addEventListener('keydown', e => {
-  if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+// Hidden admin access: Ctrl+Shift+Click anywhere
+document.addEventListener('mousedown', e => {
+  if (e.ctrlKey && e.shiftKey) {
     e.preventDefault();
     toggleAdmin();
   }

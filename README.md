@@ -1,4 +1,4 @@
-# Port Billing System — v3.1
+# Port Billing System — v3.2
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles and general cargo with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -82,7 +82,7 @@ The user enters **Inside tons** (full rate) and **Outside tons** (½ rate) separ
 Landing, Removal, and Hoisting rates are always formula-derived and are read-only even in Admin mode.
 
 ### Self-Drive Wharfrent
-When **Hoisting Charge** is enabled, a **Self Drive** sub-row appears below it. The user can enter separate inside and outside self-drive tonnages. Those tons are charged at **Car Billing wharfrent slab rates** (instead of General Cargo rates), including old/new rate split on the 23/07/2024 cut-off — identical to the Car module.
+A dedicated **Self Drive** card lets the user enter separate inside and outside self-drive tonnages. Those tons are charged at **Car Billing wharfrent slab rates** (instead of General Cargo rates), including the old/new rate split on the 23/07/2024 cut-off — identical to the Car module. Self Drive is **independent of the Hoisting toggle**.
 
 | Self-drive | Wharfrent rate applied |
 |---|---|
@@ -90,7 +90,7 @@ When **Hoisting Charge** is enabled, a **Self Drive** sub-row appears below it. 
 | Self-drive tons (inside) | Car Billing rates — full rate |
 | Self-drive tons (outside) | Car Billing rates — ½ rate |
 
-The bill table shows General Cargo and Self-Drive sections separately. Self-drive billing works in both standard and Part Billing mode. Self-drive ton inputs validate that each value does not exceed the corresponding inside/outside tonnage.
+The bill table shows General Cargo and Self-Drive sections separately. Self-drive billing works in both standard and Part Billing mode. In Part Billing, each stage independently tracks its remaining self-drive tonnage (clamped to the stage's total inside/outside balance). Self-drive ton inputs validate that each value does not exceed the corresponding inside/outside tonnage.
 
 ---
 
@@ -126,7 +126,10 @@ The invoice includes:
 Two optional header fields in the Cargo module — **BL Number** (Bill of Lading) and **C&F Agent Name** (Clearing & Forwarding agent) — flow through to the invoice header for document reference.
 
 ### Part Billing (Cargo)
-General Cargo supports multi-stage part delivery — enter a balance date and partial tonnage per stage. Each stage computes its own wharfrent independently, and results are summed for the final bill. The stages UI uses a **timeline layout** with numbered dots, a stage-count badge, and a *Bill up to today* toggle. Charge-checkbox states are saved and restored when toggling part billing on or off.
+General Cargo supports multi-stage part delivery — enter a balance date and partial tonnage per stage. Each stage computes its own wharfrent independently, and results are summed for the final bill. The stages UI uses a **timeline layout** with numbered dots, a stage-count badge, and a *Bill up to today* toggle. Charge-checkbox states are saved and restored when toggling part billing on or off. When Self Drive is active, each stage also shows SD Inside / SD Outside balance inputs clamped to the stage's remaining tonnage.
+
+### Payables Toggle (Cargo)
+The cargo results header has a **Payables** toggle alongside the Wharfrent toggle. Switching it off removes all payable charges from the printed invoice and recalculates grand totals — useful for generating a wharfrent-only bill. The toggle resets when the Cargo form is reset.
 
 ### Toast Notifications
 Validation errors and admin events (login, logout, rate reset) surface as non-blocking **toast banners** at the bottom of the screen — replacing `alert()` dialogs. Toasts are colour-coded: green (success), blue (info), gold (warning), red (error).
@@ -147,16 +150,20 @@ Single-column on mobile, two-column grid at ≥ 768 px. Tested from 360 px up to
 
 ## Admin Mode
 
-The admin button is hidden from end users by default (CSS `display:none`). To reveal it:
+The admin button is hidden from end users by default (CSS `display:none`). To reveal it, either:
 
 ```js
 // Open browser DevTools → Console, then run:
 document.getElementById('adminBtn').style.display = 'inline-flex';
 ```
 
+Or hold **Ctrl + Shift** and click anywhere on the page.
+
 **Credentials:** `admin` / `admin`
 
 Admin mode unlocks all rate fields (wharfrent slabs, payable charge rates, free-time days, VAT rate) for editing. The password is SHA-256 hashed in `main.js` — never stored in plain text. Login is locked after 5 failed attempts; a page refresh resets the counter.
+
+Setting **Free Time to 0** is supported — wharfrent then starts on the CLD itself, and the free-time strip shows "No free time" instead of the day pills.
 
 To set a custom password, replace `AP_HASH` in `main.js` with `SHA-256(yourNewPassword)`.
 

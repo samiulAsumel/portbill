@@ -192,9 +192,10 @@
                     type="number"
                     id="freeDays"
                     value="4"
+                    min="0"
                     class="ro"
                     readonly
-                    oninput="carRefresh()"
+                    oninput="if(+this.value<0)this.value=0;carRefresh()"
                   />
                 </div>
               </div>
@@ -742,9 +743,10 @@
                     type="number"
                     id="c-freeDays"
                     value="4"
+                    min="0"
                     class="ro"
                     readonly
-                    oninput="cargoRefresh()"
+                    oninput="if(+this.value<0)this.value=0;cargoRefresh()"
                   />
                 </div>
               </div>
@@ -790,7 +792,7 @@
                     type="number"
                     id="c-weight"
                     class="cargo-glow"
-                    value="0"
+                    placeholder="0"
                     min="0"
                     step="1"
                     oninput="cargoRefresh()"
@@ -827,7 +829,7 @@
                       type="number"
                       id="c-inside"
                       class="cargo-glow"
-                      value="0"
+                      placeholder="0"
                       min="0"
                       step="1"
                       oninput="cargoRefresh()"
@@ -844,7 +846,7 @@
                       type="number"
                       id="c-outside"
                       class="cargo-glow"
-                      value="0"
+                      placeholder="0"
                       min="0"
                       step="1"
                       oninput="cargoRefresh()"
@@ -889,6 +891,57 @@
                     <span class="pb-toggle-track"><span class="pb-toggle-thumb"></span></span>
                   </label>
                   <span class="pbs-uptodate-lbl">Bill up to today</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- SELF DRIVE SECTION -->
+            <div class="card sd-card">
+              <div class="sd-header">
+                <div class="sd-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 4 1 2 3v4h-6V8Z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                </div>
+                <div>
+                  <div class="sd-title">Self Drive</div>
+                  <div class="sd-sub">Wharfrent at Car rates · 50% hoisting if applicable</div>
+                </div>
+              </div>
+              <div class="sd-rows">
+                <div>
+                  <div class="pc-row" style="--pc-color:var(--blue);">
+                    <label class="pc-toggle">
+                      <input type="checkbox" id="c-chkSelfDriveInside" oninput="cargoRefresh()" />
+                      <span class="pc-slider"></span>
+                    </label>
+                    <div class="pc-accent" style="background:var(--blue);"></div>
+                    <div class="pc-body">
+                      <div class="pc-name"><span style="color:var(--blue)">Inside</span> Self Drive</div>
+                      <div class="pc-note" style="white-space:nowrap;">Car rates · old/new split</div>
+                    </div>
+                    <div class="fg sd-inp-fg">
+                      <label class="lbl" for="c-selfDriveTonInside">Weight (tons)</label>
+                      <input type="number" id="c-selfDriveTonInside" class="sd-glow ton-inactive" placeholder="0" min="0" step="1" oninput="cargoRefresh()" />
+                    </div>
+                  </div>
+                  <span class="ton-err-msg sd-err" id="c-selfDriveTonInside-err">⚠ Enter inside self drive weight &gt; 0</span>
+                </div>
+                <div>
+                  <div class="pc-row" style="--pc-color:var(--purple);">
+                    <label class="pc-toggle">
+                      <input type="checkbox" id="c-chkSelfDriveOutside" oninput="cargoRefresh()" />
+                      <span class="pc-slider"></span>
+                    </label>
+                    <div class="pc-accent" style="background:var(--purple);"></div>
+                    <div class="pc-body">
+                      <div class="pc-name"><span style="color:var(--purple)">Outside</span> Self Drive</div>
+                      <div class="pc-note" style="white-space:nowrap;">Car rates · old/new split</div>
+                    </div>
+                    <div class="fg sd-inp-fg">
+                      <label class="lbl" for="c-selfDriveTonOutside">Weight (tons)</label>
+                      <input type="number" id="c-selfDriveTonOutside" class="sd-glow ton-inactive" placeholder="0" min="0" step="1" oninput="cargoRefresh()" />
+                    </div>
+                  </div>
+                  <span class="ton-err-msg sd-err" id="c-selfDriveTonOutside-err">⚠ Enter outside self drive weight &gt; 0</span>
                 </div>
               </div>
             </div>
@@ -981,51 +1034,6 @@
                   <div class="pc-vat pc-vat-yes">VAT</div>
                 </div>
 
-                <div id="c-selfDriveRow" style="display:none;padding:4px 0 6px 52px;border-left:2px solid rgba(201,168,50,0.18);margin-left:8px;margin-top:-3px;">
-                  <div class="r2" style="gap:14px;">
-                    <div class="fg">
-                      <label class="lbl" for="c-selfDriveTonInside">
-                        <input
-                          type="checkbox"
-                          id="c-chkSelfDriveInside"
-                          oninput="cargoRefresh()"
-                          style="margin-right:5px;vertical-align:middle;cursor:pointer;accent-color:var(--gold-hi);"
-                        /><span style="color:var(--blue)">Inside</span> Self Drive (ton)
-                      </label>
-                      <input
-                        type="number"
-                        id="c-selfDriveTonInside"
-                        class="cargo-glow ton-inactive"
-                        value="0"
-                        min="0"
-                        step="1"
-                        oninput="cargoRefresh()"
-                      />
-                      <span class="ton-err-msg" id="c-selfDriveTonInside-err">⚠ Enter inside self drive weight &gt; 0</span>
-                    </div>
-                    <div class="fg">
-                      <label class="lbl" for="c-selfDriveTonOutside">
-                        <input
-                          type="checkbox"
-                          id="c-chkSelfDriveOutside"
-                          oninput="cargoRefresh()"
-                          style="margin-right:5px;vertical-align:middle;cursor:pointer;accent-color:var(--gold-hi);"
-                        /><span style="color:var(--purple)">Outside</span> Self Drive (ton)
-                      </label>
-                      <input
-                        type="number"
-                        id="c-selfDriveTonOutside"
-                        class="cargo-glow ton-inactive"
-                        value="0"
-                        min="0"
-                        step="1"
-                        oninput="cargoRefresh()"
-                      />
-                      <span class="ton-err-msg" id="c-selfDriveTonOutside-err">⚠ Enter outside self drive weight &gt; 0</span>
-                    </div>
-                  </div>
-                </div>
-
                 <div class="pc-row" style="--pc-color:var(--green);">
                   <label class="pc-toggle">
                     <input type="checkbox" id="c-chkLevy" checked oninput="cargoRefresh()" />
@@ -1056,7 +1064,7 @@
                     type="number"
                     id="c-removalTon"
                     class="cargo-glow ton-inactive"
-                    value="0"
+                    placeholder="0"
                     min="0"
                     step="1"
                     oninput="cargoRefresh()"
@@ -1071,7 +1079,7 @@
                     type="number"
                     id="c-weighmentTon"
                     class="cargo-glow ton-inactive"
-                    value="0"
+                    placeholder="0"
                     min="0"
                     step="1"
                     oninput="cargoRefresh()"
@@ -1319,6 +1327,13 @@
                   <span class="pb-toggle-track"><span class="pb-toggle-thumb"></span></span>
                 </label>
                 <span class="print-opt-label">Wharfrent</span>
+              </div>
+              <div class="print-opt-toggle payables-toggle">
+                <label class="pb-toggle">
+                  <input type="checkbox" id="c-chkAllPayables" checked onchange="onToggleAllPayables(this.checked)">
+                  <span class="pb-toggle-track"><span class="pb-toggle-thumb"></span></span>
+                </label>
+                <span class="print-opt-label payables-label">Payables</span>
               </div>
             <button type="button" class="print-btn cargo" onclick="printBill('cargo')" aria-label="Print cargo bill">
               <svg
