@@ -28,7 +28,7 @@ CLD (Common Landing Day) counts as Day 1. Four days are free by default (`CLD + 
 | Days 8 – 14 | 185 Tk / ton / day | 115 Tk / ton / day |
 | Day 15 + | 295 Tk / ton / day | 185 Tk / ton / day |
 
-When CLD falls on or before 22/07/2024 and delivery falls on or after 23/07/2024, the engine applies **split billing** — old rates up to 22 Jul, new rates from 23 Jul — and shows a `⚡ SPLIT BILLING` badge.
+When CLD falls on or before 22/07/2024 and delivery falls on or after 23/07/2024, the engine applies **split billing** — old rates up to 22 Jul, new rates from 23 Jul — and shows a `⚡ Split Billing` badge. The bill table labels the two periods as **Old Rate Period** and **New Rate Period**.
 
 ### Inside vs. Outside
 Every bill produces two totals:
@@ -117,7 +117,7 @@ The invoice includes:
 
 - Port authority letterhead with document reference and timestamp
 - Itemised charge tables (wharfrent slabs, payable charges, VAT, levy, grand totals)
-- Color-coded Inside / Outside section headers and split summary
+- Color-coded Inside / Outside section headers and split summary; when self-drive tons are present the header badge shows a `Nt Normal + Nt SD` breakdown
 - Grand total bar with VAT note
 - Three-column authorisation signature block
 - `NOT AN OFFICIAL DOCUMENT` disclaimer
@@ -126,7 +126,7 @@ The invoice includes:
 Two optional header fields in the Cargo module — **BL Number** (Bill of Lading) and **C&F Agent Name** (Clearing & Forwarding agent) — flow through to the invoice header for document reference.
 
 ### Part Billing (Cargo)
-General Cargo supports multi-stage part delivery — enter a balance date and partial tonnage per stage. Each stage computes its own wharfrent independently, and results are summed for the final bill. The stages UI uses a **timeline layout** with numbered dots, a stage-count badge, and a *Bill up to today* toggle. Charge-checkbox states are saved and restored when toggling part billing on or off. When Self Drive is active, each stage also shows SD Inside / SD Outside balance inputs clamped to the stage's remaining tonnage.
+General Cargo supports multi-stage part delivery — enter a balance date and partial tonnage per stage. Each stage computes its own wharfrent independently, and results are summed for the final bill. The stages UI uses a **timeline layout** with numbered dots, a stage-count badge, and a *Bill up to today* toggle. Charge-checkbox states are saved and restored when toggling part billing on or off. When Self Drive is active, each stage also shows SD Inside / SD Outside balance inputs clamped to the stage's remaining tonnage. The max-tonnage hint on each balance input shows a combined `Nt Normal + Nt SD` breakdown when self-drive weight is present.
 
 ### Payables Toggle (Cargo)
 The cargo results header has a **Payables** toggle alongside the Wharfrent toggle. Switching it off removes all payable charges from the printed invoice and recalculates grand totals — useful for generating a wharfrent-only bill. The toggle resets when the Cargo form is reset.
