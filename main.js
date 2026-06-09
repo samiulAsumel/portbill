@@ -726,7 +726,7 @@ function carCompute() {
     }
   }
   const insideStor = slabs.reduce((a, s) => a + s.amt, 0);
-  const outsideHalf = insideStor / 2;
+  const outsideHalf = insideStor * 0.50;
   // Payable charges (always apply) - matching index_base.html logic
   const payables = [];
   if (gb('chkRiver'))
@@ -916,20 +916,20 @@ function buildCarBillTable(b, side) {
         if (oldS.length) {
           rows += `<tr class="sep"><td colspan="6">◀ Old Rate Period — Up to 22/07/2024</td></tr>`;
           oldS.forEach(s => {
-            const da = side === 'inside' ? s.amt : s.amt / 2;
+            const da = side === 'inside' ? s.amt : s.amt * 0.50;
             rows += `<tr><td>${s.label}</td><td style="color:var(--red)">${fmtN(s.rate)}/t/d${side === 'inside' ? '' : ' × 0.50'}</td><td>${fd(s.from)}</td><td>${fd(s.to)}</td><td><span class="dp">${s.days}</span></td><td>${fmt(da)}</td></tr>`;
           });
         }
         if (newS.length) {
           rows += `<tr class="sep"><td colspan="6">▶ New Rate Period — From 23/07/2024</td></tr>`;
           newS.forEach(s => {
-            const da = side === 'inside' ? s.amt : s.amt / 2;
+            const da = side === 'inside' ? s.amt : s.amt * 0.50;
             rows += `<tr><td>${s.label}</td><td style="color:var(--green)">${fmtN(s.rate)}/t/d${side === 'inside' ? '' : ' × 0.50'}</td><td>${fd(s.from)}</td><td>${fd(s.to)}</td><td><span class="dp">${s.days}</span></td><td>${fmt(da)}</td></tr>`;
           });
         }
       } else {
         b.slabs.forEach(s => {
-          const da = side === 'inside' ? s.amt : s.amt / 2;
+          const da = side === 'inside' ? s.amt : s.amt * 0.50;
           rows += `<tr><td>${s.label}</td><td>${fmtN(s.rate)}/t/d${side === 'inside' ? '' : ' × 0.50'}</td><td>${fd(s.from)}</td><td>${fd(s.to)}</td><td><span class="dp">${s.days}</span></td><td>${fmt(da)}</td></tr>`;
         });
       }
@@ -1464,7 +1464,7 @@ function computePartBillingWharfrent(cld, freeEnd, storStart, initialInside, ini
     const insideSdSlabs      = pSdInside  > 0 ? calcCarBillingSdSlabs(cld, prevEnd, blockStart, deliveryDate, periodDays, pSdInside,  daysOffset, or1Car, or2Car, or3Car, nr1Car, nr2Car, nr3Car) : [];
     const outsideSdSlabs     = pSdOutside > 0 ? calcCarBillingSdSlabs(cld, prevEnd, blockStart, deliveryDate, periodDays, pSdOutside, daysOffset, or1Car, or2Car, or3Car, nr1Car, nr2Car, nr3Car) : [];
     const insideWharfrent  = insideNormalSlabs.reduce((a, s) => a + s.amt, 0)  + insideSdSlabs.reduce((a, s) => a + s.amt, 0);
-    const outsideWharfrent = (outsideNormalSlabs.reduce((a, s) => a + s.amt, 0) + outsideSdSlabs.reduce((a, s) => a + s.amt, 0)) / 2;
+    const outsideWharfrent = (outsideNormalSlabs.reduce((a, s) => a + s.amt, 0) + outsideSdSlabs.reduce((a, s) => a + s.amt, 0)) * 0.50;
     periods.push({
       invalid: false,
       periodNum: i + 1,
@@ -1530,7 +1530,7 @@ function computePartBillingWharfrent(cld, freeEnd, storStart, initialInside, ini
           insideSdSlabs: cwInsideSdSlabs,
           outsideSdSlabs: cwOutsideSdSlabs,
           insideWharfrent:  cwInsideNormalSlabs.reduce((a, s) => a + s.amt, 0) + cwInsideSdSlabs.reduce((a, s) => a + s.amt, 0),
-          outsideWharfrent: (cwOutsideNormalSlabs.reduce((a, s) => a + s.amt, 0) + cwOutsideSdSlabs.reduce((a, s) => a + s.amt, 0)) / 2,
+          outsideWharfrent: (cwOutsideNormalSlabs.reduce((a, s) => a + s.amt, 0) + cwOutsideSdSlabs.reduce((a, s) => a + s.amt, 0)) * 0.50,
           balanceInsideAfter: cwInside,
           balanceOutsideAfter: cwOutside,
           isCurrentDate: true,
@@ -1575,13 +1575,13 @@ function buildPartBillingBillTable(b, side) { //NOSONAR
     const dayRange_s = `Day ${p.daysOffset + 1}–${p.daysOffset + p.periodDays}`;
     rows += `<tr class="sep"><td colspan="6">Period ${p.periodNum}: ${fd(p.blockStart)} → ${fd(p.deliveryDate)} | ${tonLabel_s} | ${p.periodDays} days (${dayRange_s})${balNote}</td></tr>`;
     normalSlabs.forEach(s => {
-      const dispAmt  = isIn ? s.amt  : s.amt  / 2;
+      const dispAmt  = isIn ? s.amt  : s.amt  * 0.50;
       rows += `<tr><td>${s.label}</td><td>${fmtN(s.rate)}/t/d${halfSuffix}</td><td>${fd(s.from)}</td><td>${fd(s.to)}</td><td><span class="dp">${s.days}</span></td><td>${fmt(dispAmt)}</td></tr>`;
     });
     if (sdSlabs.length > 0) {
       rows += `<tr class="sep" style="font-style:italic;"><td colspan="6">↳ Self Drive Wharfrent (Car Billing Rates) — ${fmtN(sdW)} ton(s)</td></tr>`;
       sdSlabs.forEach(s => {
-        const dispAmt  = isIn ? s.amt  : s.amt  / 2;
+        const dispAmt  = isIn ? s.amt  : s.amt  * 0.50;
         rows += `<tr><td>${s.label}</td><td>${fmtN(s.rate)}/t/d${halfSuffix}</td><td>${fd(s.from)}</td><td>${fd(s.to)}</td><td><span class="dp">${s.days}</span></td><td>${fmt(dispAmt)}</td></tr>`;
       });
     }
@@ -1634,14 +1634,14 @@ function buildPartBillingPrintSection(b, side) { //NOSONAR
     const dayRange_p = `Day ${p.daysOffset + 1}–${p.daysOffset + p.periodDays}`;
     rows += `<tr class="sep"><td colspan="6">Stage ${p.periodNum}: ${fd(p.blockStart)} &rarr; ${fd(p.deliveryDate)} &nbsp;|&nbsp; ${tonLabel_p} &nbsp;|&nbsp; ${p.periodDays} day(s) (${dayRange_p})${balNote}</td></tr>`;
     normalSlabs.forEach(s => {
-      const da = isIn ? s.amt  : s.amt  / 2;
+      const da = isIn ? s.amt  : s.amt  * 0.50;
       rows += printTr(s.label, `${fmtN(s.rate)}/t/d${isIn ? '' : ' × 0.50'}`, fd(s.from), fd(s.to), s.days, fmt(da));
       rows += isIn ? printCalcRow(s.rate, normalW_p, s.days, da) : printCalcRowHalf(s.rate, normalW_p, s.days, da);
     });
     if (sdSlabs.length > 0) {
       rows += `<tr class="sep"><td colspan="6">Self Drive Wharfrent (Car Billing Rates) — ${fmtN(sdW)} ton(s)</td></tr>`;
       sdSlabs.forEach(s => {
-        const da = isIn ? s.amt  : s.amt  / 2;
+        const da = isIn ? s.amt  : s.amt  * 0.50;
         rows += printTr(s.label, `${fmtN(s.rate)}/t/d${isIn ? '' : ' × 0.50'}`, fd(s.from), fd(s.to), s.days, fmt(da));
         rows += isIn ? printCalcRow(s.rate, sdW, s.days, da) : printCalcRowHalf(s.rate, sdW, s.days, da);
       });
@@ -1775,7 +1775,7 @@ function cargoCompute() {
   // Outside wharfrent = ½ × (GC full rate × normalW + Car full rate × sdW)
   const outsideWharfrent = isPartBilling
     ? (pbPeriods || []).filter(p => !p.invalid).reduce((a, p) => a + p.outsideWharfrent, 0)
-    : (outsideSlabs.reduce((a, s) => a + s.amt, 0) + outsideSdSlabs.reduce((a, s) => a + s.amt, 0)) / 2;
+    : (outsideSlabs.reduce((a, s) => a + s.amt, 0) + outsideSdSlabs.reduce((a, s) => a + s.amt, 0)) * 0.50;
 
   // Payable charges - apply based on actual tons (inside or outside)
   const payables = [];
@@ -2195,21 +2195,21 @@ function buildCargoBillTable(b, side) {
     if (b.hasWharfrent) {
       // Normal GC-rate portion
       normalSlabs.forEach(s => {
-        const dispAmt  = isIn ? s.amt  : s.amt  / 2;
+        const dispAmt  = isIn ? s.amt  : s.amt  * 0.50;
         rows += `<tr><td>${s.label}</td><td>${fmtN(s.rate)}/t/d${halfSuffix}</td><td>${fd(s.from)}</td><td>${fd(s.to)}</td><td><span class="dp">${s.days}</span></td><td>${fmt(dispAmt)}</td></tr>`;
       });
       // Self-drive Car-rate portion
       if (sdSlabs.length > 0) {
         rows += `<tr class="sep"><td colspan="6">Self Drive Wharfrent (Car Billing Rates) — ${fmtN(sdW)} ton(s)</td></tr>`;
         sdSlabs.forEach(s => {
-          const dispAmt  = isIn ? s.amt  : s.amt  / 2;
+          const dispAmt  = isIn ? s.amt  : s.amt  * 0.50;
           rows += `<tr><td>${s.label}</td><td>${fmtN(s.rate)}/t/d${halfSuffix}</td><td>${fd(s.from)}</td><td>${fd(s.to)}</td><td><span class="dp">${s.days}</span></td><td>${fmt(dispAmt)}</td></tr>`;
         });
       }
       // Sub-total row(s)
       if (normalSlabs.length > 0 && sdSlabs.length > 0) {
-        const normalAmt = isIn ? normalSlabs.reduce((a, s) => a + s.amt, 0) : normalSlabs.reduce((a, s) => a + s.amt, 0) / 2;
-        const sdAmt     = isIn ? sdSlabs.reduce((a, s) => a + s.amt, 0)     : sdSlabs.reduce((a, s) => a + s.amt, 0)     / 2;
+        const normalAmt = isIn ? normalSlabs.reduce((a, s) => a + s.amt, 0) : normalSlabs.reduce((a, s) => a + s.amt, 0) * 0.50;
+        const sdAmt     = isIn ? sdSlabs.reduce((a, s) => a + s.amt, 0)     : sdSlabs.reduce((a, s) => a + s.amt, 0)     * 0.50;
         rows += `<tr class="sub"><td colspan="3">Cargo Wharfrent Sub-Total${halfNote} — ${fmtN(normalW)} ton(s)</td><td></td><td><span class="dp dpg">${b.totalDays}</span></td><td>${fmt(normalAmt)}</td></tr>`;
         rows += `<tr class="sub"><td colspan="3">Self Drive Wharfrent Sub-Total${halfNote} — ${fmtN(sdW)} ton(s)</td><td></td><td><span class="dp dpg">${b.totalDays}</span></td><td>${fmt(sdAmt)}</td></tr>`;
       } else {
@@ -3569,7 +3569,7 @@ function printBill(type) {
           if (oldS.length) {
             rows += `<tr class="sep"><td colspan="6">OLD RATE PERIOD — Up to 22/07/2024</td></tr>`;
             oldS.forEach(s => {
-              const da = isIn ? s.amt : s.amt / 2;
+              const da = isIn ? s.amt : s.amt * 0.50;
               rows += printTr(s.label, `${fmtN(s.rate)}/t/d${isIn ? '' : ' × 0.50'}`, fd(s.from), fd(s.to), s.days, fmt(da));
               rows += isIn ? printCalcRow(s.rate, b.weight, s.days, da) : printCalcRowHalf(s.rate, b.weight, s.days, da);
             });
@@ -3577,14 +3577,14 @@ function printBill(type) {
           if (newS.length) {
             rows += `<tr class="sep"><td colspan="6">NEW RATE PERIOD — From 23/07/2024</td></tr>`;
             newS.forEach(s => {
-              const da = isIn ? s.amt : s.amt / 2;
+              const da = isIn ? s.amt : s.amt * 0.50;
               rows += printTr(s.label, `${fmtN(s.rate)}/t/d${isIn ? '' : ' × 0.50'}`, fd(s.from), fd(s.to), s.days, fmt(da));
               rows += isIn ? printCalcRow(s.rate, b.weight, s.days, da) : printCalcRowHalf(s.rate, b.weight, s.days, da);
             });
           }
         } else {
           b.slabs.forEach(s => {
-            const da = isIn ? s.amt : s.amt / 2;
+            const da = isIn ? s.amt : s.amt * 0.50;
             rows += printTr(s.label, `${fmtN(s.rate)}/t/d${isIn ? '' : ' × 0.50'}`, fd(s.from), fd(s.to), s.days, fmt(da));
             rows += isIn ? printCalcRow(s.rate, b.weight, s.days, da) : printCalcRowHalf(s.rate, b.weight, s.days, da);
           });
@@ -3716,7 +3716,7 @@ function printBill(type) {
         let rows = '';
         // Normal GC-rate slabs
         normalSlabs.forEach(s => {
-          const da = isIn ? s.amt  : s.amt  / 2;
+          const da = isIn ? s.amt  : s.amt  * 0.50;
           rows += printTr(s.label, `${fmtN(s.rate)}/t/d${rateSuffix}`, fd(s.from), fd(s.to), s.days, fmt(da));
           rows += isIn ? printCalcRow(s.rate, normalW, s.days, da) : printCalcRowHalf(s.rate, normalW, s.days, da);
         });
@@ -3724,15 +3724,15 @@ function printBill(type) {
         if (sdSlabs.length > 0) {
           rows += `<tr class="sep"><td colspan="6">Self Drive Wharfrent (Car Billing Rates) — ${fmtN(sdW)} ton(s)</td></tr>`;
           sdSlabs.forEach(s => {
-            const da = isIn ? s.amt  : s.amt  / 2;
+            const da = isIn ? s.amt  : s.amt  * 0.50;
             rows += printTr(s.label, `${fmtN(s.rate)}/t/d${rateSuffix}`, fd(s.from), fd(s.to), s.days, fmt(da));
             rows += isIn ? printCalcRow(s.rate, sdW, s.days, da) : printCalcRowHalf(s.rate, sdW, s.days, da);
           });
         }
         const wharfrentHalfNote = isIn ? '' : ' (½ Rate)';
         if (normalSlabs.length > 0 && sdSlabs.length > 0) {
-          const normalAmt = isIn ? normalSlabs.reduce((a, s) => a + s.amt, 0) : normalSlabs.reduce((a, s) => a + s.amt, 0) / 2;
-          const sdAmt     = isIn ? sdSlabs.reduce((a, s) => a + s.amt, 0)     : sdSlabs.reduce((a, s) => a + s.amt, 0)     / 2;
+          const normalAmt = isIn ? normalSlabs.reduce((a, s) => a + s.amt, 0) : normalSlabs.reduce((a, s) => a + s.amt, 0) * 0.50;
+          const sdAmt     = isIn ? sdSlabs.reduce((a, s) => a + s.amt, 0)     : sdSlabs.reduce((a, s) => a + s.amt, 0)     * 0.50;
           rows += printTotRow(`GC Wharfrent Sub-Total${wharfrentHalfNote} — ${fmtN(normalW)} normal ton(s) × ${b.totalDays} day(s)`, fmt(normalAmt), 'sub');
           rows += printTotRow(`Self Drive Wharfrent Sub-Total${wharfrentHalfNote} — ${fmtN(sdW)} SD ton(s) × ${b.totalDays} day(s)`, fmt(sdAmt), 'sub');
         } else {
