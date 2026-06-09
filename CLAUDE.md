@@ -47,7 +47,7 @@ Four files total — everything is self-contained vanilla JS/CSS:
 
 **Global state flags** (Cargo): `cargoIncludeWharfrent` (bool, default `true`) and `cargoIncludePayables` (bool, default `true`) control whether those sections appear in the printed invoice. Both are toggled by checkbox controls in the cargo results header and both are reset to `true` in `cargoReset()`.
 
-**Placeholder pattern**: All user-facing quantity inputs use `placeholder="0"` — never `value="0"`. Part billing balance inputs follow the same rule. In `pbBalanceChange()` and `pbSdBalanceChange()`, always assign `value = clamped || ''` (not `value = 0`) so the placeholder shows when the value falls back to zero.
+**Placeholder pattern**: All user-facing quantity inputs use `placeholder="0"` — never `value="0"`. Part billing balance inputs follow the same rule. In `pbBalanceChange()` and `pbSdBalanceChange()`, `rawVal` is passed as a string (`this.value`). Assign `inp.value = isEmpty ? '' : clamped` — empty string (field cleared) shows placeholder, explicit "0" typed by the user shows 0.
 
 **Toggle-switch checkboxes** (`.pc-toggle`): The native `<input type="checkbox">` inside every toggle is visually hidden (`opacity:0; width:0; height:0`). Do not try to interact with it via Playwright `click()` or `check()` — it will report as not visible. Instead set state programmatically: `el.checked = true; el.dispatchEvent(new Event('change', { bubbles: true }))`. To click via CSS, click the `.pc-toggle` label element, not the input.
 

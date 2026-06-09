@@ -241,6 +241,7 @@
                     placeholder="0"
                     min="0"
                     step="1"
+                    value="2"
                     oninput="onWeightChange()"
                   />
                   <div class="weight-warn" id="weightWarn">
@@ -795,7 +796,7 @@
                     placeholder="0"
                     min="0"
                     step="1"
-                    oninput="cargoRefresh()"
+                    oninput="if(this.value!==''&&+this.value<0)this.value=0; cargoRefresh();"
                   />
                 </div>
               </div>
@@ -832,7 +833,7 @@
                       placeholder="0"
                       min="0"
                       step="1"
-                      oninput="cargoRefresh()"
+                      oninput="if(this.value!==''&&+this.value<0)this.value=0; cargoRefresh();"
                     />
                   </div>
                   <div class="fg">
@@ -849,7 +850,7 @@
                       placeholder="0"
                       min="0"
                       step="1"
-                      oninput="cargoRefresh()"
+                      oninput="if(this.value!==''&&+this.value<0)this.value=0; cargoRefresh();"
                     />
                   </div>
                   <div class="fg">
