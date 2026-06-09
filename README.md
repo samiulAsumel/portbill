@@ -20,6 +20,8 @@ A zero-dependency, browser-native billing calculator for **Port Authority wharfr
 ### Free Time
 CLD (Common Landing Day) counts as Day 1. Four days are free by default (`CLD + 3`). Wharfrent starts the next day after free time ends.
 
+The vehicle weight input defaults to **2 tons**.
+
 ### Wharfrent Rates
 
 | Slab | New rates (from 23/07/2024) | Old rates (up to 22/07/2024) |
@@ -66,7 +68,7 @@ Same rule: CLD + 3 days free, wharfrent starts on Day 5.
 | Day 15 + | 25 Tk / ton / day |
 
 ### Inside / Outside Weight Split
-The user enters **Inside tons** (full rate) and **Outside tons** (½ rate) separately. They must equal the total cargo weight — a live `Total Check` badge turns red if they don't, blocking bill generation.
+The user enters **Inside tons** (full rate) and **Outside tons** (½ rate) separately. They must equal the total cargo weight — a live `Total Check` badge turns red if they don't, blocking bill generation. Tonnage inputs clamp any negative value to 0 on input.
 
 ### Payable Charges
 
@@ -116,9 +118,12 @@ The invoice uses a unified **Maritime Authority** color palette across both modu
 The invoice includes:
 
 - Port authority letterhead with document reference and timestamp
+- **"How This Bill Is Calculated" explanation box** — a plain-language panel at the top of each invoice explaining CLD, free time, slab system, weight split, VAT, and levy in terms of the specific bill being printed. Separate variants for Car and General Cargo modules.
 - Itemised charge tables (wharfrent slabs, payable charges, VAT, levy, grand totals)
+- **Calculation sub-rows** under each slab line showing the full arithmetic: `↳ Rate Tk/ton/day × Ntons × Ndays = Tk Amount`. Outside billing rows show the full base rate with an explicit `× 0.50` multiplier rather than displaying the pre-halved rate.
+- **VAT row** includes the full calculation expression inline: `VAT @ 15.0%  ·  Base × 15.0% = VATAmount`
 - Color-coded Inside / Outside section headers and split summary; when self-drive tons are present the header badge shows a `Nt Normal + Nt SD` breakdown
-- Grand total bar with VAT note
+- Grand total bar with VAT note; levy is clearly labelled **VAT-exempt**
 - Three-column authorisation signature block
 - `NOT AN OFFICIAL DOCUMENT` disclaimer
 
@@ -127,6 +132,8 @@ Two optional header fields in the Cargo module — **BL Number** (Bill of Lading
 
 ### Part Billing (Cargo)
 General Cargo supports multi-stage part delivery — enter a balance date and partial tonnage per stage. Each stage computes its own wharfrent independently, and results are summed for the final bill. The stages UI uses a **timeline layout** with numbered dots, a stage-count badge, and a *Bill up to today* toggle. Charge-checkbox states are saved and restored when toggling part billing on or off. When Self Drive is active, each stage also shows SD Inside / SD Outside balance inputs clamped to the stage's remaining tonnage. The max-tonnage hint on each balance input shows a combined `Nt Normal + Nt SD` breakdown when self-drive weight is present.
+
+In the printed invoice, each stage is labelled **Stage N:** (instead of "Period"). The last stage is marked *Final Delivery — no cargo remains*; intermediate stages show *Remaining balance after this delivery: Inside/Outside Nt*. The day-count note confirms it runs continuously from CLD.
 
 ### Payables Toggle (Cargo)
 The cargo results header has a **Payables** toggle alongside the Wharfrent toggle. Switching it off removes all payable charges from the printed invoice and recalculates grand totals — useful for generating a wharfrent-only bill. The toggle resets when the Cargo form is reset.
