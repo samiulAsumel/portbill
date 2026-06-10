@@ -259,6 +259,8 @@ To set a custom password, replace `AP_HASH` in `main.js` with `SHA-256(yourNewPa
 
 Edited rates are automatically saved to **`localStorage`** under the key `pb_admin_rates` and restored on every page load. An **↺ Reset Rates** button (visible only in Admin mode) wipes saved rates and restores all factory defaults from the `RATE_DEFAULTS` object.
 
+Saved values are validated on load: any rate that is not a finite number (corrupted or tampered `localStorage`) is silently replaced with its `RATE_DEFAULTS` factory value.
+
 ---
 
 ## Rounding
@@ -358,6 +360,17 @@ el.dispatchEvent(new Event('change', { bubbles: true }));
 
 ### Rate Table Inputs vs. Spans
 Each editable rate has a hidden `<input>` and a visible `<span>`. `syncSpan(inputId, spanId)` keeps them in sync. In admin mode the span is hidden and the input is shown.
+
+### HTML Escaping (XSS Guard)
+User-supplied free text is escaped with the `escHtml()` utility before being interpolated into any HTML string:
+
+```js
+const escHtml = v =>
+  String(v ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+```
+
+This covers the **BL Number** and **C&F Agent Name** fields (which flow into the printed invoice) and part-billing **stage dates** (re-rendered via `innerHTML`). Any new user-facing text field that ends up in an HTML template string must go through `escHtml()`.
 
 ---
 
