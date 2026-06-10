@@ -96,7 +96,9 @@ function loadSavedRates() {
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(RATE_STORAGE_KEY) || '{}'); } catch (_) { saved = {}; }
   Object.keys(RATE_DEFAULTS).forEach(id => {
-    const val = saved[id] !== undefined ? saved[id] : RATE_DEFAULTS[id];
+    let val = saved[id] !== undefined ? saved[id] : RATE_DEFAULTS[id];
+    // Guard against corrupted/tampered localStorage: only accept finite numbers
+    if (!Number.isFinite(Number.parseFloat(val))) val = RATE_DEFAULTS[id];
     const el = document.getElementById(id);
     if (!el) return;
     el.value = val;
@@ -206,6 +208,11 @@ function switchModule(mod) {
 // ════════════════════════════════════════
 //  UTILS
 // ════════════════════════════════════════
+// Escape user-supplied text before interpolating it into HTML strings (XSS guard)
+const escHtml = v =>
+  String(v ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+  );
 function formatDate(input) {
   let v = input.value.replaceAll(/\D/g, '');
   if (v.length >= 2) v = v.slice(0, 2) + '/' + v.slice(2);
@@ -1265,7 +1272,7 @@ function renderPartBillingStages() {
           <div class="fg">
             <label class="lbl" for="pb-date-${idx}">Delivery Date</label>
             <input type="text" id="pb-date-${idx}" class="cargo-glow" placeholder="DD/MM/YYYY" maxlength="10"
-              value="${stage.date}"
+              value="${escHtml(stage.date)}"
               oninput="formatDate(this); partBillingStages[${idx}].date=this.value; cargoRefresh();" />
           </div>
           <div class="pbs-balance-wrap">
@@ -1679,8 +1686,8 @@ function buildPartBillingPrintSection(b, side) { //NOSONAR
 
 function cargoCompute() {
   // NOSONAR
-  const blNumber = (document.getElementById('c-blNumber')?.value || '').trim();
-  const cnfName  = (document.getElementById('c-cnfName')?.value  || '').trim();
+  const blNumber = escHtml((document.getElementById('c-blNumber')?.value || '').trim());
+  const cnfName  = escHtml((document.getElementById('c-cnfName')?.value  || '').trim());
   const cld = pd(document.getElementById('c-cld').value);
   const _cfdRaw = Number.parseInt(document.getElementById('c-freeDays').value, 10);
   const freeDays = Number.isNaN(_cfdRaw) ? 4 : Math.max(0, _cfdRaw);
