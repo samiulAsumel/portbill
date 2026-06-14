@@ -1080,6 +1080,7 @@ function buildCarBillTable(b, side) {
 // eslint-disable-next-line sonarjs/cognitive-complexity
 function carCalculate() {
   //NOSONAR
+  if (reportInputErrors(collectCarErrors())) return;
   let b;
   try {
     b = carCompute();
@@ -1369,6 +1370,123 @@ function validatePartBillingDates() {
     prevEnd = dDate;
   }
   return allValid;
+}
+
+// ════════════════════════════════════════
+//  PRE-CALCULATE INPUT VALIDATION
+// ════════════════════════════════════════
+// Gather every failing input as a human-readable { id, msg } so the user is told
+// exactly what is wrong (and which field to fix) before a bill is generated or
+// printed. reportInputErrors() surfaces them all in a single toast and focuses
+// the first offending field. These are guards only — no calculation is changed.
+function collectCarErrors() {
+  const errors = [];
+  const cldV = (document.getElementById("cld")?.value || "").trim();
+  const delV = (document.getElementById("delivery")?.value || "").trim();
+  if (!cldV) errors.push({ id: "cld", msg: "CLD is required (DD/MM/YYYY)." });
+  else if (!isValidDateStr(cldV))
+    errors.push({ id: "cld", msg: "CLD is not a valid date (DD/MM/YYYY)." });
+  if (!delV)
+    errors.push({
+      id: "delivery",
+      msg: "Delivery date is required (DD/MM/YYYY).",
+    });
+  else if (!isValidDateStr(delV))
+    errors.push({
+      id: "delivery",
+      msg: "Delivery date is not a valid date (DD/MM/YYYY).",
+    });
+  if (isValidDateStr(cldV) && isValidDateStr(delV) && pd(delV) < pd(cldV))
+    errors.push({ id: "delivery", msg: "Delivery date is before the CLD." });
+  return errors;
+}
+
+function collectCargoErrors() {
+  const errors = [];
+  const cldV = (document.getElementById("c-cld")?.value || "").trim();
+  if (!cldV) errors.push({ id: "c-cld", msg: "CLD is required (DD/MM/YYYY)." });
+  else if (!isValidDateStr(cldV))
+    errors.push({ id: "c-cld", msg: "CLD is not a valid date (DD/MM/YYYY)." });
+
+  const isPb = !!document.getElementById("c-partBilling")?.checked;
+  if (isPb) {
+    validatePartBillingDates(); // refresh inline stage hints first
+    for (let i = 0; i < partBillingStages.length; i++) {
+      const inp = document.getElementById(`pb-date-${i}`);
+      if (!inp) continue;
+      const v = (partBillingStages[i].date || "").trim();
+      if (!v) {
+        errors.push({
+          id: `pb-date-${i}`,
+          msg: `Stage ${i + 1}: delivery date is required.`,
+        });
+      } else if (inp.classList.contains("field-invalid")) {
+        const hint = document.getElementById(`pb-date-hint-${i}`);
+        errors.push({
+          id: `pb-date-${i}`,
+          msg: `Stage ${i + 1}: ${hint?.textContent || "delivery date is invalid"}.`,
+        });
+      }
+    }
+  } else {
+    const delV = (document.getElementById("c-delivery")?.value || "").trim();
+    if (!delV)
+      errors.push({
+        id: "c-delivery",
+        msg: "Delivery date is required (DD/MM/YYYY).",
+      });
+    else if (!isValidDateStr(delV))
+      errors.push({
+        id: "c-delivery",
+        msg: "Delivery date is not a valid date (DD/MM/YYYY).",
+      });
+    if (isValidDateStr(cldV) && isValidDateStr(delV) && pd(delV) < pd(cldV))
+      errors.push({ id: "c-delivery", msg: "Delivery date is before the CLD." });
+  }
+
+  if (!cargoValidateSplit())
+    errors.push({
+      id: "c-inside",
+      msg: "Inside + Outside weight must equal Total Weight.",
+    });
+  if (!cargoValidateRemovalTon())
+    errors.push({
+      id: "c-removalTon",
+      msg:
+        document.getElementById("c-removalTon")?.validationMessage ||
+        "Removal cargo ton is invalid.",
+    });
+  if (!cargoValidateWeighmentTon())
+    errors.push({
+      id: "c-weighmentTon",
+      msg:
+        document.getElementById("c-weighmentTon")?.validationMessage ||
+        "Weighment cargo ton is invalid.",
+    });
+  if (!cargoValidateSelfDriveTon()) {
+    const iEl = document.getElementById("c-selfDriveTonInside");
+    const oEl = document.getElementById("c-selfDriveTonOutside");
+    const bad = iEl?.validationMessage ? iEl : oEl;
+    errors.push({
+      id: bad?.id || "c-selfDriveTonInside",
+      msg: bad?.validationMessage || "Self-drive ton is invalid.",
+    });
+  }
+  return errors;
+}
+
+// Surface collected errors in one toast; focus the first field. Returns true
+// when there was at least one error (caller should abort).
+function reportInputErrors(errors) {
+  if (!errors || errors.length === 0) return false;
+  const msg =
+    errors.length === 1
+      ? errors[0].msg
+      : `Please fix ${errors.length} input issues:\n• ` +
+        errors.map((e) => e.msg).join("\n• ");
+  showToast(msg, "error");
+  document.getElementById(errors[0].id)?.focus();
+  return true;
 }
 
 // ════════════════════════════════════════
@@ -3305,24 +3423,7 @@ function buildCargoBreakdownPrintHtml(b) {
 }
 
 function cargoCalculate() {
-  if (!cargoValidateSplit()) {
-    showToast("Inside + Outside weight must equal Total Weight.", "error");
-    return;
-  }
-  if (!cargoValidateRemovalTon(true)) {
-    document.getElementById("c-removalTon").focus();
-    return;
-  }
-  if (!cargoValidateWeighmentTon(true)) {
-    document.getElementById("c-weighmentTon").focus();
-    return;
-  }
-  if (!cargoValidateSelfDriveTon(true)) {
-    const iEl = document.getElementById("c-selfDriveTonInside");
-    const oEl = document.getElementById("c-selfDriveTonOutside");
-    (iEl?.validationMessage ? iEl : oEl)?.focus();
-    return;
-  }
+  if (reportInputErrors(collectCargoErrors())) return;
   let b;
   try {
     b = cargoCompute();
@@ -4496,25 +4597,11 @@ function printBill(type) {
     showToast("Generate the bill first before printing.", "warning");
     return;
   }
-  // Block printing while a date-order conflict exists — the inline hint already
-  // flags it, but the invoice must not be generated from an invalid timeline.
-  if (type === "car") {
-    if (!validateDateOrder("cld", "delivery", "delivery-hint")) {
-      showToast("Delivery date is before CLD — fix it before printing.", "error");
-      return;
-    }
-  } else {
-    let datesOk = validateDateOrder("c-cld", "c-delivery", "c-delivery-hint");
-    if (document.getElementById("c-partBilling")?.checked)
-      datesOk = validatePartBillingDates() && datesOk;
-    if (!datesOk) {
-      showToast(
-        "Fix the highlighted delivery date(s) before printing.",
-        "error",
-      );
-      return;
-    }
-  }
+  // Re-validate before printing in case inputs were edited after the bill was
+  // generated — surface exactly what is wrong instead of printing an invalid bill.
+  const printErrors =
+    type === "car" ? collectCarErrors() : collectCargoErrors();
+  if (reportInputErrors(printErrors)) return;
   try {
     const today = new Date().toLocaleDateString("en-GB", {
       day: "2-digit",
