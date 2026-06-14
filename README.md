@@ -225,6 +225,13 @@ Validation errors and admin events surface as non-blocking **toast banners** at 
 
 Date fields show a `DD/MM/YYYY` hint below the input. The hint turns red with an error message for invalid dates and green for valid ones. Validated on every keystroke.
 
+**Cross-field date-order checks** run once both fields hold a well-formed date (format errors take precedence and the order check no-ops until they clear):
+
+- **Delivery vs. CLD** (both modules): the delivery date may not fall before the CLD. On conflict the delivery field is flagged red with *"Delivery date is before CLD"*.
+- **Part-billing stage dates** (Cargo): each stage's delivery is checked against the running timeline — stage 1 must be on/after the wharfrent start (free-time end + 1 day); each later stage must be strictly after the previous stage's delivery. The offending stage shows the earliest allowed date inline. This mirrors the `periodDays <= 0` gate in `computePartBillingWharfrent()` but surfaces *why* a stage isn't billing.
+
+Printing is blocked while any date-order conflict exists: `printBill()` re-runs the checks and shows an error toast instead of generating an invoice from an invalid timeline.
+
 ### Empty-State Placeholders
 
 When no bill has been generated yet, both result areas show a centred empty-state graphic prompting the user to fill in the required fields.

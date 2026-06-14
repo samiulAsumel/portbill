@@ -118,6 +118,25 @@ function validateDateField(inputId, hintId, label) {
   return true;
 }
 
+// Cross-field date-order guard: the delivery date must not fall before the CLD.
+// Both fields must already hold a well-formed date — format errors are surfaced
+// by validateDateField and take precedence, so we no-op while either is invalid.
+// Flags the delivery field (the downstream value) on conflict. Returns true when
+// the order is valid (or not yet checkable).
+function validateDateOrder(cldId, delivId, delivHintId) {
+  const cldEl = document.getElementById(cldId);
+  const delEl = document.getElementById(delivId);
+  if (!cldEl || !delEl) return true;
+  const cldV = cldEl.value.trim();
+  const delV = delEl.value.trim();
+  if (!isValidDateStr(cldV) || !isValidDateStr(delV)) return true;
+  if (pd(delV) < pd(cldV)) {
+    setFieldState(delivId, delivHintId, "error", "Delivery date is before CLD");
+    return false;
+  }
+  return true;
+}
+
 function saveRates() {
   const saved = {};
   Object.keys(RATE_DEFAULTS).forEach((id) => {
@@ -887,6 +906,7 @@ function carRefreshNow() {
   try {
     validateDateField("cld", "cld-hint", "CLD");
     validateDateField("delivery", "delivery-hint", "delivery date");
+    validateDateOrder("cld", "delivery", "delivery-hint");
     const cld_ = pd(document.getElementById("cld").value);
     const _fd_raw = Number.parseInt(
       document.getElementById("freeDays").value,
@@ -1288,6 +1308,69 @@ function cargoValidateSelfDriveTon(showAlert = false) {
   return valid;
 }
 
+// Validate every part-billing stage date against the running timeline. Each
+// stage's delivery must fall after the previous reference point: stage 0 must be
+// on/after the wharfrent start (freeEnd + 1); later stages must be strictly
+// after the previous stage's delivery. Mirrors the periodDays<=0 "invalid"
+// gate in computePartBillingWharfrent, but surfaces the reason inline so the
+// user knows why a stage isn't billing. Returns true when all dates are valid.
+function validatePartBillingDates() {
+  const cldEl = document.getElementById("c-cld");
+  if (!cldEl) return true;
+  const cldV = cldEl.value.trim();
+  // CLD itself must be valid before stage dates can be anchored to a timeline.
+  const cldOk = isValidDateStr(cldV);
+  const cld = cldOk ? pd(cldV) : null;
+  const _cfd = Number.parseInt(
+    document.getElementById("c-freeDays")?.value,
+    10,
+  );
+  const fdDays = Number.isNaN(_cfd) ? 4 : Math.max(0, _cfd);
+  const freeEnd = cldOk
+    ? fdDays === 0
+      ? addD(cld, -1)
+      : addD(cld, fdDays - 1)
+    : null;
+
+  let allValid = true;
+  let prevEnd = freeEnd; // running reference; advances to each valid stage date
+  for (let i = 0; i < partBillingStages.length; i++) {
+    const hintId = `pb-date-hint-${i}`;
+    if (!document.getElementById(hintId)) continue;
+    const v = (partBillingStages[i].date || "").trim();
+    if (!v) {
+      setFieldState(`pb-date-${i}`, hintId, "muted", "DD/MM/YYYY");
+      allValid = false;
+      continue;
+    }
+    if (!isValidDateStr(v)) {
+      setFieldState(`pb-date-${i}`, hintId, "error", "Invalid date");
+      allValid = false;
+      continue;
+    }
+    if (!cldOk) {
+      // No valid CLD to order against yet — accept format, defer ordering.
+      setFieldState(`pb-date-${i}`, hintId, "ok", v);
+      continue;
+    }
+    const dDate = pd(v);
+    const minDate = addD(prevEnd, 1); // earliest allowed delivery for this stage
+    if (dDate < minDate) {
+      const msg =
+        i === 0
+          ? `Must be on/after ${fd(minDate)}`
+          : `Must be after ${fd(prevEnd)} (previous delivery)`;
+      setFieldState(`pb-date-${i}`, hintId, "error", msg);
+      allValid = false;
+      // Do not advance prevEnd — subsequent stages still anchor to last valid date.
+      continue;
+    }
+    setFieldState(`pb-date-${i}`, hintId, "ok", v);
+    prevEnd = dDate;
+  }
+  return allValid;
+}
+
 // ════════════════════════════════════════
 //  ── PART BILLING ──
 // ════════════════════════════════════════
@@ -1450,6 +1533,7 @@ function renderPartBillingStages() {
             <input type="text" id="pb-date-${idx}" class="cargo-glow" placeholder="DD/MM/YYYY" maxlength="10"
               value="${escHtml(stage.date)}"
               oninput="formatDate(this); partBillingStages[${idx}].date=this.value; cargoRefresh();" />
+            <div class="field-hint hint-muted" id="pb-date-hint-${idx}">DD/MM/YYYY</div>
           </div>
           <div class="pbs-balance-wrap">
             <div class="pbs-balance-title">Remaining balance after this delivery</div>
@@ -2783,6 +2867,7 @@ function cargoRefreshNow() {
   try {
     validateDateField("c-cld", "c-cld-hint", "CLD");
     validateDateField("c-delivery", "c-delivery-hint", "delivery date");
+    validateDateOrder("c-cld", "c-delivery", "c-delivery-hint");
     cargoValidateSplit();
     cargoValidateRemovalTon();
     cargoValidateWeighmentTon();
@@ -2799,6 +2884,7 @@ function cargoRefreshNow() {
       if (wantSdIn !== hasSdIn || wantSdOut !== hasSdOut)
         renderPartBillingStages();
       else syncPbMaxLabels();
+      validatePartBillingDates();
     }
     const cld_ = pd(document.getElementById("c-cld").value);
     const _cfd_raw = Number.parseInt(
@@ -4409,6 +4495,25 @@ function printBill(type) {
   if (!b) {
     showToast("Generate the bill first before printing.", "warning");
     return;
+  }
+  // Block printing while a date-order conflict exists — the inline hint already
+  // flags it, but the invoice must not be generated from an invalid timeline.
+  if (type === "car") {
+    if (!validateDateOrder("cld", "delivery", "delivery-hint")) {
+      showToast("Delivery date is before CLD — fix it before printing.", "error");
+      return;
+    }
+  } else {
+    let datesOk = validateDateOrder("c-cld", "c-delivery", "c-delivery-hint");
+    if (document.getElementById("c-partBilling")?.checked)
+      datesOk = validatePartBillingDates() && datesOk;
+    if (!datesOk) {
+      showToast(
+        "Fix the highlighted delivery date(s) before printing.",
+        "error",
+      );
+      return;
+    }
   }
   try {
     const today = new Date().toLocaleDateString("en-GB", {
