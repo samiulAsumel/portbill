@@ -101,6 +101,27 @@
   --r-lg: 14px;
   --r-xl: 22px;
 
+  /* Per-module accent indirection — overridden by body.mode-cargo */
+  --accent:      var(--gold);
+  --accent-hi:   var(--gold-hi);
+  --accent-lo:   var(--gold-lo);
+  --accent-bg:   var(--gold-bg);
+  --accent-bdr:  var(--gold-bdr);
+  --accent-ring: var(--gold-ring);
+  --accent-rgb:  201,168,50;
+  --gold-rgb:    201,168,50;
+  --sky-rgb:     14,165,233;
+
+  /* Semantic color pairs */
+  --green-bg:   rgba(34,197,94,0.08);
+  --green-bdr:  rgba(34,197,94,0.22);
+  --red-bg:     rgba(239,68,68,0.08);
+  --red-bdr:    rgba(239,68,68,0.25);
+  --blue-bg:    rgba(59,130,246,0.08);
+  --blue-bdr:   rgba(59,130,246,0.22);
+  --purple-bg:  rgba(168,85,247,0.08);
+  --purple-bdr: rgba(168,85,247,0.22);
+
   /* Motion */
   --t-fast:   140ms cubic-bezier(0.4,0,0.2,1);
   --t-base:   200ms cubic-bezier(0.4,0,0.2,1);
@@ -253,9 +274,9 @@ header::before {
 }
 
 .hbadge {
-  background: var(--gold-bg);
-  border: 1px solid var(--gold-bdr);
-  color: var(--gold);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-bdr);
+  color: var(--accent);
   font-family: 'DM Mono', monospace;
   font-size: 11px; font-weight: 600;
   padding: 4px 10px;
@@ -263,6 +284,7 @@ header::before {
   letter-spacing: 1.5px;
   white-space: nowrap;
   display: none;
+  transition: background var(--t-base), border-color var(--t-base), color var(--t-base);
 }
 
 .admin-btn {
@@ -657,8 +679,9 @@ input.rate-input, input[type='number'].rate-field { text-align: right; }
 
 /* Read-only */
 .ro {
-  opacity: 0.45; cursor: default; pointer-events: none;
+  opacity: 0.62; cursor: default; pointer-events: none;
   background: var(--bg-surface) !important;
+  border-style: dashed !important;
   user-select: none; -webkit-user-select: none;
 }
 .ro:hover { border-color: var(--bdr-1) !important; }
@@ -2042,6 +2065,39 @@ input[type='date']  { font-size: clamp(14px,1.7vw,15px); }
   input[type='date'] { font-size: 16px; }
 }
 
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE OVERRIDES — after font-scale section
+   (font-scale rules have no media query and win via cascade
+   order; these blocks restore correct sizing for breakpoints)
+════════════════════════════════════════════════════════════ */
+
+/* Tab bar — smallest phones need tighter text */
+@media (max-width: 480px) {
+  .tab-btn { letter-spacing: 0.4px; }
+}
+@media (max-width: 375px) {
+  .tab-btn { font-size: 10px; letter-spacing: 0; padding: 9px 8px; }
+}
+@media (max-width: 320px) {
+  .tab-btn { font-size: 9px; padding: 8px 6px; }
+}
+
+/* Info bar — force column count at small screens */
+@media (max-width: 375px) {
+  .ii { flex: 1 1 100%; min-width: 0; }
+}
+@media (min-width: 376px) and (max-width: 519px) {
+  .ii { flex: 1 1 calc(50% - 1px); min-width: 0; }
+}
+
+/* Info bar — 3-col at mid-phone, 4-col at large screens */
+@media (min-width: 520px) and (max-width: 767px) {
+  .ii { flex: 1 0 calc(33.33% - 1px); min-width: 0; }
+}
+@media (min-width: 1200px) {
+  .ii { flex: 1 0 24.5%; min-width: 0; }
+}
+
 /* ════════════════════════════
    TON FIELD ACTIVE / INACTIVE
 ════════════════════════════ */
@@ -3118,3 +3174,292 @@ input.field-invalid {
 }
 
 @media print { #pb-toast { display: none; } }
+
+/* ═══════════════════════════════════════════════════════════
+   WORLD-CLASS UPGRADE — v5.0
+   Accent System · Tabular Numerals · Segmented Tabs · Premium Polish
+═══════════════════════════════════════════════════════════ */
+
+/* ── Cargo module: override accent to sky-blue ── */
+body.mode-cargo {
+  --accent:      var(--sky);
+  --accent-hi:   var(--sky-hi);
+  --accent-lo:   var(--sky-lo);
+  --accent-bg:   var(--sky-bg);
+  --accent-bdr:  var(--sky-bdr);
+  --accent-ring: var(--sky-ring);
+  --accent-rgb:  14,165,233;
+}
+
+/* ── Tabular / lining numerals for all financial data ── */
+.bt td, .bt th,
+.ptbl td, .ptbl th,
+.gval, .rspan, .pvr-val,
+.date-display, .iv, .sv,
+.io-total-badge, .pc-rate-input,
+input[type='number'] {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+/* ── Global focus-visible: keyboard accessibility ── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+button:focus-visible,
+.tab-btn:focus-visible,
+.admin-btn:focus-visible,
+.pbs-add-btn:focus-visible {
+  outline-offset: 3px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* ── Module tabs: segmented pill track ── */
+.module-tabs {
+  padding: 5px clamp(12px,2.5vw,28px);
+  align-items: center;
+  gap: 4px;
+}
+.tab-btn {
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  margin-bottom: 0;
+  transition: color var(--t-base), background var(--t-base),
+              border-color var(--t-base), box-shadow var(--t-base);
+}
+.tab-btn::after { display: none !important; }
+.tab-btn:hover {
+  background: rgba(255,255,255,0.03);
+  border-color: var(--bdr-1);
+  color: var(--tx-1);
+}
+.tab-btn.active {
+  background: rgba(var(--accent-rgb),0.07);
+  border-color: rgba(var(--accent-rgb),0.22);
+  color: var(--accent);
+  border-bottom-color: rgba(var(--accent-rgb),0.22);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 2px 10px rgba(0,0,0,0.22);
+}
+.tab-btn.cargo.active {
+  background: rgba(14,165,233,0.07);
+  border-color: rgba(14,165,233,0.22);
+  color: var(--sky);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 2px 10px rgba(0,0,0,0.22);
+}
+
+/* ── Label: highlight on focus-within ── */
+.fg:focus-within .lbl {
+  color: var(--accent-hi);
+  transition: color var(--t-fast);
+}
+
+/* ── Input: filled state left accent tick ── */
+input[type='text']:not(:placeholder-shown):not([readonly]):not(.ro):not(.ton-inactive),
+input[type='number']:not(:placeholder-shown):not([readonly]):not(.ro):not(.ton-inactive) {
+  border-left: 2px solid var(--accent);
+  padding-left: calc(clamp(10px,1.5vw,13px) - 1px);
+}
+
+/* ── Input: accent-aware focus ring (base layer) ── */
+input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
+  border-color: var(--accent);
+  box-shadow:
+    inset 0 1px 3px rgba(0,0,0,0.18),
+    0 0 0 3px rgba(var(--accent-rgb),0.14),
+    0 0 18px rgba(var(--accent-rgb),0.06);
+  background: rgba(var(--accent-rgb),0.025);
+}
+
+/* ── Toggle: keyboard focus ring ── */
+.pc-toggle input:focus-visible + .pc-slider {
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.28);
+}
+.pb-toggle input:focus-visible + .pb-toggle-track {
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.28);
+}
+
+/* ── PC rows: better unchecked visibility + accent check ── */
+.pc-row:has(input[type=checkbox]:not(:checked)) {
+  opacity: 0.52;
+  filter: none;
+}
+.pc-row:has(input[type=checkbox]:checked) {
+  background: rgba(255,255,255,0.025);
+  border-color: var(--bdr-1);
+}
+
+/* ── Bill tables: right-align amount column ── */
+.bt td:last-child,
+.bt th:last-child {
+  text-align: right;
+  padding-right: 16px;
+}
+.bt td:first-child,
+.bt th:first-child {
+  padding-left: 16px;
+}
+.bt .sep td,
+.bt .sep td:last-child,
+.bt .sep td:first-child {
+  text-align: left !important;
+  padding-left: 16px;
+}
+.bt .sub td:last-child { font-weight: 600; color: var(--tx-0); }
+.bt .tot td:last-child { font-weight: 700; }
+.bt .grand td:last-child { font-weight: 700; }
+
+/* ── Bill tables: accent-aware section rows ── */
+.bt .sep td {
+  background: rgba(var(--accent-rgb),0.06);
+  color: rgba(var(--accent-rgb),0.65);
+  /* keep --gold fallback via existing rule, accent overrides it */
+}
+.bt .tot td {
+  background: rgba(var(--accent-rgb),0.08);
+  color: var(--accent);
+  border-top: 1px solid rgba(var(--accent-rgb),0.22);
+}
+
+/* ── Grand total box: accent-aware ── */
+.gbox {
+  border-color: rgba(var(--accent-rgb),0.22);
+  border-top-color: var(--accent);
+  box-shadow:
+    0 0 0 1px rgba(var(--accent-rgb),0.05),
+    0 12px 48px rgba(0,0,0,0.55),
+    0 0 80px rgba(var(--accent-rgb),0.07);
+}
+.gbox::before {
+  background: linear-gradient(180deg, rgba(var(--accent-rgb),0.07) 0%, transparent 100%);
+}
+.gfin { background: rgba(var(--accent-rgb),0.07); }
+.gval { color: var(--accent); }
+
+/* Grand total pulse on calculate */
+@keyframes gboxPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(var(--accent-rgb),0.35), 0 0 0 1px rgba(var(--accent-rgb),0.05), 0 12px 48px rgba(0,0,0,0.55); }
+  70%  { box-shadow: 0 0 0 18px rgba(var(--accent-rgb),0), 0 0 0 1px rgba(var(--accent-rgb),0.05), 0 12px 48px rgba(0,0,0,0.55); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb),0), 0 0 0 1px rgba(var(--accent-rgb),0.05), 0 12px 48px rgba(0,0,0,0.55); }
+}
+.gbox.just-calculated {
+  animation: gboxPulse 0.85s ease-out;
+}
+
+/* ── Side panel: accent-aware ── */
+.sp {
+  border-color: var(--accent-bdr);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb),0.04), 0 12px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.sp::before {
+  background: linear-gradient(90deg, transparent, var(--accent-hi), transparent);
+}
+/* Keep .sp-cargo overrides as explicit fallback */
+
+/* ── Preview grand row: accent-aware ── */
+.pvr.pvr-grand {
+  background: var(--accent-bg);
+  border-color: var(--accent-bdr);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 16px rgba(var(--accent-rgb),0.08);
+}
+/* cargo override still needed since pvr-grand-cargo class is set explicitly */
+
+/* ── Billing rules guide: accent hover ── */
+.guide > div {
+  border-left: 2px solid var(--bdr-1);
+}
+.guide > div:hover {
+  border-left-color: var(--accent-lo);
+  background: rgba(var(--accent-rgb),0.025);
+  color: var(--tx-1);
+}
+
+/* ── Stats cards: accent top bar on gold/sky variants ── */
+.sc::before {
+  background: var(--accent);
+}
+.cg::before { background: var(--gold); }
+.cb::before { background: var(--blue); }
+.cp::before { background: var(--purple); }
+.cv::before { background: var(--green); }
+.cc::before { background: var(--sky); }
+
+/* ── Card: slightly wider accent bar on hover ── */
+.card:hover::before { width: 4px; }
+
+/* ── Rate span: accent-aware in current module ── */
+.rspan { color: var(--accent); }
+/* Explicit overrides for cargo rate table (keeps sky) */
+.cargo-rate-table .rspan { color: var(--sky); }
+
+/* ── Print button: accent-aware ── */
+.print-btn {
+  background: var(--accent-bg);
+  border-color: var(--accent-bdr);
+  color: var(--accent);
+  box-shadow: 0 1px 8px rgba(var(--accent-rgb),0.10);
+}
+.print-btn:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--bg-page);
+  box-shadow: 0 4px 18px rgba(var(--accent-rgb),0.28);
+}
+/* Keep explicit .print-btn.cargo for specificity when not in mode-cargo body */
+.print-btn.cargo {
+  background: var(--sky-bg);
+  border-color: var(--sky-bdr);
+  color: var(--sky);
+}
+.print-btn.cargo:hover {
+  border-color: var(--sky);
+  background: var(--sky);
+  color: var(--bg-page);
+  box-shadow: 0 4px 18px rgba(14,165,233,0.28);
+}
+
+/* ── Date display: accent color for computed dates ── */
+.date-display {
+  color: var(--accent);
+  border-color: var(--bdr-1);
+}
+
+/* ── Lock icon: replace emoji with CSS mask ── */
+.lck {
+  display: inline-block;
+  width: 11px;
+  height: 12px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E") center / contain no-repeat;
+  font-size: 0;
+  opacity: 0.45;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* ── Reduced motion: extend to all decorative transitions ── */
+@media (prefers-reduced-motion: reduce) {
+  body { animation: none !important; }
+  .gbox.just-calculated { animation: none !important; }
+}
+
+/* ── Cargo gbox keeps sky colors via cargo-grand class ── */
+.gbox.cargo-grand {
+  border-color: rgba(14,165,233,0.22);
+  border-top-color: var(--sky);
+  box-shadow:
+    0 0 0 1px rgba(14,165,233,0.05),
+    0 12px 48px rgba(0,0,0,0.55),
+    0 0 80px rgba(14,165,233,0.06);
+}
+.gbox.cargo-grand::before {
+  background: linear-gradient(180deg, rgba(14,165,233,0.06) 0%, transparent 100%);
+}
+.gbox.cargo-grand .gfin { background: rgba(14,165,233,0.07); }
+.gbox.cargo-grand .gval { color: var(--sky); }
+
+/* ── Cargo bill table sep/tot: sky overrides ─  */
+/* (cargo-grand is the gbox class; bt inside car/cargo sections don't have a container class
+   so accent vars handle it — when body.mode-cargo, var(--accent-rgb) = sky) */

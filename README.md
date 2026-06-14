@@ -1,4 +1,4 @@
-# Port Billing System — v3.3
+# Port Billing System — v3.4
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles and general cargo with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -162,16 +162,20 @@ A `● LIVE` panel updates on every keystroke, showing running inside/outside es
 
 Clicking **Print Bill** opens a full-screen print preview dialog with a clean light-mode toolbar (white bar, gold top accent, soft gray canvas). Click **Print** to send to the browser's print dialog.
 
-**Invoice color palette:**
+**Invoice color palette (module-aware):**
 
-| Element                                  | Color                  |
-| ---------------------------------------- | ---------------------- |
-| Letterhead / primary borders             | Deep navy `#0c2046`    |
-| Gold rule, title accent, grand total bar | Warm gold `#c4943a`    |
-| Inside Port section & summary            | Royal blue `#1450a8`   |
-| Outside Port section & summary           | Indigo `#5528b0`       |
-| Payable Charges section                  | Forest green `#0c6e48` |
-| Grand total amount                       | Gold `#a87828`         |
+The printed invoice automatically adapts its accent color to the active module — warm gold for Car, sky blue for General Cargo. All `--accent-*` tokens are resolved at generation time and inlined into the invoice CSS.
+
+| Element                        | Car invoice              | Cargo invoice             |
+| ------------------------------ | ------------------------ | ------------------------- |
+| Letterhead / primary borders   | Deep navy `#0b1d3c`      | Same                      |
+| Accent rule, title, grand bar  | Warm gold `#c09230`      | Sky blue `#0ea5c9`        |
+| Inside Port section & summary  | Royal blue `#1050a8`     | Same                      |
+| Outside Port section & summary | Indigo `#5020b0`         | Same                      |
+| Payable Charges section        | Forest green `#0a5c3c`   | Same                      |
+| Grand total amount             | Gold `#c09230`           | Sky `#0ea5c9`             |
+
+The emblem SVG in the letterhead also uses the accent color and renders as a compass-rose with directional arrows.
 
 **Invoice contents:**
 
@@ -354,10 +358,10 @@ ES2022+, CSS Grid, CSS Custom Properties, native `<dialog>`, `IntersectionObserv
 portbill/
 ├── index.html   — Markup: header, module tabs, admin dialog, print-preview dialog,
 │                  Car page (#page-car) and Cargo page (#page-cargo)
-├── style.css    — All styles (~3100 lines): design tokens, component styles, toast,
-│                  inline validation, explanation box, calc-rows, print rules,
-│                  responsive layout (360 px → 4 K)
-├── main.js      — All logic (~3930 lines):
+├── style.css    — All styles (~3465 lines): design tokens, accent variable system,
+│                  component styles, toast, inline validation, explanation box,
+│                  calc-rows, print rules, responsive layout (360 px → 4 K)
+├── main.js      — All logic (~5300 lines):
 │                  · RATE_DEFAULTS + localStorage persistence (top)
 │                  · CalendarPicker class (~L215)
 │                  · Admin auth / SHA-256 (~L460)
@@ -397,6 +401,32 @@ el.dispatchEvent(new Event("change", { bubbles: true }));
 ### Rate Table Inputs vs. Spans
 
 Each editable rate has a hidden `<input>` and a visible `<span>`. `syncSpan(inputId, spanId)` keeps them in sync. In admin mode the span is hidden and the input is shown.
+
+### Module-Aware Accent System
+
+`style.css` defines `--accent` (and `--accent-hi/lo/bg/bdr/ring/rgb`) as CSS custom properties defaulting to gold (Car module). Switching to the Cargo module adds `body.mode-cargo` via `switchModule()` in `main.js`, which overrides those variables to sky blue. All UI elements — tabs, inputs, grand total box, section rows, print button, date displays — derive their color from `var(--accent)` so both modules stay visually coherent without duplicate rules.
+
+The same accent palette is inlined as literal hex values into the printed invoice HTML (via `buildInvoiceHtml({ isCargo })`), since the invoice renders in an isolated `<iframe>` with no access to parent CSS variables.
+
+### Lock Icon (`.lck`)
+
+All 🔒 emoji lock icons were replaced with `<span class="lck"></span>`. The `.lck` class renders a padlock SVG via a CSS `mask` property, inheriting `currentColor` so it automatically matches its surrounding text color (including accent-aware contexts). This avoids emoji rendering differences across platforms and OS emoji fonts.
+
+### Grand Total Pulse Animation
+
+After each bill calculation, `main.js` triggers a CSS pulse on the grand total box:
+
+```js
+carGbox.classList.remove("just-calculated");
+void carGbox.offsetWidth;          // force reflow to restart animation
+carGbox.classList.add("just-calculated");
+```
+
+The `@keyframes gboxPulse` animation expands a glow ring outward then fades it. `prefers-reduced-motion` disables it.
+
+### Tabular Numerals
+
+All financial values — bill table cells, grand total amounts, rate spans, date displays, and number inputs — have `font-variant-numeric: tabular-nums lining-nums` applied via CSS to ensure columns align regardless of digit width.
 
 ### HTML Escaping (XSS Guard)
 
