@@ -1,4 +1,4 @@
-# Port Billing System — v3.2
+# Port Billing System — v3.3
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles and general cargo with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -8,10 +8,10 @@ A zero-dependency, browser-native billing calculator for **Port Authority wharfr
 
 ## Modules
 
-| Module | Scope | Weight range | Split billing |
-|---|---|---|---|
-| **Car Billing** | Vehicles (passenger cars, SUVs, etc.) | Any weight (default 2 t) | Yes — rate cut 23 Jul 2024 |
-| **General Cargo Billing** | Bulk / general cargo | Unlimited | Self-drive tons — rate cut 23 Jul 2024 |
+| Module                    | Scope                                 | Weight range             | Split billing                          |
+| ------------------------- | ------------------------------------- | ------------------------ | -------------------------------------- |
+| **Car Billing**           | Vehicles (passenger cars, SUVs, etc.) | Any weight (default 2 t) | Yes — rate cut 23 Jul 2024             |
+| **General Cargo Billing** | Bulk / general cargo                  | Unlimited                | Self-drive tons — rate cut 23 Jul 2024 |
 
 ---
 
@@ -25,11 +25,11 @@ The vehicle weight input defaults to **2 tons**.
 
 ### Wharfrent Slab Rates
 
-| Slab | New rates (from 23/07/2024) | Old rates (up to 22/07/2024) |
-|---|---|---|
-| Days 1 – 7 | 70 Tk / ton / day | 40 Tk / ton / day |
-| Days 8 – 14 | 185 Tk / ton / day | 115 Tk / ton / day |
-| Day 15 + | 295 Tk / ton / day | 185 Tk / ton / day |
+| Slab        | New rates (from 23/07/2024) | Old rates (up to 22/07/2024) |
+| ----------- | --------------------------- | ---------------------------- |
+| Days 1 – 7  | 70 Tk / ton / day           | 40 Tk / ton / day            |
+| Days 8 – 14 | 185 Tk / ton / day          | 115 Tk / ton / day           |
+| Day 15 +    | 295 Tk / ton / day          | 185 Tk / ton / day           |
 
 Rate escalates progressively — the longest-stored vehicles always reach the highest slab.
 
@@ -39,35 +39,40 @@ When **CLD ≤ 22/07/2024** and **delivery ≥ 23/07/2024**, the engine automati
 
 ### Inside vs. Outside
 
-Every car bill produces two independent totals:
+Every car bill produces **two independent, self-contained totals** — Inside and Outside are each a complete bill:
 
-| Port Area | Wharfrent Rate |
-|---|---|
-| **Inside** (covered shed / warehouse) | Full rate |
-| **Outside** (open yard) | Full rate × 0.50 |
+| Port Area                             | Wharfrent Rate   |
+| ------------------------------------- | ---------------- |
+| **Inside** (covered shed / warehouse) | Full rate        |
+| **Outside** (open yard)               | Full rate × 0.50 |
 
-Both totals include all selected payable charges, VAT, and levy.
+Each section carries its **own** sub-total, VAT, and Levy (`base + VAT + Levy = section total`), shown per section. The **Car Grand Total = Inside Total + Outside Total**.
 
 ### Payable Charges
 
-| Charge | Default rate | VAT | Notes |
-|---|---|---|---|
-| River Dues | 33 Tk / ton | 15% | Applied to full vehicle weight |
-| Landing Charge | 175 Tk / ton | 15% | Applied to full vehicle weight |
-| Removal Charge | 350 Tk / ton | 15% | Applied to full vehicle weight |
-| Weighment Charge | 2.5 Tk / ton | 15% | Applied to full vehicle weight |
-| Hoisting Charge | `rLanding × 1.25 × 0.50` Tk / ton | 15% | Displayed as `(rLanding × 1.25) × 0.50/ton` |
-| Levy Charge | 1.5 Tk / ton | **VAT-exempt** | Added after VAT calculation |
+| Charge           | Default rate                      | VAT            | Notes                                       |
+| ---------------- | --------------------------------- | -------------- | ------------------------------------------- |
+| River Dues       | 33 Tk / ton                       | 15%            | Applied to full vehicle weight              |
+| Landing Charge   | 175 Tk / ton                      | 15%            | Applied to full vehicle weight              |
+| Removal Charge   | 350 Tk / ton                      | 15%            | Applied to full vehicle weight              |
+| Weighment Charge | 2.5 Tk / ton                      | 15%            | Applied to full vehicle weight              |
+| Hoisting Charge  | `rLanding × 1.25 × 0.50` Tk / ton | 15%            | Displayed as `(rLanding × 1.25) × 0.50/ton` |
+| Levy Charge      | 1.5 Tk / ton                      | **VAT-exempt** | Added after VAT calculation                 |
 
 Each charge has a checkbox — uncheck to exclude it from the bill. All rates are **locked in user mode** and can only be edited by Admin. Hoisting Charge rate is computed from Landing Charge as `rLanding × 1.25 × 0.50` and displayed with the `× 0.50` multiplier explicit.
 
 ### Bill Calculation Formula
 
+VAT and Levy are computed **per section** in the Car module (each section is a complete bill):
+
 ```
 Inside Amount  = Rate (Tk/ton/day) × Weight (ton) × Days in slab
 Outside Amount = Rate (Tk/ton/day) × Weight (ton) × Days in slab × 0.50
-VAT            = (Wharfrent + Payables subtotal) × vatRate
-Grand Total    = Wharfrent + Payables + VAT + Levy
+
+Section Base   = Wharfrent + Payables subtotal      (Inside or Outside)
+Section VAT    = Section Base × vatRate
+Section Total  = Section Base + Section VAT + Levy
+Car Grand Total = Inside Total + Outside Total
 ```
 
 ---
@@ -80,11 +85,11 @@ Same rule as Car: **4 free days** by default (`CLD + 3`), wharfrent starts on Da
 
 ### Wharfrent Slab Rates
 
-| Slab | Rate |
-|---|---|
-| Days 1 – 7 | 10 Tk / ton / day |
+| Slab        | Rate              |
+| ----------- | ----------------- |
+| Days 1 – 7  | 10 Tk / ton / day |
 | Days 8 – 14 | 20 Tk / ton / day |
-| Day 15 + | 25 Tk / ton / day |
+| Day 15 +    | 25 Tk / ton / day |
 
 General Cargo rates do **not** have an old/new rate split — only self-drive tons (billed at Car rates) carry the 23/07/2024 split.
 
@@ -92,27 +97,41 @@ General Cargo rates do **not** have an old/new rate split — only self-drive to
 
 The user enters the total cargo weight, then splits it into **Inside tons** (full rate) and **Outside tons** (× 0.50 rate). Inside + Outside must equal the total — a live **Total Check** badge turns red if they don't, blocking bill generation. Tonnage inputs clamp any negative value to 0 on input.
 
+Unlike the Car module, the General Cargo bill shows the Inside and Outside sections as **sub-totals only** (base for VAT). **VAT and Levy are charged once, on the combined Inside + Outside base**, and shown a single time in a closing **Bill Summary** block:
+
+```
+Inside Sub-Total   = Inside wharfrent + Inside payables
+Outside Sub-Total  = Outside wharfrent (½ rate) + Outside payables
+
+Total Base   = Inside Sub-Total + Outside Sub-Total
+VAT          = Total Base × vatRate          (computed once)
+Levy         = 1.5 Tk/ton × total weight     (VAT-exempt)
+Grand Total  = Total Base + VAT + Levy
+```
+
+Computing VAT once on the combined base (rather than per portion and summing) is deliberate: per-portion rounding can drift the grand total by a cent when both portions land on a half-cent boundary.
+
 ### Landing Rate Tiers
 
 Landing Charge and all formula-derived charges (Removal, Hoisting) scale with the total weight tier:
 
-| Total weight | Landing rate (`tierRate`) |
-|---|---|
-| ≤ 3 tons | 90 Tk / ton |
-| > 3 tons and ≤ 20 tons | 180 Tk / ton |
-| > 20 tons | 250 Tk / ton |
+| Total weight           | Landing rate (`tierRate`) |
+| ---------------------- | ------------------------- |
+| ≤ 3 tons               | 90 Tk / ton               |
+| > 3 tons and ≤ 20 tons | 180 Tk / ton              |
+| > 20 tons              | 250 Tk / ton              |
 
 ### Payable Charges
 
-| Charge | Rate formula | VAT | Ton basis |
-|---|---|---|---|
-| River Dues | 33 Tk / ton (flat) | 15% | Total weight |
-| Landing Charge | `tierRate` Tk / ton | 15% | Total weight |
-| Removal Charge | `tierRate × 7` (if Landing checked) or `tierRate × 8` | 15% | Separate **removal ton** input (outside portion only) |
-| Weighment Charge | 2.5 Tk / ton | 15% | Separate **weighment ton** input |
-| Hoisting Charge (Normal) | `tierRate × 1.25` Tk / ton | 15% | Inside normal tons |
-| Hoisting Charge (Self Drive) | `tierRate × 1.25 × 0.50` Tk / ton | 15% | Displayed as `(tierRate × 1.25) × 0.50/ton`; SD inside/outside tons |
-| Levy Charge | 1.5 Tk / ton | **VAT-exempt** | Total weight |
+| Charge                       | Rate formula                                          | VAT            | Ton basis                                                           |
+| ---------------------------- | ----------------------------------------------------- | -------------- | ------------------------------------------------------------------- |
+| River Dues                   | 33 Tk / ton (flat)                                    | 15%            | Total weight                                                        |
+| Landing Charge               | `tierRate` Tk / ton                                   | 15%            | Total weight                                                        |
+| Removal Charge               | `tierRate × 7` (if Landing checked) or `tierRate × 8` | 15%            | Separate **removal ton** input (outside portion only)               |
+| Weighment Charge             | 2.5 Tk / ton                                          | 15%            | Separate **weighment ton** input                                    |
+| Hoisting Charge (Normal)     | `tierRate × 1.25` Tk / ton                            | 15%            | Inside normal tons                                                  |
+| Hoisting Charge (Self Drive) | `tierRate × 1.25 × 0.50` Tk / ton                     | 15%            | Displayed as `(tierRate × 1.25) × 0.50/ton`; SD inside/outside tons |
+| Levy Charge                  | 1.5 Tk / ton                                          | **VAT-exempt** | Total weight                                                        |
 
 Landing, Removal, and Hoisting rates are **always formula-derived and read-only**, even in Admin mode. Removal Charge applies only to the outside portion (or total weight when delivery is within free time). Weighment Charge uses a dedicated weighment-ton input.
 
@@ -120,12 +139,12 @@ Landing, Removal, and Hoisting rates are **always formula-derived and read-only*
 
 A dedicated **Self Drive** card (independent of the Hoisting checkbox) lets the user enter separate inside and outside self-drive tonnages. Self-drive tons are billed at **Car Billing wharfrent slab rates** — including the 23/07/2024 old/new rate split — while normal cargo tons continue at General Cargo rates.
 
-| Ton type | Wharfrent rate |
-|---|---|
-| Normal inside tons | GC rates — 10 / 20 / 25 Tk/t/d (full rate) |
-| Normal outside tons | GC rates × 0.50 |
-| Self-drive inside tons | Car Billing rates — 70 / 185 / 295 Tk/t/d (full rate) |
-| Self-drive outside tons | Car Billing rates × 0.50 |
+| Ton type                | Wharfrent rate                                        |
+| ----------------------- | ----------------------------------------------------- |
+| Normal inside tons      | GC rates — 10 / 20 / 25 Tk/t/d (full rate)            |
+| Normal outside tons     | GC rates × 0.50                                       |
+| Self-drive inside tons  | Car Billing rates — 70 / 185 / 295 Tk/t/d (full rate) |
+| Self-drive outside tons | Car Billing rates × 0.50                              |
 
 The bill table shows General Cargo and Self-Drive wharfrent as **separate sub-sections**. Self-drive ton inputs validate that each value does not exceed the corresponding inside/outside tonnage.
 
@@ -145,14 +164,14 @@ Clicking **Print Bill** opens a full-screen print preview dialog with a clean li
 
 **Invoice color palette:**
 
-| Element | Color |
-|---|---|
-| Letterhead / primary borders | Deep navy `#0c2046` |
-| Gold rule, title accent, grand total bar | Warm gold `#c4943a` |
-| Inside Port section & summary | Royal blue `#1450a8` |
-| Outside Port section & summary | Indigo `#5528b0` |
-| Payable Charges section | Forest green `#0c6e48` |
-| Grand total amount | Gold `#a87828` |
+| Element                                  | Color                  |
+| ---------------------------------------- | ---------------------- |
+| Letterhead / primary borders             | Deep navy `#0c2046`    |
+| Gold rule, title accent, grand total bar | Warm gold `#c4943a`    |
+| Inside Port section & summary            | Royal blue `#1450a8`   |
+| Outside Port section & summary           | Indigo `#5528b0`       |
+| Payable Charges section                  | Forest green `#0c6e48` |
+| Grand total amount                       | Gold `#a87828`         |
 
 **Invoice contents:**
 
@@ -162,6 +181,8 @@ Clicking **Print Bill** opens a full-screen print preview dialog with a clean li
   - Inside: `↳ Rate Tk/ton/day × N ton(s) × N day(s) = Tk Amount`
   - Outside: `↳ Rate × 0.50 Tk/ton/day × N ton(s) × N day(s) = Tk Amount`
 - Payable charges table with calc sub-rows: `↳ Rate/ton × N ton(s) = Tk Amount`. Hoisting (Self Drive) displays as `(fullRate) × 0.50/ton`
+- **Car:** each Inside / Outside section closes with its own `Sub-Total → VAT → Levy → SECTION TOTAL`, then the Car Grand Total sums the two.
+- **General Cargo:** Inside / Outside sections show a **Sub-Total only**; a single closing **Bill Summary** block renders `Total Base → VAT → Levy → GRAND TOTAL` (VAT charged once on the combined base).
 - **VAT row** includes the full expression inline: `VAT @ 15.0%  ·  Base × 15.0% = VATAmount`
 - Levy row labelled **VAT-exempt** — added separately after VAT
 - Color-coded Inside / Outside section headers; when self-drive tons are present the badge shows `Nt Normal + Nt SD`
@@ -176,16 +197,17 @@ Two optional header fields — **BL Number** (Bill of Lading) and **C&F Agent Na
 
 General Cargo supports multi-stage part delivery. Each stage has a delivery date and a remaining inside/outside balance after that delivery. The **day count runs continuously from CLD — it never resets between stages**; only the billable weight changes.
 
-- UI: **timeline layout** with numbered stage dots, stage-count badge, and a *Bill up to today* toggle
+- UI: **timeline layout** with numbered stage dots, stage-count badge, and a _Bill up to today_ toggle
 - Charge-checkbox states are saved and restored when toggling part billing on/off
 - When Self Drive is active, each stage shows SD Inside / SD Outside balance inputs, clamped to the stage's remaining tonnage; the max-tonnage hint shows `Nt Normal + Nt SD` when SD weight is present
 - Balance inputs follow the **placeholder pattern** — cleared field shows placeholder `0`, typed `0` stays as `0`
 
 **In the printed invoice:**
+
 - Each stage is labelled **Stage N:** with date range, weight, days, and day-range
-- Last stage: *Final Delivery — no cargo remains*
-- Intermediate stages: *Remaining balance after this delivery: Inside/Outside Nt*
-- Footer note confirms: *Day-count continuous from CLD*
+- Last stage: _Final Delivery — no cargo remains_
+- Intermediate stages: _Remaining balance after this delivery: Inside/Outside Nt_
+- Footer note confirms: _Day-count continuous from CLD_
 
 ### Wharfrent Toggle (Cargo)
 
@@ -210,6 +232,7 @@ When no bill has been generated yet, both result areas show a centred empty-stat
 ### Custom Calendar Picker
 
 All date inputs use a built-in popup calendar with:
+
 - Smart viewport positioning (flips above when space is limited below)
 - Month / year navigation
 - Gold-highlighted date selection
@@ -227,7 +250,7 @@ The admin button (`#adminBtn`) is **hidden by default** (`display:none`). To rev
 
 ```js
 // Browser DevTools → Console:
-document.getElementById('adminBtn').style.display = 'inline-flex';
+document.getElementById("adminBtn").style.display = "inline-flex";
 ```
 
 Or hold **Ctrl + Shift** and click anywhere on the page.
@@ -236,18 +259,18 @@ Or hold **Ctrl + Shift** and click anywhere on the page.
 
 Admin mode removes the `.ro` class from all rate inputs, enabling editing of:
 
-| Field | Car module | Cargo module |
-|---|---|---|
-| Free-time days | ✓ | ✓ |
-| VAT rate | ✓ | ✓ |
+| Field                 | Car module    | Cargo module                   |
+| --------------------- | ------------- | ------------------------------ |
+| Free-time days        | ✓             | ✓                              |
+| VAT rate              | ✓             | ✓                              |
 | Wharfrent slabs (new) | nr1, nr2, nr3 | — (uses Car rates for SD tons) |
-| Wharfrent slabs (old) | or1, or2, or3 | c-or1, c-or2, c-or3 |
-| River Dues | rRiver | c-rRiver |
-| Landing Charge | rLanding | read-only (formula-derived) |
-| Removal Charge | rRemoval | read-only (formula-derived) |
-| Weighment Charge | rWeighment | c-rWeighment |
-| Hoisting Charge | rHoisting | read-only (formula-derived) |
-| Levy Charge | rLevy | c-rLevy |
+| Wharfrent slabs (old) | or1, or2, or3 | c-or1, c-or2, c-or3            |
+| River Dues            | rRiver        | c-rRiver                       |
+| Landing Charge        | rLanding      | read-only (formula-derived)    |
+| Removal Charge        | rRemoval      | read-only (formula-derived)    |
+| Weighment Charge      | rWeighment    | c-rWeighment                   |
+| Hoisting Charge       | rHoisting     | read-only (formula-derived)    |
+| Levy Charge           | rLevy         | c-rLevy                        |
 
 Cargo Landing / Removal / Hoisting are always formula-derived and remain locked even in Admin mode.
 
@@ -265,13 +288,15 @@ Saved values are validated on load: any rate that is not a finite number (corrup
 
 ## Rounding
 
-All monetary values use **round-half-down** to 2 decimal places:
+All monetary values use **round-half-up** to 2 decimal places (standard accounting rounding):
 
 ```js
-const r2 = v => Math.floor(v * 100 + 0.5 - 1e-9) / 100;
+const r2 = (v) => Math.floor(v * 100 + 0.5 + 1e-9) / 100;
 ```
 
-The `1e-9` tolerance absorbs floating-point multiplication errors at billing scale (e.g. `107785.5 × 0.15` → `16167.825000000006` without it).
+A value landing exactly on a half-cent boundary rounds up — e.g. a VAT of `98533 × 0.15 = 14779.95` (or `50256.5 × 0.15 = 7538.475 → 7538.48`). The `+ 1e-9` tolerance nudges exact/near-half values up despite floating-point noise (e.g. `50256.5 × 0.15` is stored as `7538.4749999999995`). Using `- 1e-9` instead would round halves **down** and undercharge the bill by a cent.
+
+**Single-rounding of VAT** — In General Cargo, VAT is rounded **once** on the combined Inside + Outside base. Rounding VAT independently per portion and summing double-rounds: when both portions sit on a half-cent boundary the grand total drifts a cent (e.g. `…441.94` / `.96` instead of `.95`). The Car module bills each section independently, so its per-section VAT is correct by construction.
 
 ---
 
@@ -346,28 +371,39 @@ portbill/
 ## Key Design Patterns
 
 ### Placeholder Pattern
+
 All user-facing quantity inputs use `placeholder="0"` — never `value="0"`. Empty field shows the placeholder; typing `0` shows 0. Part billing balance inputs follow the same rule.
 
 ### Toggle-Switch Checkboxes
+
 `.pc-toggle` inputs are visually hidden. To set state programmatically (e.g. in tests):
+
 ```js
 el.checked = true;
-el.dispatchEvent(new Event('change', { bubbles: true }));
+el.dispatchEvent(new Event("change", { bubbles: true }));
 ```
 
 ### DOM Caching
+
 `domCache` holds references to frequently updated elements, populated by `initDomCache()` on `DOMContentLoaded`.
 
 ### Rate Table Inputs vs. Spans
+
 Each editable rate has a hidden `<input>` and a visible `<span>`. `syncSpan(inputId, spanId)` keeps them in sync. In admin mode the span is hidden and the input is shown.
 
 ### HTML Escaping (XSS Guard)
+
 User-supplied free text is escaped with the `escHtml()` utility before being interpolated into any HTML string:
 
 ```js
-const escHtml = v =>
-  String(v ?? '').replace(/[&<>"']/g, c =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const escHtml = (v) =>
+  String(v ?? "").replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ],
+  );
 ```
 
 This covers the **BL Number** and **C&F Agent Name** fields (which flow into the printed invoice) and part-billing **stage dates** (re-rendered via `innerHTML`). Any new user-facing text field that ends up in an HTML template string must go through `escHtml()`.
@@ -378,7 +414,7 @@ This covers the **BL Number** and **C&F Agent Name** fields (which flow into the
 
 All generated bills carry the notice:
 
-> *"This document is generated for informational and estimation purposes only and does not constitute an official invoice or legally binding charge statement. Final billing is subject to official verification by the Port Authority."*
+> _"This document is generated for informational and estimation purposes only and does not constitute an official invoice or legally binding charge statement. Final billing is subject to official verification by the Port Authority."_
 
 ---
 

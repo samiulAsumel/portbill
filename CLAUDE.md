@@ -33,7 +33,13 @@ Four files total — everything is self-contained vanilla JS/CSS:
 
 ## Key Design Patterns
 
-**Rounding**: All monetary values use round-half-down to 2dp via `r2 = v => Math.floor(v * 100 + 0.5 - 1e-9) / 100`. Never change this without understanding the floating-point tolerance.
+**Rounding**: All monetary values use round-half-**up** to 2dp via `r2 = v => Math.floor(v * 100 + 0.5 + 1e-9) / 100` (standard accounting rounding — a value exactly on a half-cent boundary, such as a VAT of `…475`, rounds up). The `+ 1e-9` nudges exact/near halves up despite floating-point noise; using `- 1e-9` instead implements round-half-down and shaves a cent off boundary VATs — do not reintroduce it.
+
+**VAT/Levy presentation differs by module — they are intentionally NOT the same:**
+
+- **General Cargo** — VAT and Levy are charged **ONCE on the COMBINED inside+outside base**, shown a single time at the foot of the bill. `cargoCompute` exposes per-portion sub-totals `iBase`/`oBase` (= wharfrent + payables, the VAT base) plus the combined `gBase = r2(iBase + oBase)`, `gVat = r2(gBase × vatRate)`, `gLevy = iLevy + oLevy`, `gTotal = r2(gBase + gVat + gLevy)`. The inside/outside sections show only their `*Base` sub-total; a single "BILL SUMMARY" block (`buildCombinedSummaryTable` on screen, `buildCombinedSummaryPrintSection` in print) renders `gBase → gVat → gLevy → gTotal`. This is a display choice (VAT shown once) **and** a correctness one: per-portion VAT that is summed double-rounds and drifts a cent when both portions hit a half-cent boundary (symptom: cargo grand total `…441.94`/`.96` instead of `.95`). The cargo print/part-billing builders recompute toggle-adjusted `gBase/gVat/gLevy/gTotal` when the payable/wharfrent toggles exclude charges.
+
+- **Car** — Inside (full rate) and Outside (½ rate) are each a **COMPLETE bill**: `iBase + iVat + iLevy = iTotal` and `oBase + oVat + oLevy = oTotal`, with VAT/Levy shown **per section**. The Car Grand Total is `iTotal + oTotal`. `carCompute` returns `iVat`/`iTotal`/`oVat`/`oTotal` (no `g*` fields). Do not apply the cargo combined-VAT model to the car module.
 
 **Split billing** (23/07/2024 rate cut): When CLD ≤ 22/07/2024 and delivery ≥ 23/07/2024, `calcSlabs()` splits the period and applies old/new rates independently. Self-drive tons in Cargo also go through the same split logic via `calcCarBillingSdSlabs()`.
 
