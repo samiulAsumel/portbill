@@ -1,4 +1,4 @@
-# Port Billing System — v3.4
+# Port Billing System — v3.5
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles and general cargo with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
