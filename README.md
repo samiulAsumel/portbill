@@ -363,15 +363,17 @@ ES2022+, CSS Grid, CSS Custom Properties, native `<dialog>`, `IntersectionObserv
 portbill/
 ├── index.html   — Markup: header, module tabs, admin dialog, print-preview dialog,
 │                  Car page (#page-car) and Cargo page (#page-cargo)
-├── style.css    — All styles (~3490 lines): design tokens, accent variable system,
+├── style.css    — All styles (~3487 lines): design tokens, accent variable system,
 │                  component styles, date-field-wrap / .cal icon, toast, inline
 │                  validation, explanation box, calc-rows, print rules,
 │                  responsive layout (360 px → 4 K)
-├── main.js      — All logic (~5039 lines):
+├── main.js      — All logic (~5058 lines):
 │                  · RATE_DEFAULTS + localStorage persistence (top)
 │                  · Admin auth / SHA-256 (~L460)
 │                  · Car billing engine: carCompute() → calcSlabs() → buildCarBillTable()
 │                    → carCalculate() (~L621)
+│                  · Pre-calculate guards: collectCarErrors(), collectCargoErrors(),
+│                    reportInputErrors() (~L1262)
 │                  · Cargo billing engine: cargoCompute() → calcCarBillingSdSlabs()
 │                    → buildCargoBillTable() (~L2330)
 │                  · Part billing: renderPartBillingStages(), pbBalanceChange(),

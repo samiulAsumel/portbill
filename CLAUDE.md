@@ -22,13 +22,13 @@ No dependencies, no package manager, no transpiler.
 Four files total — everything is self-contained vanilla JS/CSS:
 
 - **`index.html`** — Markup only. Two module pages (`#page-car`, `#page-cargo`) plus two `<dialog>` elements: admin login (`#overlay`) and print preview (`#ppvDialog`). Module switching is tab-driven via `switchModule()`.
-- **`main.js`** — All logic (~5039 lines). Sections are marked with `// ════` banners. Key sections:
+- **`main.js`** — All logic (~5058 lines). Sections are marked with `// ════` banners. Key sections:
   - **State / rate persistence** (top): `RATE_DEFAULTS`, `localStorage` key `pb_admin_rates`, `loadSavedRates()` / `saveRates()` / `resetRatesToDefaults()`
   - **Admin auth** (~L460): SHA-256 hash in `AP_HASH`; `doLogin()` uses `crypto.subtle`; locked after 5 attempts (sessionStorage)
   - **Car billing engine** (~L621): `carCompute()` → `calcSlabs()` → `buildCarBillTable()` → `carCalculate()` writes to DOM. `carRefresh()` is the live-preview debounce wrapper.
   - **Cargo billing engine** (~L2330): `cargoCompute()` is the main compute function. Part billing is driven by `computePartBillingWharfrent()`. Self-drive tons use `calcCarBillingSdSlabs()` (same slab table as Car module).
   - **Invoice / print** (~L3496): `buildInvoiceHtml(opts)` builds the full print document as an HTML string; `openPrintPreview()` injects it into the `<iframe>` inside `#ppvDialog`. Pass `isCargo: true` from the Cargo module to get sky-blue accent theming; omit or pass `false` for gold (Car).
-- **`style.css`** — All styles (~3490 lines). Uses CSS custom properties for the color palette, including the `--accent` system (see below). `@media print` rules at the bottom. `.ro` class makes rate inputs read-only visually (dashed border, reduced opacity).
+- **`style.css`** — All styles (~3487 lines). Uses CSS custom properties for the color palette, including the `--accent` system (see below). `@media print` rules at the bottom. `.ro` class makes rate inputs read-only visually (dashed border, reduced opacity).
 - **`favicon.svg`** — Compass-rose emblem SVG (gold stroke `#c09230`). Also used as `apple-touch-icon`.
 
 ## Key Design Patterns
@@ -66,6 +66,8 @@ Four files total — everything is self-contained vanilla JS/CSS:
 **Toggle-switch checkboxes** (`.pc-toggle`): The native `<input type="checkbox">` inside every toggle is visually hidden (`opacity:0; width:0; height:0`). Do not try to interact with it via Playwright `click()` or `check()` — it will report as not visible. Instead set state programmatically: `el.checked = true; el.dispatchEvent(new Event('change', { bubbles: true }))`. To click via CSS, click the `.pc-toggle` label element, not the input.
 
 **Free time = 0**: Supported in both modules. When `freeDays === 0`, wharfrent starts on CLD itself: `freeDays === 0 ? addD(cld, -1) : addD(cld, freeDays - 1)`. The free-time strip shows "No free time" instead of day pills.
+
+**Pre-calculate input validation**: `collectCarErrors()` / `collectCargoErrors()` return an array of `{ id, msg }` for every failing input; `reportInputErrors()` surfaces them in one toast (`white-space: pre-line`, so `\n`-joined messages line-break) and focuses the first offending field. `carCalculate()`, `cargoCalculate()`, and `printBill()` all gate on these — they abort before any compute/render when errors exist. Guards are validation-only and never alter a calculation. Current guards: CLD + delivery date format, delivery-not-before-CLD, **vehicle weight > 0** (Car), **total weight > 0** (Cargo, blocks the all-zero bill that `0 inside + 0 outside == 0 total` would otherwise pass), inside+outside == total, and removal/weighment/self-drive tonnage bounds. The `carCompute()`/`cargoCompute()` `Number.parseFloat(...) || default` fallbacks are deliberately permissive for the live preview path (`carRefreshNow`/`cargoRefreshNow`, wrapped in try/catch) — the error gate is what protects the actual bill.
 
 **Toast notifications**: `showToast(msg, type)` where `type` is `'success'|'info'|'warning'|'error'`. Creates `#pb-toast` lazily on first call.
 
