@@ -238,6 +238,14 @@ Date fields show a `DD/MM/YYYY` hint below the input. The hint turns red with an
 
 Printing is blocked while any date-order conflict exists: `printBill()` re-runs the checks and shows an error toast instead of generating an invoice from an invalid timeline.
 
+### Pre-Calculate Input Guards
+
+Before any bill is generated or printed, `collectCarErrors()` / `collectCargoErrors()` gather every failing input into a single toast and focus the first offending field. Beyond the date checks above, these guards require:
+
+- **Vehicle weight > 0** (Car) — a cleared or zero weight is rejected rather than silently billed as the 2-ton default.
+- **Total weight > 0** (Cargo) — a zero/blank total is rejected so it can't pass the split check (`0 + 0 == 0`) and generate an all-zero bill.
+- **Inside + Outside = Total** (Cargo), and valid **removal / weighment / self-drive** tonnages where those charges are enabled.
+
 ### Empty-State Placeholders
 
 When no bill has been generated yet, both result areas show a centred empty-state graphic prompting the user to fill in the required fields.

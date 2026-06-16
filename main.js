@@ -1278,6 +1278,15 @@ function collectCarErrors() {
     });
   if (isValidDateStr(cldV) && isValidDateStr(delV) && pd(delV) < pd(cldV))
     errors.push({ id: "delivery", msg: "Delivery date is before the CLD." });
+  // Vehicle weight must be a positive number — guards the `|| 2` compute fallback
+  // so a cleared/zero field can't silently bill as the 2-ton default.
+  const wV = (document.getElementById("weight")?.value || "").trim();
+  const wNum = Number.parseFloat(wV);
+  if (wV === "" || Number.isNaN(wNum) || wNum <= 0)
+    errors.push({
+      id: "weight",
+      msg: "Vehicle weight must be greater than 0 ton.",
+    });
   return errors;
 }
 
@@ -1287,6 +1296,16 @@ function collectCargoErrors() {
   if (!cldV) errors.push({ id: "c-cld", msg: "CLD is required (DD/MM/YYYY)." });
   else if (!isValidDateStr(cldV))
     errors.push({ id: "c-cld", msg: "CLD is not a valid date (DD/MM/YYYY)." });
+
+  // Total cargo weight must be positive — a zero/blank total otherwise passes the
+  // split check (0 inside + 0 outside == 0 total) and generates an all-zero bill.
+  const twV = (document.getElementById("c-weight")?.value || "").trim();
+  const twNum = Number.parseFloat(twV);
+  if (twV === "" || Number.isNaN(twNum) || twNum <= 0)
+    errors.push({
+      id: "c-weight",
+      msg: "Total weight must be greater than 0 ton.",
+    });
 
   const isPb = !!document.getElementById("c-partBilling")?.checked;
   if (isPb) {
