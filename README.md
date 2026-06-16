@@ -205,12 +205,14 @@ General Cargo supports multi-stage part delivery. Each stage has a delivery date
 - Charge-checkbox states are saved and restored when toggling part billing on/off
 - When Self Drive is active, each stage shows SD Inside / SD Outside balance inputs, clamped to the stage's remaining tonnage; the max-tonnage hint shows `Nt Normal + Nt SD` when SD weight is present
 - Balance inputs follow the **placeholder pattern** — cleared field shows placeholder `0`, typed `0` stays as `0`
+- Stages whose delivery falls **within free time** are included in the stage count and shown in the bill table as `Stage N: [date] — ✓ Delivery within free time — no wharfrent charge` with a balance or final-delivery note appended. These stages are not silently skipped.
 
 **In the printed invoice:**
 
 - Each stage is labelled **Stage N:** with date range, weight, days, and day-range
 - Last stage: _Final Delivery — no cargo remains_
 - Intermediate stages: _Remaining balance after this delivery: Inside/Outside Nt_
+- Free-time delivery stages appear as `Stage N: [date] — Delivery within free time — no wharfrent charge | [balance or Final Delivery note]`
 - Footer note confirms: _Day-count continuous from CLD_
 
 ### Wharfrent Toggle (Cargo)
@@ -240,14 +242,9 @@ Printing is blocked while any date-order conflict exists: `printBill()` re-runs 
 
 When no bill has been generated yet, both result areas show a centred empty-state graphic prompting the user to fill in the required fields.
 
-### Custom Calendar Picker
+### Date Field Icon
 
-All date inputs use a built-in popup calendar with:
-
-- Smart viewport positioning (flips above when space is limited below)
-- Month / year navigation
-- Gold-highlighted date selection
-- Manual `DD/MM/YYYY` typed input also supported
+All date inputs display an accent-colored calendar icon (`.cal` CSS class) positioned inside the field via `mask: url(svg)` and `background: currentColor`. The icon is visual-only (`pointer-events: none`) — dates are entered by typing `DD/MM/YYYY` directly. The icon automatically matches the module accent color (gold for Car, sky blue for Cargo) through CSS custom properties.
 
 ### Responsive Design
 
@@ -358,23 +355,23 @@ ES2022+, CSS Grid, CSS Custom Properties, native `<dialog>`, `IntersectionObserv
 portbill/
 ├── index.html   — Markup: header, module tabs, admin dialog, print-preview dialog,
 │                  Car page (#page-car) and Cargo page (#page-cargo)
-├── style.css    — All styles (~3465 lines): design tokens, accent variable system,
-│                  component styles, toast, inline validation, explanation box,
-│                  calc-rows, print rules, responsive layout (360 px → 4 K)
-├── main.js      — All logic (~5300 lines):
+├── style.css    — All styles (~3490 lines): design tokens, accent variable system,
+│                  component styles, date-field-wrap / .cal icon, toast, inline
+│                  validation, explanation box, calc-rows, print rules,
+│                  responsive layout (360 px → 4 K)
+├── main.js      — All logic (~5039 lines):
 │                  · RATE_DEFAULTS + localStorage persistence (top)
-│                  · CalendarPicker class (~L215)
 │                  · Admin auth / SHA-256 (~L460)
 │                  · Car billing engine: carCompute() → calcSlabs() → buildCarBillTable()
 │                    → carCalculate() (~L621)
 │                  · Cargo billing engine: cargoCompute() → calcCarBillingSdSlabs()
-│                    → buildCargoBillTable() (~L1035)
+│                    → buildCargoBillTable() (~L2330)
 │                  · Part billing: renderPartBillingStages(), pbBalanceChange(),
-│                    pbSdBalanceChange(), buildPartBillingBillTable() (~L1171)
+│                    pbSdBalanceChange(), buildPartBillingBillTable() (~L1452)
 │                  · Invoice / print: buildCarExplanationHtml(), buildCargoExplanationHtml(),
 │                    printCalcRow(), printCalcRowHalf(), buildInvoiceHtml(),
-│                    openPrintPreview(), printBill() (~L2566)
-└── favicon.svg  — SVG favicon (also used as apple-touch-icon)
+│                    openPrintPreview(), printBill() (~L3496)
+└── favicon.svg  — Compass-rose emblem SVG (gold stroke #c09230); also apple-touch-icon
 ```
 
 ---

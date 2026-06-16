@@ -22,14 +22,14 @@ No dependencies, no package manager, no transpiler.
 Four files total — everything is self-contained vanilla JS/CSS:
 
 - **`index.html`** — Markup only. Two module pages (`#page-car`, `#page-cargo`) plus two `<dialog>` elements: admin login (`#overlay`) and print preview (`#ppvDialog`). Module switching is tab-driven via `switchModule()`.
-- **`main.js`** — All logic (~5300 lines). Sections are marked with `// ════` banners. Key sections:
+- **`main.js`** — All logic (~5039 lines). Sections are marked with `// ════` banners. Key sections:
   - **State / rate persistence** (top): `RATE_DEFAULTS`, `localStorage` key `pb_admin_rates`, `loadSavedRates()` / `saveRates()` / `resetRatesToDefaults()`
   - **Admin auth** (~L460): SHA-256 hash in `AP_HASH`; `doLogin()` uses `crypto.subtle`; locked after 5 attempts (sessionStorage)
   - **Car billing engine** (~L621): `carCompute()` → `calcSlabs()` → `buildCarBillTable()` → `carCalculate()` writes to DOM. `carRefresh()` is the live-preview debounce wrapper.
-  - **Cargo billing engine** (~L1035): `cargoCompute()` is the main compute function. Part billing is driven by `computePartBillingWharfrent()`. Self-drive tons use `calcCarBillingSdSlabs()` (same slab table as Car module).
-  - **Invoice / print** (~L2545): `buildInvoiceHtml(opts)` builds the full print document as an HTML string; `openPrintPreview()` injects it into the `<iframe>` inside `#ppvDialog`. Pass `isCargo: true` from the Cargo module to get sky-blue accent theming; omit or pass `false` for gold (Car).
-- **`style.css`** — All styles (~3465 lines). Uses CSS custom properties for the color palette, including the `--accent` system (see below). `@media print` rules at the bottom. `.ro` class makes rate inputs read-only visually (dashed border, reduced opacity).
-- **`favicon.svg`** — Also used as `apple-touch-icon`.
+  - **Cargo billing engine** (~L2330): `cargoCompute()` is the main compute function. Part billing is driven by `computePartBillingWharfrent()`. Self-drive tons use `calcCarBillingSdSlabs()` (same slab table as Car module).
+  - **Invoice / print** (~L3496): `buildInvoiceHtml(opts)` builds the full print document as an HTML string; `openPrintPreview()` injects it into the `<iframe>` inside `#ppvDialog`. Pass `isCargo: true` from the Cargo module to get sky-blue accent theming; omit or pass `false` for gold (Car).
+- **`style.css`** — All styles (~3490 lines). Uses CSS custom properties for the color palette, including the `--accent` system (see below). `@media print` rules at the bottom. `.ro` class makes rate inputs read-only visually (dashed border, reduced opacity).
+- **`favicon.svg`** — Compass-rose emblem SVG (gold stroke `#c09230`). Also used as `apple-touch-icon`.
 
 ## Key Design Patterns
 
@@ -49,11 +49,13 @@ Four files total — everything is self-contained vanilla JS/CSS:
 
 **Lock icon (`.lck`)**: All lock icons use `<span class="lck"></span>` — never emoji. The `.lck` CSS class renders a padlock via `mask: url(svg)` and `background: currentColor`, so it inherits color from context (including accent-aware parents). Emoji alternatives are banned; they render inconsistently across platforms.
 
+**Date field wrapper (`.date-field-wrap` / `.cal`)**: All date inputs are wrapped in `<div class="date-field-wrap">` with a sibling `<span class="cal"></span>`. The `.cal` class renders a calendar SVG icon via `mask: url(svg)` and `background: var(--accent)`, positioned absolutely inside the wrapper (`right: 10px`, `pointer-events: none`). Date entry is always manual `DD/MM/YYYY` — the icon is decorative only. There is no JS calendar picker; the previous `CalendarPicker` class has been removed.
+
 **Grand total pulse**: After each bill calculation, `carCalculate()` and `cargoCalculate()` trigger a CSS pulse on the grand total box: `el.classList.remove("just-calculated"); void el.offsetWidth; el.classList.add("just-calculated")`. The reflow (`void offsetWidth`) restarts the animation even on consecutive calculations. The `gboxPulse` keyframe is suppressed by `prefers-reduced-motion`.
 
 **Rate table inputs vs. spans**: Each editable rate has a hidden `<input>` and a visible `<span>`. `syncSpan(inputId, spanId)` keeps them in sync. In admin mode the span is hidden and the input is shown.
 
-**Part billing stages** (Cargo only): Stored in the DOM as dynamically rendered rows under `#c-pbStagesContainer`. Stage objects: `{ date, insideAfter, outsideAfter, sdInsideAfter, sdOutsideAfter }`. `computePartBillingWharfrent()` iterates stages, keeping slab day-count running continuously from CLD — day count never resets between stages, only weight changes. When Self Drive is active, each stage shows SD balance inputs clamped by `pbMaxSdWeight(idx, side)`. Changes to SD balance inputs are handled by `pbSdBalanceChange(idx, side, rawVal)`.
+**Part billing stages** (Cargo only): Stored in the DOM as dynamically rendered rows under `#c-pbStagesContainer`. Stage objects: `{ date, insideAfter, outsideAfter, sdInsideAfter, sdOutsideAfter }`. `computePartBillingWharfrent()` iterates stages, keeping slab day-count running continuously from CLD — day count never resets between stages, only weight changes. When Self Drive is active, each stage shows SD balance inputs clamped by `pbMaxSdWeight(idx, side)`. Changes to SD balance inputs are handled by `pbSdBalanceChange(idx, side, rawVal)`. Stages whose delivery falls **within free time** get `freeTimeDelivery: true` on the period object — they appear in bill tables and stage counts with a "Delivery within free time — no wharfrent charge" label rather than being silently skipped.
 
 **Self Drive** (Cargo): A standalone `.sd-card` above the Payable Charges section — **independent of the Hoisting checkbox**. `wharfSdInside` / `wharfSdOutside` are computed regardless of whether hoisting is checked. SD tons are billed at Car Billing slab rates via `calcCarBillingSdSlabs()`.
 

@@ -281,141 +281,20 @@ const escHtml = (v) =>
   );
 function formatDate(input) {
   let v = input.value.replaceAll(/\D/g, "");
-  if (v.length >= 2) v = v.slice(0, 2) + "/" + v.slice(2);
-  if (v.length >= 5) v = v.slice(0, 5) + "/" + v.slice(5, 9);
+  if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2);
+  if (v.length > 5) v = v.slice(0, 5) + "/" + v.slice(5, 9);
   input.value = v;
 }
-class CalendarPicker {
-  constructor(inputId) {
-    this.inputId = inputId;
-    this.input = document.getElementById(inputId);
-    if (!this.input) return;
-    this.isOpen = false;
-    this.currentDate = new Date();
-    this.selectedDate = null;
-    this.init();
-  }
-
-  init() {
-    const wrapper = document.createElement("div");
-    wrapper.style.position = "relative";
-    wrapper.style.display = "inline-block";
-    wrapper.style.width = "100%";
-
-    this.input.parentNode.insertBefore(wrapper, this.input);
-    wrapper.appendChild(this.input);
-    this.input.style.paddingRight = "40px";
-
-    const icon = document.createElement("span");
-    icon.innerHTML = "📅";
-    icon.style.cssText =
-      "position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;z-index:10;pointer-events:auto;padding:4px;border-radius:4px;transition:all .2s ease;";
-    icon.onmouseover = () => {
-      icon.style.background = "var(--glass-bg)";
-      icon.style.transform = "translateY(-50%) scale(1.1)";
-    };
-    icon.onmouseout = () => {
-      icon.style.background = "transparent";
-      icon.style.transform = "translateY(-50%) scale(1)";
-    };
-    icon.onclick = () => this.toggle();
-    wrapper.appendChild(icon);
-
-    this.calendar = document.createElement("div");
-    this.calendar.style.cssText =
-      "position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px;box-shadow:var(--shadow-glow-gold);z-index:1000;display:none;min-width:276px;font-size:14px;";
-    document.body.appendChild(this.calendar);
-
-    document.addEventListener("click", (e) => {
-      if (!wrapper.contains(e.target) && !this.calendar.contains(e.target)) {
-        this.close();
-      }
-    });
-  }
-
-  toggle() {
-    this.isOpen ? this.close() : this.open();
-  }
-  open() {
-    this.isOpen = true;
-    this.calendar.style.display = "block";
-    this.positionCalendar();
-    this.render();
-  }
-  close() {
-    this.isOpen = false;
-    this.calendar.style.display = "none";
-  }
-
-  positionCalendar() {
-    const rect = this.input.getBoundingClientRect();
-    const calendarHeight = 299;
-    const calendarWidth = 276;
-    let top = rect.bottom + globalThis.scrollY + 5;
-    let left = rect.left + globalThis.scrollX;
-    if (top + calendarHeight > globalThis.innerHeight + globalThis.scrollY) {
-      top = rect.top + globalThis.scrollY - calendarHeight - 5;
-    }
-    if (left + calendarWidth > globalThis.innerWidth + globalThis.scrollX) {
-      left = rect.right + globalThis.scrollX - calendarWidth;
-    }
-    this.calendar.style.top = top + "px";
-    this.calendar.style.left = left + "px";
-  }
-
-  render() {
-    const year = this.currentDate.getFullYear();
-    const month = this.currentDate.getMonth();
-    let html = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
-      <button type="button" onclick="event.stopPropagation(); calendarPickers['${this.inputId}'].previousMonth()" style="background:var(--gold);border:none;border-radius:3px;padding:4px 7px;cursor:pointer;font-size:13px;">&lsaquo;</button>
-      <span style="color:var(--m1);font-weight:600;font-size:14px;">${new Date(year, month).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
-      <button type="button" onclick="event.stopPropagation(); calendarPickers['${this.inputId}'].nextMonth()" style="background:var(--gold);border:none;border-radius:3px;padding:4px 7px;cursor:pointer;font-size:13px;">&rsaquo;</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;text-align:center;">
-  `;
-    const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-    days.forEach((day) => {
-      html += `<div style="color:var(--m2);font-size:12px;padding:3px;">${day}</div>`;
-    });
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    for (let i = 0; i < firstDay; i++) html += "<div></div>";
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
-      const selectedDate = this.selectedDate;
-      const isSelected =
-        selectedDate?.getDate() === date.getDate() &&
-        selectedDate?.getMonth() === date.getMonth() &&
-        selectedDate?.getFullYear() === date.getFullYear();
-      html += `<div onclick="calendarPickers['${this.inputId}'].selectDate(${year}, ${month}, ${day})" style="padding:5px;cursor:pointer;border-radius:3px;font-size:13px;${isSelected ? "background:var(--gold);color:var(--bg);" : "color:var(--m1);"}">${day}</div>`;
-    }
-
-    html += "</div>";
-    this.calendar.innerHTML = html;
-  }
-
-  previousMonth() {
-    this.currentDate.setMonth(this.currentDate.getMonth() - 1);
-    this.render();
-  }
-  nextMonth() {
-    this.currentDate.setMonth(this.currentDate.getMonth() + 1);
-    this.render();
-  }
-  selectDate(year, month, day) {
-    this.selectedDate = new Date(year, month, day);
-    const d = String(this.selectedDate.getDate()).padStart(2, "0");
-    const m = String(this.selectedDate.getMonth() + 1).padStart(2, "0");
-    const y = this.selectedDate.getFullYear();
-    this.input.value = `${d}/${m}/${y}`;
-    this.input.dispatchEvent(new Event("input"));
-    this.close();
-  }
-}
-globalThis.calendarPickers = {};
+// Makes backspace transparent to auto-inserted "/" separators in DD/MM/YYYY inputs.
+// When cursor is right after a "/", shift cursor back so the preceding digit is deleted instead.
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Backspace") return;
+  const inp = e.target;
+  if (inp.tagName !== "INPUT" || inp.getAttribute("placeholder") !== "DD/MM/YYYY") return;
+  const s = inp.selectionStart;
+  if (s !== inp.selectionEnd || s === 0) return;
+  if (inp.value[s - 1] === "/") inp.setSelectionRange(s - 1, s - 1);
+}, false);
 
 const pd = (s) => {
   if (!s || s.trim() === "") return new Date();
@@ -985,8 +864,7 @@ function carRefreshNow() {
         `<div class="pvr pvr-grand"><span class="pvr-lbl">Car Grand Total</span><span class="pvr-val v-gold">${fmt(b.nTotal)}</span></div>`;
     }
     if (isAdmin && !isInitialLoad) saveRates();
-  } catch (e) {
-    console.error("carRefreshNow error", e);
+  } catch (_) {
     document.getElementById("car-preview").innerHTML = SP_CAR_IDLE;
   }
 }
@@ -1007,7 +885,7 @@ function carRefresh() {
 function buildCombinedSummaryRows(b) {
   let rows = `<tr class="tot"><td colspan="5">Total Bill (Base for VAT) — Inside + Outside</td><td>${fmt(b.gBase)}</td></tr>`;
   if (b.gVat > 0)
-    rows += `<tr class="vrow"><td colspan="5">VAT @ ${(b.vatRate * 100).toFixed(1)}%</td><td>${fmt(b.gVat)}</td></tr>`;
+    rows += `<tr class="vrow"><td colspan="5">VAT @ ${(b.vatRate * 100).toFixed(2)}%</td><td>${fmt(b.gVat)}</td></tr>`;
   if (b.gLevy > 0)
     rows += `<tr class="lrow"><td colspan="5">Levy Charge (No VAT)</td><td>${fmt(b.gLevy)}</td></tr>`;
   rows += `<tr class="grand"><td colspan="5">GRAND TOTAL</td><td>${fmt(b.gTotal)}</td></tr>`;
@@ -1066,14 +944,14 @@ function buildCarBillTable(b, side) {
         rows += `<tr class="sub"><td>${p.label}</td><td>${p.rateStr ?? fmtN(p.rate)}/ton</td><td colspan="2">${b.weight} ton(s)</td><td></td><td>${fmt(p.amt)}</td></tr>`;
       });
     }
-    rows += `<tr class="tot"><td colspan="5">${baseLabel}</td><td>${fmt(baseAmt)}</td></tr><tr class="vrow"><td colspan="5">VAT @ ${(b.vatRate * 100).toFixed(1)}%</td><td>${fmt(vatAmt)}</td></tr><tr class="lrow"><td colspan="5">Levy Charge (No VAT)</td><td>${fmt(levyAmt)}</td></tr><tr class="grand"><td colspan="5">${side === "inside" ? "INSIDE" : "OUTSIDE"} TOTAL</td><td>${fmt(totalAmt)}</td></tr>`;
+    rows += `<tr class="tot"><td colspan="5">${baseLabel}</td><td>${fmt(baseAmt)}</td></tr><tr class="vrow"><td colspan="5">VAT @ ${(b.vatRate * 100).toFixed(2)}%</td><td>${fmt(vatAmt)}</td></tr><tr class="lrow"><td colspan="5">Levy Charge (No VAT)</td><td>${fmt(levyAmt)}</td></tr><tr class="grand"><td colspan="5">${side === "inside" ? "INSIDE" : "OUTSIDE"} TOTAL</td><td>${fmt(totalAmt)}</td></tr>`;
   } else {
     if (b.payables.length > 0) {
       b.payables.forEach((p) => {
         rows += `<tr class="sub"><td>${p.label}</td><td>${p.rateStr ?? fmtN(p.rate)}/ton</td><td colspan="2">${b.weight} ton(s)</td><td></td><td>${fmt(p.amt)}</td></tr>`;
       });
     }
-    rows += `<tr class="tot"><td colspan="5">Total Payable (Base for VAT)</td><td>${fmt(b.nBase)}</td></tr><tr class="vrow"><td colspan="5">VAT @ ${(b.vatRate * 100).toFixed(1)}%</td><td>${fmt(b.nVat)}</td></tr><tr class="lrow"><td colspan="5">Levy Charge (No VAT)</td><td>${fmt(b.nLevy)}</td></tr><tr class="grand"><td colspan="5">GRAND TOTAL</td><td>${fmt(b.nTotal)}</td></tr>`;
+    rows += `<tr class="tot"><td colspan="5">Total Payable (Base for VAT)</td><td>${fmt(b.nBase)}</td></tr><tr class="vrow"><td colspan="5">VAT @ ${(b.vatRate * 100).toFixed(2)}%</td><td>${fmt(b.nVat)}</td></tr><tr class="lrow"><td colspan="5">Levy Charge (No VAT)</td><td>${fmt(b.nLevy)}</td></tr><tr class="grand"><td colspan="5">GRAND TOTAL</td><td>${fmt(b.nTotal)}</td></tr>`;
   }
   return `<div class="btw"><table class="bt"><thead><tr><th>Description</th><th>Rate</th><th>From</th><th>To</th><th>Days</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -1085,8 +963,8 @@ function carCalculate() {
   let b;
   try {
     b = carCompute();
-  } catch (e) {
-    console.error("carCalculate compute error", e);
+  } catch (_) {
+    showToast("Billing calculation failed — please check inputs and try again.", "error");
     return;
   }
   if (!b) return;
@@ -1143,8 +1021,8 @@ function carCalculate() {
         80,
       );
     }
-  } catch (e) {
-    console.error("carCalculate render error", e);
+  } catch (_) {
+    showToast("Display error — bill may not render correctly.", "warning");
   }
 }
 
@@ -1313,11 +1191,10 @@ function cargoValidateSelfDriveTon(showAlert = false) {
 }
 
 // Validate every part-billing stage date against the running timeline. Each
-// stage's delivery must fall after the previous reference point: stage 0 must be
-// on/after the wharfrent start (freeEnd + 1); later stages must be strictly
-// after the previous stage's delivery. Mirrors the periodDays<=0 "invalid"
-// gate in computePartBillingWharfrent, but surfaces the reason inline so the
-// user knows why a stage isn't billing. Returns true when all dates are valid.
+// stage's delivery must fall on/after CLD (delivery within free time is allowed);
+// later stages must be strictly after the previous stage's delivery. Mirrors the
+// periodDays<=0 "invalid" gate in computePartBillingWharfrent, but surfaces the
+// reason inline so the user knows why a stage isn't billing. Returns true when all dates are valid.
 function validatePartBillingDates() {
   const cldEl = document.getElementById("c-cld");
   if (!cldEl) return true;
@@ -1358,11 +1235,11 @@ function validatePartBillingDates() {
       continue;
     }
     const dDate = pd(v);
-    const minDate = addD(prevEnd, 1); // earliest allowed delivery for this stage
+    const minDate = i === 0 ? cld : addD(prevEnd, 1);
     if (dDate < minDate) {
       const msg =
         i === 0
-          ? `Must be on/after ${fd(minDate)}`
+          ? `Must be on/after CLD (${fd(cld)})`
           : `Must be after ${fd(prevEnd)} (previous delivery)`;
       setFieldState(`pb-date-${i}`, hintId, "error", msg);
       allValid = false;
@@ -1575,15 +1452,6 @@ function onPartBillingChange() {
 function renderPartBillingStages() {
   const container = document.getElementById("c-pbStagesContainer");
   if (!container) return;
-  // Clean up previous calendar pickers for pb-date-* inputs
-  Object.keys(globalThis.calendarPickers)
-    .filter((k) => k.startsWith("pb-date-"))
-    .forEach((k) => {
-      const picker = globalThis.calendarPickers[k];
-      if (picker && picker.calendar && picker.calendar.parentNode)
-        picker.calendar.parentNode.removeChild(picker.calendar);
-      delete globalThis.calendarPickers[k];
-    });
   const total = partBillingStages.length;
   const showSdIn =
     !!document.getElementById("c-chkSelfDriveInside")?.checked &&
@@ -1651,9 +1519,12 @@ function renderPartBillingStages() {
         <div class="pbs-fields">
           <div class="fg">
             <label class="lbl" for="pb-date-${idx}">Delivery Date</label>
-            <input type="text" id="pb-date-${idx}" class="cargo-glow" placeholder="DD/MM/YYYY" maxlength="10"
-              value="${escHtml(stage.date)}"
-              oninput="formatDate(this); partBillingStages[${idx}].date=this.value; cargoRefresh();" />
+            <div class="date-field-wrap">
+              <input type="text" id="pb-date-${idx}" class="cargo-glow" placeholder="DD/MM/YYYY" maxlength="10"
+                value="${escHtml(stage.date)}"
+                oninput="formatDate(this); partBillingStages[${idx}].date=this.value; cargoRefresh();" />
+              <span class="cal" aria-hidden="true"></span>
+            </div>
             <div class="field-hint hint-muted" id="pb-date-hint-${idx}">DD/MM/YYYY</div>
           </div>
           <div class="pbs-balance-wrap">
@@ -1713,16 +1584,6 @@ function renderPartBillingStages() {
   const countEl = document.getElementById("c-pbStageCount");
   if (countEl)
     countEl.textContent = `${partBillingStages.length} stage${partBillingStages.length !== 1 ? "s" : ""}`;
-  // Attach calendar pickers to new date inputs
-  setTimeout(() => {
-    partBillingStages.forEach((_, idx) => {
-      if (!globalThis.calendarPickers[`pb-date-${idx}`]) {
-        globalThis.calendarPickers[`pb-date-${idx}`] = new CalendarPicker(
-          `pb-date-${idx}`,
-        );
-      }
-    });
-  }, 60);
 }
 
 function pbMaxWeight(idx, side) {
@@ -1991,7 +1852,9 @@ function computePartBillingWharfrent(
   for (let i = 0; i < partBillingStages.length; i++) {
     const stage = partBillingStages[i];
     const deliveryDate = pd(stage.date);
-    const prevEnd = i === 0 ? freeEnd : pd(partBillingStages[i - 1].date);
+    const rawPrevEnd = i === 0 ? freeEnd : pd(partBillingStages[i - 1].date);
+    // If a prior stage delivered within free time, clamp so this stage's billing starts at storStart
+    const prevEnd = rawPrevEnd < freeEnd ? freeEnd : rawPrevEnd;
     const blockStart = i === 0 ? storStart : addD(prevEnd, 1);
     // insideAfter/outsideAfter stores normal-only remaining; sdInsideAfter stores SD remaining (independent)
     const pNormalInside =
@@ -2016,8 +1879,10 @@ function computePartBillingWharfrent(
     const daysOffset = i === 0 ? 0 : diffD(freeEnd, prevEnd);
     const periodDays = diffD(prevEnd, deliveryDate);
     if (!stage.date || periodDays <= 0) {
+      const freeTimeDelivery = !!(stage.date && deliveryDate <= freeEnd);
       periods.push({
         invalid: true,
+        freeTimeDelivery,
         periodNum: i + 1,
         blockStart,
         deliveryDate,
@@ -2025,6 +1890,10 @@ function computePartBillingWharfrent(
         outsideW,
         periodDays,
         daysOffset,
+        balanceInsideAfter: freeTimeDelivery ? Math.max(0, stage.insideAfter || 0) : undefined,
+        balanceOutsideAfter: freeTimeDelivery ? Math.max(0, stage.outsideAfter || 0) : undefined,
+        balanceSdInsideAfter: freeTimeDelivery ? Math.max(0, stage.sdInsideAfter || 0) : undefined,
+        balanceSdOutsideAfter: freeTimeDelivery ? Math.max(0, stage.sdOutsideAfter || 0) : undefined,
       });
       continue;
     }
@@ -2257,17 +2126,29 @@ function computePartBillingWharfrent(
 function buildPartBillingBillTable(b, side) {
   //NOSONAR
   const isIn = side === "inside";
-  const validPeriods = (b.pbPeriods || []).filter((p) => !p.invalid);
+  const allPeriods = (b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery);
   let rows = "";
   const halfSuffix = isIn
     ? ""
     : '<span style="font-size:11px;color:var(--m2)"> × 0.50</span>';
-  validPeriods.forEach((p, pi) => {
+  allPeriods.forEach((p, pi) => {
+    const isLast = pi === allPeriods.length - 1;
+    if (p.freeTimeDelivery) {
+      const balSd_ft = isIn ? (p.balanceSdInsideAfter || 0) : (p.balanceSdOutsideAfter || 0);
+      const balNorm_ft = isIn ? (p.balanceInsideAfter || 0) : (p.balanceOutsideAfter || 0);
+      const balAfterStr_ft = balSd_ft > 0 ? `${balNorm_ft}t Normal + ${balSd_ft}t SD` : `${balNorm_ft}t`;
+      const balNote_ft = isLast
+        ? " · Final Delivery"
+        : isIn
+          ? ` · Balance: Inside ${balAfterStr_ft}`
+          : ` · Balance: Outside ${balAfterStr_ft}`;
+      rows += `<tr class="sep"><td colspan="6">Stage ${p.periodNum}: ${fd(p.deliveryDate)} — ✓ Delivery within free time — no wharfrent charge${balNote_ft}</td></tr>`;
+      return;
+    }
     const normalSlabs = isIn ? p.insideSlabs : p.outsideSlabs;
     const sdSlabs = isIn ? p.insideSdSlabs || [] : p.outsideSdSlabs || [];
     const w = isIn ? p.insideW : p.outsideW;
     const sdW = isIn ? p.insideSdW || 0 : p.outsideSdW || 0;
-    const isLast = pi === validPeriods.length - 1;
     const balSd_s = isIn
       ? p.balanceSdInsideAfter || 0
       : p.balanceSdOutsideAfter || 0;
@@ -2320,15 +2201,27 @@ function buildPartBillingBillTable(b, side) {
 // Build part billing print section for inside or outside
 function buildPartBillingPrintSection(b, side) {
   //NOSONAR
-  const validPeriods = (b.pbPeriods || []).filter((p) => !p.invalid);
+  const allPeriods = (b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery);
   const isIn = side === "inside";
   let rows = "";
-  validPeriods.forEach((p, pi) => {
+  allPeriods.forEach((p, pi) => {
+    const isLast = pi === allPeriods.length - 1;
+    if (p.freeTimeDelivery) {
+      const balSd_ft = isIn ? (p.balanceSdInsideAfter || 0) : (p.balanceSdOutsideAfter || 0);
+      const balNorm_ft = isIn ? (p.balanceInsideAfter || 0) : (p.balanceOutsideAfter || 0);
+      const balAfterStr_ft = balSd_ft > 0 ? `${balNorm_ft}t Normal + ${balSd_ft}t SD` : `${balNorm_ft}t`;
+      const balNote_ft = isLast
+        ? " | Final Delivery — no cargo remains"
+        : isIn
+          ? ` | Remaining balance after this delivery: Inside ${balAfterStr_ft}`
+          : ` | Remaining balance after this delivery: Outside ${balAfterStr_ft}`;
+      rows += `<tr class="sep"><td colspan="6">Stage ${p.periodNum}: ${fd(p.deliveryDate)} &mdash; Delivery within free time &mdash; no wharfrent charge${balNote_ft}</td></tr>`;
+      return;
+    }
     const normalSlabs = isIn ? p.insideSlabs : p.outsideSlabs;
     const sdSlabs = isIn ? p.insideSdSlabs || [] : p.outsideSdSlabs || [];
     const w = isIn ? p.insideW : p.outsideW;
     const sdW = isIn ? p.insideSdW || 0 : p.outsideSdW || 0;
-    const isLast = pi === validPeriods.length - 1;
     const balSd_p = isIn
       ? p.balanceSdInsideAfter || 0
       : p.balanceSdOutsideAfter || 0;
@@ -2416,7 +2309,7 @@ function buildPartBillingPrintSection(b, side) {
         fmt(p.amt),
         "sub",
       );
-      rows += `<tr class="calc-row"><td colspan="6">&#8627; ${fmtN(p.rate)}&nbsp;Tk/ton &times; ${fmtN(p.tons)}&nbsp;ton(s) = Tk&nbsp;${fmt(p.amt)}</td></tr>`;
+      rows += `<tr class="calc-row"><td colspan="6">&#8627; ${fmtN(p.rate)}&nbsp;Tk/ton &times; ${fmtN(p.tons)}&nbsp;ton(s) = ${fmt(p.amt)}</td></tr>`;
     });
   }
   rows += printTotRow(subLabel, fmt(baseAmt));
@@ -2430,7 +2323,7 @@ function buildPartBillingPrintSection(b, side) {
       : isIn
         ? `${fmtN(wt)} ton initial — Full Rate`
         : `${fmtN(wt)} ton initial — ½ Rate`;
-  const subNote = `Part Billing — ${validPeriods.length} stage${validPeriods.length !== 1 ? "s" : ""} · ${isIn ? "Full" : "½"} rate · Day-count continuous from CLD`;
+  const subNote = `Part Billing — ${allPeriods.length} stage${allPeriods.length !== 1 ? "s" : ""} · ${isIn ? "Full" : "½"} rate · Day-count continuous from CLD`;
   return `${secHead(isIn ? "INSIDE WHARFRENT" : "OUTSIDE WHARFRENT", headBadge)}<div class="section-sub">${subNote}</div><div class="no-break">${buildPrintTable(rows)}</div>`;
 }
 
@@ -3104,7 +2997,7 @@ function cargoRefreshNow() {
         `<span style="color:var(--m2)"> · Hoisting: </span><strong style="color:var(--gold)">${b.dynamicHoistingRate} Tk/ton</strong>`;
     }
     document.getElementById("cargo-rbadge").innerHTML = b.isPartBilling
-      ? `<div class="rbadge rb-new" style="background:rgba(14,165,233,0.10);border-color:rgba(14,165,233,0.28);color:var(--sky);">📦 PART BILLING — ${(b.pbPeriods || []).filter((p) => !p.invalid).length} Delivery Stage(s)</div>`
+      ? `<div class="rbadge rb-new" style="background:rgba(14,165,233,0.10);border-color:rgba(14,165,233,0.28);color:var(--sky);">📦 PART BILLING — ${(b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery).length} Delivery Stage(s)</div>`
       : `<div class="rbadge rb-new">● CARGO RATES — Landing Tier: ${getCargoTierLabel(b.totalWeight)}</div>`;
     const pv = document.getElementById("cargo-preview");
     const inside = Math.round(
@@ -3114,7 +3007,7 @@ function cargoRefreshNow() {
       Number.parseFloat(document.getElementById("c-outside").value) || 0,
     );
     if (b.isPartBilling) {
-      const vp = (b.pbPeriods || []).filter((p) => !p.invalid);
+      const vp = (b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery);
       pv.innerHTML =
         `<div class="pvr"><span class="pvr-lbl">Part Billing Stages</span><span class="pvr-val v-cyan">${vp.length} stage${vp.length !== 1 ? "s" : ""}</span></div>` +
         `<div class="pvr"><span class="pvr-lbl">Total Wharfrent Days</span><span class="pvr-val v-cyan">${b.totalDays} days</span></div>` +
@@ -3134,8 +3027,7 @@ function cargoRefreshNow() {
         `<div class="pvr pvr-grand pvr-grand-cargo"><span class="pvr-lbl">General Cargo Grand Total</span><span class="pvr-val v-cyan">${fmt(b.nTotal)}</span></div>`;
     }
     if (isAdmin && !isInitialLoad) saveRates();
-  } catch (e) {
-    console.error("cargoRefreshNow error", e);
+  } catch (_) {
     document.getElementById("cargo-preview").innerHTML = SP_CARGO_IDLE;
   }
 }
@@ -3218,7 +3110,7 @@ function buildCargoBillTable(b, side) {
         rows += `<tr class="sub"><td>${p.label}</td><td>${p.rateStr ?? fmtN(p.rate)}/ton</td><td colspan="2">${fmtN(p.tons ?? b.totalWeight)} ton(s)</td><td></td><td>${fmt(p.amt)}</td></tr>`;
       });
     }
-    rows += `<tr class="tot"><td colspan="5">Total Payable (Base for VAT)</td><td>${fmt(b.nBase)}</td></tr><tr class="vrow"><td colspan="5">VAT @ ${(b.vatRate * 100).toFixed(1)}%</td><td>${fmt(b.nVat)}</td></tr><tr class="lrow"><td colspan="5">Levy Charge (No VAT)</td><td>${fmt(b.nLevy)}</td></tr><tr class="grand"><td colspan="5">GRAND TOTAL</td><td>${fmt(b.nTotal)}</td></tr>`;
+    rows += `<tr class="tot"><td colspan="5">Total Payable (Base for VAT)</td><td>${fmt(b.nBase)}</td></tr><tr class="vrow"><td colspan="5">VAT @ ${(b.vatRate * 100).toFixed(2)}%</td><td>${fmt(b.nVat)}</td></tr><tr class="lrow"><td colspan="5">Levy Charge (No VAT)</td><td>${fmt(b.nLevy)}</td></tr><tr class="grand"><td colspan="5">GRAND TOTAL</td><td>${fmt(b.nTotal)}</td></tr>`;
   }
   return `<div class="btw"><table class="bt"><thead><tr><th>Description</th><th>Rate</th><th>From</th><th>To</th><th>Days</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -3240,7 +3132,7 @@ function cargoBreakdownData(b) {
   if (!b.hasWharfrent) {
     return {
       hasWharfrent: false,
-      vatPct: (b.vatRate * 100).toFixed(1),
+      vatPct: (b.vatRate * 100).toFixed(2),
       // Wharfrent row — all zero, within free time
       wInside: 0,
       wOutside: 0,
@@ -3276,7 +3168,7 @@ function cargoBreakdownData(b) {
   const pTotal = r2(payableBase + pVat + pLevy);
   return {
     hasWharfrent: true,
-    vatPct: (b.vatRate * 100).toFixed(1),
+    vatPct: (b.vatRate * 100).toFixed(2),
     wInside: b.insideWharfrent,
     wOutside: b.outsideWharfrent,
     wVat,
@@ -3430,8 +3322,8 @@ function cargoCalculate() {
   let b;
   try {
     b = cargoCompute();
-  } catch (e) {
-    console.error("cargoCalculate compute error", e);
+  } catch (_) {
+    showToast("Billing calculation failed — please check inputs and try again.", "error");
     return;
   }
   if (!b) return;
@@ -3440,7 +3332,7 @@ function cargoCalculate() {
     document.getElementById("cargo-results").style.display = "block";
 
     if (b.isPartBilling) {
-      const vp = (b.pbPeriods || []).filter((p) => !p.invalid);
+      const vp = (b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery);
       const firstDel = vp.length > 0 ? fd(vp[0].deliveryDate) : "—";
       const lastDel = vp.length > 0 ? fd(vp[vp.length - 1].deliveryDate) : "—";
       document.getElementById("cargo-ibar").innerHTML =
@@ -3513,8 +3405,8 @@ function cargoCalculate() {
         80,
       );
     }
-  } catch (e) {
-    console.error("cargoCalculate render error", e);
+  } catch (_) {
+    showToast("Display error — bill may not render correctly.", "warning");
   }
 }
 
@@ -3600,6 +3492,7 @@ function cargoReset() {
 //  PRINT / INVOICE
 // ════════════════════════════════════════
 
+
 function buildInvoiceHtml(opts) {
   const {
     title,
@@ -3646,29 +3539,13 @@ function buildInvoiceHtml(opts) {
     ? `<div class="split-warn"><span class="sw-icon">&#9889;</span><strong>SPLIT BILLING APPLIED</strong> &mdash; Old rates applied up to 22/07/2024 &bull; New rates applied from 23/07/2024 onwards</div>`
     : "";
 
-  const issueTime = new Date().toLocaleTimeString("en-GB", {
+  const issueTime = new Date().toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: true,
   });
 
-  const emblemSvg = `<svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <circle cx="26" cy="26" r="23.5" stroke="${accentColor}" stroke-width="1.6"/>
-    <circle cx="26" cy="26" r="17.5" stroke="${accentColor}" stroke-width="0.7" stroke-dasharray="3.5 2"/>
-    <circle cx="26" cy="26" r="9" stroke="${accentColor}" stroke-width="1.6"/>
-    <circle cx="26" cy="26" r="3" fill="${accentColor}"/>
-    <line x1="26" y1="2.5" x2="26" y2="49.5" stroke="${accentColor}" stroke-width="1.2"/>
-    <line x1="2.5" y1="26" x2="49.5" y2="26" stroke="${accentColor}" stroke-width="1.2"/>
-    <line x1="9.5" y1="9.5" x2="42.5" y2="42.5" stroke="${accentColor}" stroke-width="0.7"/>
-    <line x1="42.5" y1="9.5" x2="9.5" y2="42.5" stroke="${accentColor}" stroke-width="0.7"/>
-    <polygon points="26,2 28.5,10.5 26,8.5 23.5,10.5" fill="${accentColor}"/>
-    <polygon points="26,50 28.5,41.5 26,43.5 23.5,41.5" fill="${accentColor}"/>
-    <polygon points="2,26 10.5,23.5 8.5,26 10.5,28.5" fill="${accentColor}"/>
-    <polygon points="50,26 41.5,23.5 43.5,26 41.5,28.5" fill="${accentColor}"/>
-    <circle cx="26" cy="2" r="2" fill="${accentColor}"/>
-    <circle cx="26" cy="50" r="2" fill="${accentColor}"/>
-    <circle cx="2" cy="26" r="2" fill="${accentColor}"/>
-    <circle cx="50" cy="26" r="2" fill="${accentColor}"/>
-  </svg>`;
+  const emblemSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="60" height="60" fill="none" stroke="${accentColor}" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="32" r="29.5" stroke-width="2.5"/><circle cx="32" cy="12" r="3.8" stroke-width="2.2"/><line x1="32" y1="15.8" x2="32" y2="50.5" stroke-width="2.8"/><line x1="20" y1="21.5" x2="44" y2="21.5" stroke-width="2.8"/><circle cx="20" cy="21.5" r="2.5" fill="${accentColor}" stroke="none"/><circle cx="44" cy="21.5" r="2.5" fill="${accentColor}" stroke="none"/><path d="M32,50.5 Q22,49 17,41" stroke-width="2.6"/><polygon points="13.5,38 17.5,45 24,42" fill="${accentColor}" stroke="none"/><path d="M32,50.5 Q42,49 47,41" stroke-width="2.6"/><polygon points="50.5,38 46.5,45 40,42" fill="${accentColor}" stroke="none"/><path d="M22,56 Q27,53 32,56 Q37,59 42,56" stroke-width="2"/></svg>`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -3709,7 +3586,7 @@ function buildInvoiceHtml(opts) {
 html{font-size:10pt;}
 body{
   font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;
-  color:var(--text);background:#d8dde8;
+  color:var(--text);background:#fff;
   line-height:1.55;
   -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
@@ -3729,32 +3606,26 @@ body *{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum
 
 /* ══ ACCENT BAND ══ */
 .inv-band{
-  height:6px;
-  background:linear-gradient(90deg,
-    var(--navy) 0%,
-    var(--accent-lo) 28%,
-    var(--accent) 50%,
-    var(--accent-lo) 72%,
-    var(--navy) 100%);
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  height:0;
+  border-top:5px solid var(--accent);
 }
 
 /* ══ CLASSIFICATION STRIP ══ */
 .cls-strip{
   display:flex;justify-content:space-between;align-items:center;
-  background:var(--navy);
+  background:#fff;
+  border-bottom:1px solid var(--border);
   padding:5px 30px;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 .cls-strip .cls-l{
   font-family:'DM Mono',monospace;font-size:6.8pt;
   letter-spacing:2px;text-transform:uppercase;
-  color:rgba(255,255,255,0.48);
+  color:var(--text-mid);
 }
 .cls-strip .cls-r{
   font-family:'DM Mono',monospace;font-size:6.2pt;
   letter-spacing:1.5px;text-transform:uppercase;
-  color:rgba(255,255,255,0.28);
+  color:var(--text-muted);
 }
 
 /* ══ LETTERHEAD ══ */
@@ -3762,7 +3633,7 @@ body *{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum
   display:flex;justify-content:space-between;align-items:flex-start;
   padding:22px 30px 20px;
   background:#fff;
-  border-bottom:3px solid var(--navy);
+  border-bottom:3px solid var(--accent);
 }
 .lh-left{display:flex;align-items:flex-start;gap:16px;}
 .lh-emblem{flex-shrink:0;margin-top:2px;}
@@ -3773,8 +3644,7 @@ body *{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum
 }
 .lh-rule{
   width:44px;height:3px;margin:7px 0 8px;
-  background:linear-gradient(90deg,var(--accent-lo),var(--accent),var(--accent-lo));
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  background:var(--accent);
 }
 .lh-sub{
   font-family:'DM Mono',monospace;font-size:7.5pt;
@@ -3784,10 +3654,10 @@ body *{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum
 .lh-doc-label{
   display:inline-block;margin-bottom:8px;
   padding:3px 12px;
-  background:var(--navy);color:var(--accent);
+  background:#fff;color:var(--accent);
+  border:1px solid var(--accent);
   font-family:'DM Mono',monospace;font-size:6.8pt;
   letter-spacing:2.5px;text-transform:uppercase;border-radius:2px;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 .lh-bill-name{
   font-family:'DM Sans',sans-serif;font-weight:700;
@@ -3809,11 +3679,10 @@ body *{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum
 .lh-badge{
   display:inline-block;margin-top:9px;
   padding:3px 10px;
-  border:1px solid var(--accent-bdr);
-  background:var(--accent-bg);color:var(--accent-lo);
+  border:1px solid var(--border);
+  background:#fff;color:var(--text-muted);
   font-family:'DM Mono',monospace;font-size:6.5pt;
   letter-spacing:1px;text-transform:uppercase;border-radius:2px;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 
 /* ══ TITLE BAND ══ */
@@ -3836,10 +3705,9 @@ body *{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum
 /* ══ SPLIT WARNING ══ */
 .split-warn{
   display:flex;align-items:center;gap:10px;
-  background:#fff8e4;
-  border-top:3px solid var(--accent);border-bottom:1px solid #f0dfa0;
-  padding:10px 30px;font-size:8.8pt;color:#5a3a00;letter-spacing:0.2px;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  background:#fff;
+  border-top:3px solid var(--accent);border-bottom:1px solid var(--border);
+  padding:10px 30px;font-size:8.8pt;color:var(--text-mid);letter-spacing:0.2px;
 }
 .sw-icon{font-size:12pt;flex-shrink:0;}
 
@@ -3863,10 +3731,8 @@ body *{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum
   border-bottom:1px solid var(--border);
   background:#fff;
   border-left:3px solid transparent;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 .info-cell:nth-child(4n+1){border-left-color:var(--accent);}
-.info-cell:nth-child(even){background:var(--bg-cell);}
 .info-label{
   font-family:'DM Mono',monospace;
   font-size:6.8pt;color:var(--text-muted);
@@ -3898,45 +3764,40 @@ body *{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum
 }
 .section-head.inside-head{
   border-left-color:var(--blue);border-bottom-color:var(--blue);
-  background:var(--blue-bg);-webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 .section-head.inside-head>span:first-child{color:var(--blue);}
-.section-head.inside-head .sh-accent{border-color:var(--blue-bdr);color:var(--blue);background:#f0f6ff;}
-.inside-head+.section-sub{border-left-color:var(--blue);background:#f2f7ff;}
+.section-head.inside-head .sh-accent{border-color:var(--blue-bdr);color:var(--blue);}
+.inside-head+.section-sub{border-left-color:var(--blue);}
 
 .section-head.outside-head{
   border-left-color:var(--indigo);border-bottom-color:var(--indigo);
-  background:var(--indigo-bg);-webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 .section-head.outside-head>span:first-child{color:var(--indigo);}
-.section-head.outside-head .sh-accent{border-color:var(--indigo-bdr);color:var(--indigo);background:#f8f4ff;}
-.outside-head+.section-sub{border-left-color:var(--indigo);background:#f5f0ff;}
+.section-head.outside-head .sh-accent{border-color:var(--indigo-bdr);color:var(--indigo);}
+.outside-head+.section-sub{border-left-color:var(--indigo);}
 
 .section-head.payable-head{
   border-left-color:var(--green);border-bottom-color:var(--green);
-  background:var(--green-bg);-webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 .section-head.payable-head>span:first-child{color:var(--green);}
-.section-head.payable-head .sh-accent{border-color:var(--green-bdr);color:var(--green);background:#f0faf5;}
-.payable-head+.section-sub{border-left-color:var(--green);background:#edf8f2;}
+.section-head.payable-head .sh-accent{border-color:var(--green-bdr);color:var(--green);}
+.payable-head+.section-sub{border-left-color:var(--green);}
 
 .section-sub{
-  background:var(--bg-cell);border-left:5px solid var(--accent);
+  background:#fff;border-left:5px solid var(--accent);
   padding:6px 30px;font-size:8.2pt;color:var(--text-mid);
   letter-spacing:0.3px;border-bottom:1px solid var(--border);
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 
 /* ══ CHARGE TABLES ══ */
 table{width:100%;border-collapse:collapse;font-size:8.8pt;}
 thead th{
-  background:var(--bg);
+  background:#fff;
   border-bottom:2px solid var(--navy);border-top:1px solid var(--border);
   padding:8px 10px;text-align:left;
   font-family:'DM Sans',sans-serif;font-weight:700;
   font-size:7.5pt;letter-spacing:0.5px;text-transform:uppercase;
   color:var(--navy);white-space:nowrap;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 thead th:first-child{width:30%;padding-left:30px;}
 thead th:nth-child(2){width:17%;}
@@ -3948,52 +3809,47 @@ td:first-child{padding-left:30px;}
 td:last-child{text-align:right;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);padding-right:30px;}
 td:nth-child(2){color:var(--text-mid);white-space:nowrap;font-size:8.2pt;font-family:'DM Mono',monospace;}
 td:nth-child(3),td:nth-child(4),td:nth-child(5){text-align:center;color:var(--text-muted);font-size:8.2pt;font-family:'DM Mono',monospace;}
-tbody tr:nth-child(even) td{background:var(--bg-cell);}
-
 tr.sep td{
-  background:#dde5f5;color:var(--navy-2);font-weight:700;
+  background:#fff;color:var(--navy-2);font-weight:700;
   font-size:7pt;letter-spacing:1.5px;text-transform:uppercase;
-  padding:5.5px 10px;border-top:1px solid #bec8de;border-bottom:1px solid #bec8de;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  padding:5.5px 10px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
 }
 tr.sep td:first-child{padding-left:30px;}
-tr.sub td{background:var(--bg);color:var(--text-mid);}
+tr.sub td{background:#fff;color:var(--text-mid);}
 tr.sub td:last-child{color:var(--text);font-weight:700;}
 tr.sub td:first-child{padding-left:30px;}
 tr.tot td{
-  background:#d8e4f5;font-weight:700;color:var(--navy);
+  background:#fff;font-weight:700;color:var(--navy);
   border-top:2px solid var(--navy);border-bottom:1px solid var(--border);
   font-size:9pt;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 tr.tot td:first-child{padding-left:30px;}
 tr.vrow td{
-  background:var(--bg-cell);color:var(--text-muted);
+  background:#fff;color:var(--text-muted);
   font-family:'DM Mono',monospace;font-size:8.2pt;font-style:italic;
 }
 tr.vrow td:first-child{padding-left:30px;}
 tr.lrow td{
-  background:var(--bg-cell);color:var(--text-muted);
+  background:#fff;color:var(--text-muted);
   font-family:'DM Mono',monospace;font-size:8.2pt;font-style:italic;
   border-bottom:2px solid var(--border);
 }
 tr.lrow td:first-child{padding-left:30px;}
 
-/* Grand total row — dark navy theatre */
+/* Grand total row — accent border + text, white background */
 tr.grand td{
-  background:var(--navy);color:rgba(255,255,255,0.78);
-  font-weight:700;font-size:10pt;padding:12px 10px;border:none;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  background:#fff;color:var(--accent);
+  font-weight:700;font-size:10pt;padding:12px 10px;
+  border-top:3px solid var(--accent);border-bottom:2px solid var(--accent);
 }
 tr.grand td:first-child{padding-left:30px;}
 tr.grand td:last-child{color:var(--accent);font-size:12pt;letter-spacing:1px;padding-right:30px;}
 
 /* Slab calculation sub-rows */
 tr.calc-row td{
-  background:#f0f4fa !important;color:var(--text-muted);
+  background:#fff;color:var(--text-muted);
   font-size:7.5pt;font-family:'DM Mono',monospace;font-style:italic;
   padding:2px 10px 4px;border-bottom:1px solid var(--border-lo);
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 tr.calc-row td:first-child{padding-left:44px;}
 
@@ -4004,8 +3860,8 @@ tr.calc-row td:first-child{padding-left:44px;}
   border:1px solid var(--border);border-radius:4px;overflow:hidden;
 }
 .io-cell{padding:20px 24px;background:#fff;}
-.io-inside{background:var(--blue-bg);border-top:4px solid var(--blue);-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-.io-outside{background:var(--indigo-bg);border-top:4px solid var(--indigo);-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.io-inside{background:#fff;border-top:4px solid var(--blue);}
+.io-outside{background:#fff;border-top:4px solid var(--indigo);}
 .io-divider{background:var(--border);}
 .io-tag{
   font-family:'DM Mono',monospace;font-size:6.8pt;
@@ -4046,10 +3902,10 @@ tr.calc-row td:first-child{padding-left:44px;}
 }
 .gb-right{
   padding:24px 32px;
-  background:var(--accent-bg);
+  background:#fff;
+  border-left:1px solid var(--border);
   display:flex;flex-direction:column;justify-content:center;align-items:flex-end;
   min-width:230px;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 .gb-currency-label{
   font-family:'DM Mono',monospace;font-size:7pt;
@@ -4067,7 +3923,7 @@ tr.calc-row td:first-child{padding-left:44px;}
 }
 
 /* ══ AUTHORIZATION ══ */
-.auth-section{margin:26px 0 0;border-top:2px solid var(--navy);}
+.auth-section{margin:26px 0 0;border-top:2px solid var(--accent);}
 .auth-row{display:grid;grid-template-columns:1fr 1fr 1fr;}
 .auth-col{
   padding:24px 36px 28px;
@@ -4076,18 +3932,8 @@ tr.calc-row td:first-child{padding-left:44px;}
 }
 .auth-col:first-child{padding-left:30px;}
 .auth-col:last-child{border-right:none;padding-right:30px;}
-.auth-seal-ring{
-  width:54px;height:54px;margin:0 auto 14px;
-  border-radius:50%;
-  border:1.5px dashed var(--border);
-  display:flex;align-items:center;justify-content:center;
-}
-.auth-seal-label{
-  font-family:'DM Mono',monospace;font-size:5.5pt;
-  color:var(--border);letter-spacing:1px;text-transform:uppercase;
-}
 .auth-sig-space{min-height:0.9in;}
-.auth-sig-line{border-bottom:1.5px solid var(--navy);margin-bottom:7px;}
+.auth-sig-line{border-bottom:1.5px solid var(--border);margin-bottom:7px;}
 .auth-role{
   font-family:'DM Mono',monospace;font-size:7pt;
   color:var(--text-mid);text-transform:uppercase;letter-spacing:1.8px;
@@ -4096,11 +3942,10 @@ tr.calc-row td:first-child{padding-left:44px;}
 /* ══ DISCLAIMER ══ */
 .disclaimer{
   margin:18px 30px 0;padding:12px 16px;
-  border:1px solid var(--accent-bdr);border-left:4px solid var(--accent);
-  background:var(--accent-bg);
+  border:1px solid var(--border);border-left:4px solid var(--accent);
+  background:#fff;
   font-size:7.8pt;color:var(--text-mid);line-height:1.75;
   font-family:'DM Mono',monospace;border-radius:0 3px 3px 0;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 .disclaimer strong{color:var(--text);}
 
@@ -4116,8 +3961,8 @@ tr.calc-row td:first-child{padding-left:44px;}
 /* ══ EXPLANATION BOX ══ */
 .exp-box{
   margin:16px 30px 0;
-  border:1px solid var(--border-lo);border-left:4px solid var(--navy);
-  background:var(--bg);padding:15px 20px;
+  border:1px solid var(--border);border-left:4px solid var(--accent);
+  background:#fff;padding:15px 20px;
   page-break-inside:avoid;break-inside:avoid;border-radius:0 3px 3px 0;
 }
 .exp-box-title{
@@ -4138,10 +3983,9 @@ tr.calc-row td:first-child{padding-left:44px;}
 .exp-val strong{color:var(--text);}
 .exp-formula{
   margin-top:11px;padding:9px 14px;
-  background:#e6ecf8;border:1px solid #c0cce4;border-radius:3px;
+  background:#fff;border:1px solid var(--border);border-radius:3px;
   font-family:'DM Mono',monospace;font-size:8pt;color:var(--navy);
   font-weight:600;letter-spacing:0.2px;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
 }
 .exp-formula-label{font-size:7pt;font-weight:400;color:var(--text-mid);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.8px;}
 
@@ -4164,7 +4008,6 @@ tr.calc-row td:first-child{padding-left:44px;}
   .gb-right{align-items:flex-start;min-width:auto;}
   .auth-row{grid-template-columns:1fr;gap:0;}
   .auth-col{padding:20px 16px 24px !important;border-right:none !important;text-align:left;}
-  .auth-seal-ring{margin-left:0;}
   .split-warn{padding:8px 16px;}
 }
 
@@ -4220,196 +4063,98 @@ tr.calc-row td{font-size:8.5pt;}
 
 /* ══ PRINT STYLES ══ */
 @media print{
-  html,body{
-    width:210mm;font-size:7.5pt;line-height:1.3;
-    color:var(--text);background:#fff !important;
-    -webkit-print-color-adjust:exact !important;
-    print-color-adjust:exact !important;
-  }
-  .invoice{width:100%;max-width:100%;margin:0;box-shadow:none;border-radius:0;}
-  .inv-band{height:4pt !important;}
+  *,*::before,*::after{animation:none !important;transition:none !important;box-shadow:none !important;}
+  html,body{width:210mm;font-size:7.5pt;line-height:1.3;color:var(--text);}
+  .invoice{width:100%;max-width:100%;margin:0;border-radius:0;}
 
   /* Diagonal watermark */
   body::after{
     content:"UNOFFICIAL ESTIMATE";
-    position:fixed;
-    top:50%;left:50%;
+    position:fixed;top:50%;left:50%;
     transform:translate(-50%,-50%) rotate(-38deg);
     font-family:'DM Sans',sans-serif;font-weight:900;
-    font-size:46pt;color:rgba(0,0,0,0.028);
-    white-space:nowrap;pointer-events:none;
-    z-index:9999;letter-spacing:10px;
-    -webkit-print-color-adjust:exact !important;
-    print-color-adjust:exact !important;
+    font-size:46pt;color:rgba(0,0,0,0.025);
+    white-space:nowrap;pointer-events:none;z-index:9999;letter-spacing:10px;
   }
 
-  /* Classification strip */
-  .cls-strip{background:var(--navy) !important;padding:2px 0 !important;}
+  /* Layout tightening for A4 */
+  .inv-band{border-top-width:3pt !important;}
+  .cls-strip{padding:2px 0 !important;}
   .cls-strip .cls-l{font-size:5.8pt !important;}
   .cls-strip .cls-r{font-size:5.2pt !important;}
-
-  /* Letterhead */
-  .lh{padding:8px 0 8px !important;border-bottom:2.5pt solid var(--navy) !important;}
-  .lh-left{gap:9px !important;}
-  .lh-emblem svg{width:36px !important;height:36px !important;}
+  .lh{padding:8px 0 !important;}
+  .lh-emblem svg{width:40px !important;height:40px !important;}
   .lh-logo{font-size:12pt !important;letter-spacing:3px !important;}
   .lh-rule{width:28px !important;height:2pt !important;margin:3px 0 4px !important;}
   .lh-sub{font-size:6.5pt !important;letter-spacing:1px !important;}
-  .lh-doc-label{
-    font-size:5.5pt !important;padding:2px 7px !important;
-    margin-bottom:4px !important;
-    background:var(--navy) !important;color:var(--accent) !important;
-    -webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;
-  }
+  .lh-doc-label{font-size:5.5pt !important;padding:2px 7px !important;margin-bottom:4px !important;}
   .lh-bill-name{font-size:9.5pt !important;letter-spacing:1px !important;margin-bottom:6px !important;}
   .lh-meta-lbl{font-size:5.8pt !important;padding-right:8px !important;}
   .lh-meta-val{font-size:7pt !important;}
-  .lh-badge{
-    font-size:5.5pt !important;padding:1px 6px !important;margin-top:4px !important;
-    background:var(--accent-bg) !important;border-color:var(--accent-bdr) !important;
-    -webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;
-  }
-
-  /* Title band */
+  .lh-badge{font-size:5.5pt !important;padding:1px 6px !important;margin-top:4px !important;}
   .title-band{padding:5px 0 !important;margin-top:4px !important;border-left-width:3pt !important;}
   .title-band h1{font-size:8.5pt !important;letter-spacing:1.5px !important;}
   .title-band p{font-size:6.5pt !important;margin-top:1px !important;}
-
-  /* Split warning */
   .split-warn{padding:4px 0 !important;font-size:7pt !important;}
-  .sw-icon{font-size:8.5pt !important;}
-
-  /* Consignment label */
   .info-section-label{font-size:6pt !important;padding:5px 0 3px !important;letter-spacing:2px !important;}
-
-  /* Info grid */
   .info-grid{margin:0 0 4px !important;border-radius:0 !important;border-width:0.5pt !important;}
   .info-cell{padding:4px 8px !important;border-left-width:2pt !important;}
-  .info-cell:nth-child(4n+1){border-left-color:var(--accent) !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
   .info-label{font-size:5.5pt !important;margin-bottom:2px !important;}
   .info-value{font-size:7.5pt !important;}
-
-  /* Section headers */
   .section-head{padding:4px 0 !important;margin-top:7px !important;border-left-width:3pt !important;border-bottom-width:1.5pt !important;}
   .section-head>span:first-child{font-size:7.5pt !important;letter-spacing:1px !important;}
   .sh-accent{font-size:6pt !important;padding:1px 6px !important;}
   .section-sub{padding:2px 0 !important;font-size:6.5pt !important;border-left-width:3pt !important;}
 
-  .section-head.inside-head{background:var(--blue-bg) !important;border-left-color:var(--blue) !important;border-bottom-color:var(--blue) !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
-  .section-head.inside-head>span:first-child{color:var(--blue) !important;}
-  .section-head.inside-head .sh-accent{border-color:var(--blue-bdr) !important;color:var(--blue) !important;}
-  .inside-head+.section-sub{border-left-color:var(--blue) !important;background:#f2f7ff !important;}
-  .section-head.outside-head{background:var(--indigo-bg) !important;border-left-color:var(--indigo) !important;border-bottom-color:var(--indigo) !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
-  .section-head.outside-head>span:first-child{color:var(--indigo) !important;}
-  .section-head.outside-head .sh-accent{border-color:var(--indigo-bdr) !important;color:var(--indigo) !important;}
-  .outside-head+.section-sub{border-left-color:var(--indigo) !important;background:#f5f0ff !important;}
-  .section-head.payable-head{background:var(--green-bg) !important;border-left-color:var(--green) !important;border-bottom-color:var(--green) !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
-  .section-head.payable-head>span:first-child{color:var(--green) !important;}
-  .section-head.payable-head .sh-accent{border-color:var(--green-bdr) !important;color:var(--green) !important;}
-  .payable-head+.section-sub{border-left-color:var(--green) !important;background:var(--green-bg) !important;}
-
-  /* Tables */
   table{font-size:7pt !important;}
-  thead th{
-    background:var(--bg) !important;color:var(--navy) !important;
-    border-bottom:1.5pt solid var(--navy) !important;border-top:0.5pt solid var(--border) !important;
-    padding:4px 6px !important;font-size:6pt !important;letter-spacing:0.5px !important;
-    -webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;
-  }
+  thead th{border-bottom-width:1.5pt !important;border-top-width:0.5pt !important;padding:4px 6px !important;font-size:6pt !important;}
   thead th:first-child{padding-left:0 !important;width:30%;}
   thead th:nth-child(2){width:18%;}
-  thead th:nth-child(3),thead th:nth-child(4){width:11%;text-align:center;}
-  thead th:nth-child(5){width:7%;text-align:center;}
-  thead th:last-child{text-align:right;padding-right:0 !important;}
-  td{padding:2.5px 6px !important;border-bottom:0.4pt solid var(--border-lo) !important;}
+  thead th:nth-child(3),thead th:nth-child(4){width:11%;}
+  thead th:nth-child(5){width:7%;}
+  thead th:last-child{padding-right:0 !important;}
+  td{padding:2.5px 6px !important;border-bottom-width:0.4pt !important;}
   td:first-child{padding-left:0 !important;}
   td:last-child{padding-right:0 !important;}
   td:nth-child(2),td:nth-child(3),td:nth-child(4),td:nth-child(5){font-size:7pt !important;}
-  tr.sep td{
-    background:#dde5f2 !important;color:var(--navy-2) !important;font-weight:700 !important;
-    font-size:5.8pt !important;padding:2.5px 6px !important;
-    border-top:0.5pt solid #bec8de !important;border-bottom:0.5pt solid #bec8de !important;
-    -webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;
-  }
+  tr.sep td{font-size:5.8pt !important;padding:2.5px 6px !important;}
   tr.sep td:first-child{padding-left:0 !important;}
   tr.sub td:first-child{padding-left:0 !important;}
-  tr.tot td{
-    background:#d8e4f5 !important;color:var(--navy) !important;
-    border-top:1.5pt solid var(--navy) !important;font-size:7.5pt !important;
-    padding:3px 6px !important;
-    -webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;
-  }
+  tr.tot td{border-top-width:1.5pt !important;font-size:7.5pt !important;padding:3px 6px !important;}
   tr.tot td:first-child{padding-left:0 !important;}
-  tr.vrow td,tr.lrow td{
-    font-family:'DM Mono',monospace !important;font-style:italic !important;
-    font-size:6.5pt !important;padding:2px 6px !important;
-  }
+  tr.vrow td,tr.lrow td{font-size:6.5pt !important;padding:2px 6px !important;}
   tr.vrow td:first-child,tr.lrow td:first-child{padding-left:0 !important;}
-  tr.grand td{
-    background:var(--navy) !important;color:rgba(255,255,255,0.78) !important;
-    font-size:8.5pt !important;padding:4.5px 6px !important;
-    -webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;
-  }
+  tr.grand td{border-top-width:2pt !important;border-bottom-width:1.5pt !important;font-size:8.5pt !important;padding:4.5px 6px !important;}
   tr.grand td:first-child{padding-left:0 !important;}
-  tr.grand td:last-child{color:var(--accent) !important;font-size:10pt !important;padding-right:0 !important;}
+  tr.grand td:last-child{font-size:10pt !important;padding-right:0 !important;}
   tr.calc-row td{font-size:6pt !important;padding:1px 6px 2.5px !important;}
   tr.calc-row td:first-child{padding-left:18px !important;}
 
-  /* IO summary */
-  .io-summary{
-    display:grid;grid-template-columns:1fr 0.5pt 1fr;
-    margin:6px 0 0 !important;border-radius:0 !important;
-    border:0.5pt solid var(--border) !important;overflow:hidden;
-  }
-  .io-cell{padding:6px 10px !important;background:#fff !important;}
-  .io-inside{background:var(--blue-bg) !important;border-top:2pt solid var(--blue) !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
-  .io-outside{background:var(--indigo-bg) !important;border-top:2pt solid var(--indigo) !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
-  .io-divider{background:var(--border) !important;}
-  .io-tag{font-size:5.5pt !important;letter-spacing:1.5px !important;margin-bottom:2px !important;}
-  .io-inside .io-tag{color:var(--blue) !important;}
-  .io-outside .io-tag{color:var(--indigo) !important;}
+  .io-summary{margin:6px 0 0 !important;border-radius:0 !important;border-width:0.5pt !important;}
+  .io-cell{padding:6px 10px !important;}
+  .io-inside{border-top-width:2pt !important;}
+  .io-outside{border-top-width:2pt !important;}
+  .io-tag{font-size:5.5pt !important;margin-bottom:2px !important;}
   .io-label{font-size:6.5pt !important;margin-bottom:3px !important;}
   .io-amount{font-size:11pt !important;margin-bottom:2px !important;}
-  .io-inside .io-amount{color:var(--blue) !important;}
-  .io-outside .io-amount{color:var(--indigo) !important;}
   .io-note{font-size:5.8pt !important;}
-
-  /* Grand total bar */
   .grand-bar{margin:8px 0 0 !important;border-radius:0 !important;border-top-width:2.5pt !important;border-width:0.5pt !important;}
-  .gb-inner{display:flex;justify-content:space-between;align-items:stretch;}
   .gb-left{padding:7px 10px !important;}
   .gb-left .gb-label{font-size:7.5pt !important;margin-bottom:3px !important;}
   .gb-left .gb-sub{font-size:6pt !important;}
-  .gb-right{padding:7px 12px !important;min-width:130px !important;background:var(--accent-bg) !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}
+  .gb-right{padding:7px 12px !important;min-width:130px !important;}
   .gb-currency-label{font-size:6pt !important;margin-bottom:2px !important;}
   .gb-amount{font-size:16pt !important;}
   .gb-vat-note{font-size:6pt !important;margin-top:3px !important;}
-
-  /* Authorization */
-  .auth-section{margin:9px 0 0 !important;border-top:1.5pt solid var(--navy) !important;}
-  .auth-row{display:grid;grid-template-columns:1fr 1fr 1fr !important;}
-  .auth-col{padding:8px 14px 11px !important;border-right:0.5pt solid var(--border-lo) !important;}
+  .auth-section{margin:9px 0 0 !important;border-top-width:1.5pt !important;}
+  .auth-col{padding:8px 14px 11px !important;}
   .auth-col:first-child{padding-left:0 !important;}
   .auth-col:last-child{padding-right:0 !important;border-right:none !important;}
-  .auth-seal-ring{width:38px !important;height:38px !important;margin-bottom:8px !important;border-width:1pt !important;}
-  .auth-seal-label{font-size:5pt !important;}
   .auth-sig-space{min-height:13mm !important;}
   .auth-sig-line{border-bottom-width:1pt !important;margin-bottom:5px !important;}
   .auth-role{font-size:6pt !important;letter-spacing:1px !important;}
-
-  /* Disclaimer */
-  .disclaimer{
-    margin:7px 0 0 !important;padding:5px 9px !important;
-    border-left-width:2.5pt !important;font-size:6.2pt !important;
-    border-radius:0 !important;
-    background:var(--accent-bg) !important;
-    -webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;
-  }
-
-  /* Footer */
-  .doc-footer{margin:5px 0 0 !important;padding-top:4px !important;font-size:5.8pt !important;border-top-width:0.4pt !important;}
-
-  /* Explanation box */
+  .disclaimer{margin:7px 0 0 !important;padding:5px 9px !important;border-left-width:2.5pt !important;font-size:6.2pt !important;border-radius:0 !important;}
+  .doc-footer{margin:5px 0 0 !important;padding-top:4px !important;font-size:5.8pt !important;}
   .exp-box{margin:5px 0 0 !important;padding:7px 12px !important;border-left-width:3pt !important;border-radius:0 !important;}
   .exp-box-title{font-size:7pt !important;margin-bottom:5px !important;padding-bottom:4px !important;}
   .exp-row{grid-template-columns:95pt 1fr !important;gap:0 8px !important;padding:2.5px 0 !important;}
@@ -4484,7 +4229,7 @@ tr.calc-row td{font-size:8.5pt;}
       <div class="gb-right">
         <div class="gb-currency-label">Bangladeshi Taka</div>
         <div class="gb-amount">${fmt(grandTotal)}</div>
-        <div class="gb-vat-note">VAT @ ${(vatRate * 100).toFixed(1)}% included</div>
+        <div class="gb-vat-note">VAT @ ${(vatRate * 100).toFixed(2)}% included</div>
       </div>
     </div>
   </div>
@@ -4493,19 +4238,16 @@ tr.calc-row td{font-size:8.5pt;}
   <div class="auth-section no-break">
     <div class="auth-row">
       <div class="auth-col">
-        <div class="auth-seal-ring"><span class="auth-seal-label">Seal</span></div>
         <div class="auth-sig-space"></div>
         <div class="auth-sig-line"></div>
         <div class="auth-role">Prepared By</div>
       </div>
       <div class="auth-col">
-        <div class="auth-seal-ring"><span class="auth-seal-label">Seal</span></div>
         <div class="auth-sig-space"></div>
         <div class="auth-sig-line"></div>
         <div class="auth-role">Verified By</div>
       </div>
       <div class="auth-col">
-        <div class="auth-seal-ring"><span class="auth-seal-label">Seal</span></div>
         <div class="auth-sig-space"></div>
         <div class="auth-sig-line"></div>
         <div class="auth-role">Authorized By</div>
@@ -4518,7 +4260,7 @@ tr.calc-row td{font-size:8.5pt;}
     <strong>&#9888; Disclaimer:</strong>
     This document is generated for <strong>informational and estimation purposes only</strong> and does <strong>not constitute an official invoice</strong> or legally binding charge statement.
     Final billing is subject to official verification by the Port Authority at the time of delivery or clearance.
-    VAT at <strong>${(vatRate * 100).toFixed(1)}%</strong> is applied on all applicable base charges. Levy is computed separately and is not subject to VAT.
+    VAT at <strong>${(vatRate * 100).toFixed(2)}%</strong> is applied on all applicable base charges. Levy is computed separately and is not subject to VAT.
     All figures are indicative and subject to revision.
   </div>
 
@@ -4562,7 +4304,7 @@ function secHead(label, badge) {
 // VAT and Levy are charged ONCE on the combined inside+outside base. Values are
 // passed in so callers can pass toggle-adjusted figures (cargo payable toggle).
 function buildCombinedSummaryPrintSection(gBase, gVat, gLevy, gTotal, vatRate) {
-  const pct = (vatRate * 100).toFixed(1);
+  const pct = (vatRate * 100).toFixed(2);
   let rows = printTotRow("Total Bill (Base for VAT) — Inside + Outside", fmt(gBase));
   if (gVat > 0)
     rows += printTotRow(`VAT @ ${pct}%  ·  ${fmt(gBase)} × ${pct}% = ${fmt(gVat)}`, fmt(gVat), "vrow");
@@ -4573,10 +4315,10 @@ function buildCombinedSummaryPrintSection(gBase, gVat, gLevy, gTotal, vatRate) {
 }
 
 function printCalcRow(rate, weight, days, amt) {
-  return `<tr class="calc-row"><td colspan="6">&#8627; ${fmtN(rate)}&nbsp;Tk/ton/day &times; ${fmtN(weight)}&nbsp;ton(s) &times; ${days}&nbsp;day(s) = Tk&nbsp;${fmt(amt)}</td></tr>`;
+  return `<tr class="calc-row"><td colspan="6">&#8627; ${fmtN(rate)}&nbsp;Tk/ton/day &times; ${fmtN(weight)}&nbsp;ton(s) &times; ${days}&nbsp;day(s) = ${fmt(amt)}</td></tr>`;
 }
 function printCalcRowHalf(fullRate, weight, days, amt) {
-  return `<tr class="calc-row"><td colspan="6">&#8627; ${fmtN(fullRate)}&nbsp;&times;&nbsp;0.50&nbsp;Tk/ton/day &times; ${fmtN(weight)}&nbsp;ton(s) &times; ${days}&nbsp;day(s) = Tk&nbsp;${fmt(amt)}</td></tr>`;
+  return `<tr class="calc-row"><td colspan="6">&#8627; ${fmtN(fullRate)}&nbsp;&times;&nbsp;0.50&nbsp;Tk/ton/day &times; ${fmtN(weight)}&nbsp;ton(s) &times; ${days}&nbsp;day(s) = ${fmt(amt)}</td></tr>`;
 }
 
 function expRow(key, val) {
@@ -4608,7 +4350,7 @@ ${expRow("Slab System", `Daily rate has <strong>3 tiers</strong>: <strong>Days&n
 ${expRow("Vehicle Weight", `<strong>${fmtN(b.weight)} ton(s)</strong> — multiplied against the daily rate to get the charge`)}
 ${expRow("Inside Rate", `Vehicles stored <strong>inside the covered shed</strong> — charged at the <strong>full daily rate</strong>`)}
 ${expRow("Outside Rate", `Vehicles stored <strong>outside (open yard)</strong> — charged at exactly <strong>half (&frac12;) of the inside rate</strong> for the same period`)}
-${expRow("VAT", `Value Added Tax at <strong>${(b.vatRate * 100).toFixed(1)}%</strong> — applied on the total wharfrent + payable charges subtotal`)}
+${expRow("VAT", `Value Added Tax at <strong>${(b.vatRate * 100).toFixed(2)}%</strong> — applied on the total wharfrent + payable charges subtotal`)}
 ${expRow("Levy", `Fixed regulatory charge — <strong>VAT does not apply</strong> to this amount; added separately`)}
 ${splitRow}
 <div class="exp-formula"><div class="exp-formula-label">Calculation Formula</div>Amount per slab = Rate (Tk/ton/day) &times; ${fmtN(b.weight)} ton(s) &times; Number of days in that slab</div>
@@ -4633,7 +4375,7 @@ function buildCargoExplanationHtml(b) {
   const pbRow = b.isPartBilling
     ? expRow(
         "Part Billing",
-        `Cargo delivered in <strong>${(b.pbPeriods || []).filter((p) => !p.invalid).length} stage(s)</strong>. The day-count runs <strong>continuously from CLD</strong> — it does not reset between stages. Only the billable weight changes after each partial delivery.`,
+        `Cargo delivered in <strong>${(b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery).length} stage(s)</strong>. The day-count runs <strong>continuously from CLD</strong> — it does not reset between stages. Only the billable weight changes after each partial delivery.`,
       )
     : "";
   const sdRow =
@@ -4653,7 +4395,7 @@ ${expRow("Inside Weight", `<strong>${fmtN(b.insideW)} ton(s)</strong> stored ins
 ${expRow("Outside Weight", `<strong>${fmtN(b.outsideW)} ton(s)</strong> stored outside the shed — charged at <strong>half (&frac12;) of the inside rate</strong>`)}
 ${expRow("Landing Rate Tier", `Based on total weight <strong>${fmtN(b.totalWeight)}t</strong>: Tier = <strong>${tierLabel}</strong>. Heavier shipments use a higher tier rate.`)}
 ${expRow("Slab System", `Daily rate has <strong>3 tiers</strong>: <strong>Days&nbsp;1–7</strong> &rarr; <strong>Days&nbsp;8–14</strong> &rarr; <strong>Day&nbsp;15+</strong>. The rate increases the longer the cargo stays.`)}
-${expRow("VAT", `<strong>${(b.vatRate * 100).toFixed(1)}%</strong> Value Added Tax — applied on the wharfrent + payable charges subtotal`)}
+${expRow("VAT", `<strong>${(b.vatRate * 100).toFixed(2)}%</strong> Value Added Tax — applied on the wharfrent + payable charges subtotal`)}
 ${expRow("Levy", `Fixed regulatory charge — <strong>VAT-exempt</strong>; added after VAT is calculated`)}
 ${pbRow}
 ${sdRow}
@@ -4753,7 +4495,7 @@ function printBill(type) {
       <div class="info-cell"><div class="info-label">Vehicle Weight</div><div class="info-value">${b.weight} ton(s)</div></div>
       <div class="info-cell"><div class="info-label">Car Wharfrent Days</div><div class="info-value">${b.hasWharfrent ? b.totalDays + " days" : "Free Time"}</div></div>
       <div class="info-cell"><div class="info-label">Rate Mode</div><div class="info-value">${rateMode}</div></div>
-      <div class="info-cell"><div class="info-label">VAT Rate</div><div class="info-value">${(b.vatRate * 100).toFixed(1)}%</div></div>
+      <div class="info-cell"><div class="info-label">VAT Rate</div><div class="info-value">${(b.vatRate * 100).toFixed(2)}%</div></div>
     </div>`;
 
       // ── SECTIONS ──
@@ -4840,12 +4582,12 @@ function printBill(type) {
                 fmt(p.amt),
                 "sub",
               );
-              rows += `<tr class="calc-row"><td colspan="6">&#8627; ${p.rateStr ?? fmtN(p.rate)}&nbsp;Tk/ton &times; ${fmtN(b.weight)}&nbsp;ton(s) = Tk&nbsp;${fmt(p.amt)}</td></tr>`;
+              rows += `<tr class="calc-row"><td colspan="6">&#8627; ${p.rateStr ?? fmtN(p.rate)}&nbsp;Tk/ton &times; ${fmtN(b.weight)}&nbsp;ton(s) = ${fmt(p.amt)}</td></tr>`;
             });
           }
           rows += printTotRow(subLabel, fmt(baseAmt));
           rows += printTotRow(
-            `VAT @ ${(b.vatRate * 100).toFixed(1)}%  ·  ${fmt(baseAmt)} × ${(b.vatRate * 100).toFixed(1)}% = ${fmt(vatAmt)}`,
+            `VAT @ ${(b.vatRate * 100).toFixed(2)}%  ·  ${fmt(baseAmt)} × ${(b.vatRate * 100).toFixed(2)}% = ${fmt(vatAmt)}`,
             fmt(vatAmt),
             "vrow",
           );
@@ -4878,11 +4620,11 @@ function printBill(type) {
             fmt(p.amt),
             "sub",
           );
-          rows += `<tr class="calc-row"><td colspan="6">&#8627; ${p.rateStr ?? fmtN(p.rate)}&nbsp;Tk/ton &times; ${fmtN(b.weight)}&nbsp;ton(s) = Tk&nbsp;${fmt(p.amt)}</td></tr>`;
+          rows += `<tr class="calc-row"><td colspan="6">&#8627; ${p.rateStr ?? fmtN(p.rate)}&nbsp;Tk/ton &times; ${fmtN(b.weight)}&nbsp;ton(s) = ${fmt(p.amt)}</td></tr>`;
         });
         rows += printTotRow("Total Payable (Base for VAT)", fmt(b.nBase));
         rows += printTotRow(
-          `VAT @ ${(b.vatRate * 100).toFixed(1)}%  ·  ${fmt(b.nBase)} × ${(b.vatRate * 100).toFixed(1)}% = ${fmt(b.nVat)}`,
+          `VAT @ ${(b.vatRate * 100).toFixed(2)}%  ·  ${fmt(b.nBase)} × ${(b.vatRate * 100).toFixed(2)}% = ${fmt(b.nVat)}`,
           fmt(b.nVat),
           "vrow",
         );
@@ -4915,7 +4657,7 @@ function printBill(type) {
     } else {
       // ── CARGO INFO GRID ──
       if (b.isPartBilling) {
-        const vp = (b.pbPeriods || []).filter((p) => !p.invalid);
+        const vp = (b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery);
         const firstDel = vp.length > 0 ? fd(vp[0].deliveryDate) : "—";
         const lastDel =
           vp.length > 0 ? fd(vp[vp.length - 1].deliveryDate) : "—";
@@ -4933,7 +4675,7 @@ function printBill(type) {
         <div class="info-cell"><div class="info-label">Initial Total Weight</div><div class="info-value">${fmtN(b.totalWeight)} ton(s)</div></div>
         <div class="info-cell"><div class="info-label">Inside / Outside (Initial)</div><div class="info-value">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div>
         <div class="info-cell"><div class="info-label">Landing Tier</div><div class="info-value">${getCargoTierLabel(b.totalWeight)}</div></div>
-        <div class="info-cell"><div class="info-label">VAT Rate</div><div class="info-value">${(b.vatRate * 100).toFixed(1)}%</div></div>
+        <div class="info-cell"><div class="info-label">VAT Rate</div><div class="info-value">${(b.vatRate * 100).toFixed(2)}%</div></div>
       </div>`;
       } else {
         infoHtml = `<div class="info-grid">
@@ -4950,7 +4692,7 @@ function printBill(type) {
         <div class="info-cell"><div class="info-label">River Dues</div><div class="info-value">${nn("c-rRiver")} Tk/ton</div></div>
         <div class="info-cell"><div class="info-label">Landing Rate</div><div class="info-value">${b.dynamicLandingRate} Tk/ton</div></div>
         <div class="info-cell"><div class="info-label">Removal Rate</div><div class="info-value">${b.dynamicRemovalRate} Tk/ton</div></div>
-        <div class="info-cell"><div class="info-label">VAT Rate</div><div class="info-value">${(b.vatRate * 100).toFixed(1)}%</div></div>
+        <div class="info-cell"><div class="info-label">VAT Rate</div><div class="info-value">${(b.vatRate * 100).toFixed(2)}%</div></div>
       </div>`;
       }
 
@@ -5073,7 +4815,7 @@ function printBill(type) {
                 fmt(p.amt),
                 "sub",
               );
-              rows += `<tr class="calc-row"><td colspan="6">&#8627; ${p.rateStr ?? fmtN(p.rate)}&nbsp;Tk/ton &times; ${fmtN(p.tons)}&nbsp;ton(s) = Tk&nbsp;${fmt(p.amt)}</td></tr>`;
+              rows += `<tr class="calc-row"><td colspan="6">&#8627; ${p.rateStr ?? fmtN(p.rate)}&nbsp;Tk/ton &times; ${fmtN(p.tons)}&nbsp;ton(s) = ${fmt(p.amt)}</td></tr>`;
             });
           }
           rows += printTotRow(subLabel, fmt(baseAmt));
@@ -5141,7 +4883,7 @@ function printBill(type) {
             fmt(p.amt),
             "sub",
           );
-          rows += `<tr class="calc-row"><td colspan="6">&#8627; ${p.rateStr ?? fmtN(p.rate)}&nbsp;Tk/ton &times; ${fmtN(tons)}&nbsp;ton(s) = Tk&nbsp;${fmt(p.amt)}</td></tr>`;
+          rows += `<tr class="calc-row"><td colspan="6">&#8627; ${p.rateStr ?? fmtN(p.rate)}&nbsp;Tk/ton &times; ${fmtN(tons)}&nbsp;ton(s) = ${fmt(p.amt)}</td></tr>`;
         });
         const adjNBase = cargoIncludePayables ? b.nBase : 0;
         const adjNVat = cargoIncludePayables ? b.nVat : 0;
@@ -5151,7 +4893,7 @@ function printBill(type) {
           rows += printTotRow("Total Payable (Base for VAT)", fmt(adjNBase));
         if (adjNVat > 0)
           rows += printTotRow(
-            `VAT @ ${(b.vatRate * 100).toFixed(1)}%  ·  ${fmt(adjNBase)} × ${(b.vatRate * 100).toFixed(1)}% = ${fmt(adjNVat)}`,
+            `VAT @ ${(b.vatRate * 100).toFixed(2)}%  ·  ${fmt(adjNBase)} × ${(b.vatRate * 100).toFixed(2)}% = ${fmt(adjNVat)}`,
             fmt(adjNVat),
             "vrow",
           );
@@ -5183,7 +4925,7 @@ function printBill(type) {
         subtitle: !includeWharfrent
           ? "Port Authority — Payable Charges Only (Wharfrent Excluded)"
           : b.isPartBilling
-            ? `Port Authority — General Cargo Part Billing · ${(b.pbPeriods || []).filter((p) => !p.invalid).length} delivery stages`
+            ? `Port Authority — General Cargo Part Billing · ${(b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery).length} delivery stages`
             : "Port Authority — General Cargo Wharfrent & Payable Charges",
         billRef,
         today,
@@ -5206,8 +4948,7 @@ function printBill(type) {
 
     const html = buildInvoiceHtml(opts);
     openPrintPreview(html, opts.title, billRef, type === "cargo");
-  } catch (e) {
-    console.error("printBill error", e);
+  } catch (_) {
     showToast("Error building print preview. Please try again.", "error");
   }
 }
@@ -5260,12 +5001,6 @@ document.getElementById("delivery").value = formatDateForInput(today);
 document.getElementById("c-cld").value = formatDateForInput(today);
 document.getElementById("c-delivery").value = formatDateForInput(today);
 
-setTimeout(() => {
-  globalThis.calendarPickers["cld"] = new CalendarPicker("cld");
-  globalThis.calendarPickers["delivery"] = new CalendarPicker("delivery");
-  globalThis.calendarPickers["c-cld"] = new CalendarPicker("c-cld");
-  globalThis.calendarPickers["c-delivery"] = new CalendarPicker("c-delivery");
-}, 100);
 
 loadSavedRates();
 carRefresh();
