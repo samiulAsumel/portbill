@@ -793,6 +793,10 @@ function applyAdmin() {
     : document.getElementById("adminBtn").classList.remove("active");
   const rrb = document.getElementById("resetRatesBtn");
   if (rrb) rrb.style.display = isAdmin ? "inline-flex" : "none";
+  // Show/hide restoreCard based on admin state
+  const restoreCard = document.getElementById("restoreCard");
+  if (restoreCard) restoreCard.hidden = !isAdmin;
+
 
   // CAR admin fields
   [
