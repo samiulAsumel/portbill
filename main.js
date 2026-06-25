@@ -5414,3 +5414,20 @@ if (_origCarCalculate) {
     }
   };
 })();
+
+// FIX v2: patch doLogin (async) to reopen overlay with rotation registry after successful login.
+// The original doLogin calls closeModal() then applyAdmin() directly by closure reference,
+// so patching window.applyAdmin alone does not work. Patching window.doLogin works because
+// the HTML onclick calls doLogin() via global scope.
+(function() {
+  var _origDoLogin = typeof window.doLogin === "function" ? window.doLogin : null;
+  if (!_origDoLogin) return;
+  window.doLogin = async function() {
+    var wasBefore = isAdmin;
+    await _origDoLogin();
+    if (!wasBefore && isAdmin) {
+      var ov = document.getElementById("overlay");
+      if (ov && !ov.open) { if (ov.showModal) ov.showModal(); else ov.open = true; }
+    }
+  };
+})();
