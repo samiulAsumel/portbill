@@ -712,61 +712,6 @@ async function changeAdminPassword() {
 // ════════════════════════════════════════
 // RESTORE FROM GITHUB (Admin Only)
 // ════════════════════════════════════════
-async function openRestoreModal() {
-  const modal = document.getElementById('sessionRestoreModal');
-  const list = document.getElementById('sessionRestoreList');
-  const status = document.getElementById('sessionRestoreStatus');
-  if (!modal || !list) return;
-  modal.hidden = false;
-  list.innerHTML = '<div class="srs-loading">⏳ Loading session history…</div>';
-  status.textContent = '';
-  try {
-    const resp = await fetch(PROXY_URL + '/saved-bills/history');
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const history = await resp.json();
-    if (!Array.isArray(history) || history.length === 0) {
-      list.innerHTML = '<div class="srs-empty">No saved sessions found on GitHub.</div>';
-      return;
-    }
-    list.innerHTML = '';
-    history.forEach((entry, idx) => {
-      const date = new Date(entry.date);
-      const label = date.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-      const row = document.createElement('div');
-      row.className = 'srs-row' + (idx === 0 ? ' srs-latest' : '');
-      row.innerHTML = '<div class="srs-info"><span class="srs-index">#' + (idx + 1) + '</span><span class="srs-date">' + label + '</span>' + (idx === 0 ? '<span class="srs-badge">Latest</span>' : '') + '</div><button class="srs-restore-btn" onclick="restoreFromCommit(\'' + entry.sha + '\', \'' + label + '\')">\u2193 Restore</button>';
-      list.appendChild(row);
-    });
-  } catch (err) {
-    list.innerHTML = '<div class="srs-error">❌ Could not load history: ' + err.message + '</div>';
-    console.error('Restore history error:', err);
-  }
-}
-
-function closeRestoreModal() {
-  const modal = document.getElementById('sessionRestoreModal');
-  if (modal) modal.hidden = true;
-}
-
-async function restoreFromCommit(sha, label) {
-  const status = document.getElementById('sessionRestoreStatus');
-  if (status) status.textContent = '⏳ Restoring from ' + label + '…';
-  try {
-    const resp = await fetch(PROXY_URL + '/saved-bills/at/' + sha);
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const bills = await resp.json();
-    if (!Array.isArray(bills)) throw new Error('Invalid data format');
-    localStorage.setItem('savedBills', JSON.stringify(bills));
-    renderSavedBills();
-    if (status) status.textContent = '✅ Restored ' + bills.length + ' bill(s) from ' + label;
-    showToast('Restored ' + bills.length + ' bill(s) from ' + label, 'success');
-    setTimeout(closeRestoreModal, 1500);
-  } catch (err) {
-    if (status) status.textContent = '❌ Restore failed: ' + err.message;
-    showToast('Restore failed: ' + err.message, 'error');
-    console.error('Restore commit error:', err);
-  }
-}
 
 function applyAdmin() {
   document.getElementById("adot").style.background = isAdmin
@@ -788,9 +733,6 @@ function applyAdmin() {
     : document.getElementById("adminBtn").classList.remove("active");
   const rrb = document.getElementById("resetRatesBtn");
   if (rrb) rrb.style.display = isAdmin ? "inline-flex" : "none";
-  // Show/hide restoreCard based on admin state
-  const restoreCard = document.getElementById("restoreCard");
-  if (restoreCard) restoreCard.hidden = !isAdmin;
 
 
   // CAR admin fields
