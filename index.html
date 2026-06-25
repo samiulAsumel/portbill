@@ -63,9 +63,7 @@
             <div class="rot-reg-status admin-pass-status" id="adminPassStatus"></div>
           </div>
     <!-- Restore Bills from GitHub -->
-    <div id="restoreCard" hidden>
-          <button class="admin-btn" style="background:#1a1a2e;border:1px solid #f0b429;color:#f0b429;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;" onclick="openRestoreModal()">&#128336; Session History</button>
-        </div>
+    
         </div>
         <button
           class="admin-btn"
@@ -1726,21 +1724,5 @@
         </div>
       </div>
     </noscript>
-    <script src="main.js" defer></script>
-  
-  <!-- Session Restore Modal -->
-  <div id="sessionRestoreModal" hidden style="position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);">
-    <div style="background:#1a1a2e;border:1px solid #f0b429;border-radius:12px;padding:28px 24px;min-width:340px;max-width:480px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.6);">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-        <div style="color:#f0b429;font-weight:700;font-size:15px;letter-spacing:1px;">&#128336; SESSION HISTORY</div>
-        <button onclick="closeRestoreModal()" style="background:none;border:none;color:#aaa;font-size:20px;cursor:pointer;line-height:1;">&times;</button>
-      </div>
-      <div style="color:#aaa;font-size:12px;margin-bottom:14px;">Select a session to restore your saved bills.</div>
-      <div id="sessionRestoreList" style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;">
-        <div class="srs-loading" style="color:#aaa;text-align:center;padding:20px;">Loading&hellip;</div>
-      </div>
-      <div id="sessionRestoreStatus" style="color:#f0b429;font-size:12px;margin-top:12px;min-height:18px;text-align:center;"></div>
-    </div>
-  </div>
-</body>
+    <script src="main.js" defer></script></body>
 </html>
