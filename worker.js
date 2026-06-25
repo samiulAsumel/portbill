@@ -51,7 +51,7 @@ export default {
     const OWNER = env.REPO_OWNER || "samiulAsumel";
     const REPO  = env.REPO_NAME  || "portbill-data";
     const BRANCH = env.BRANCH    || "main";
-    const TOKEN = env.GH_TOKEN;
+    const TOKEN = env.GH_TOKEN || env.GITHUB_TOKEN;
 
     const ghHeaders = {
       Authorization: `token ${TOKEN}`,
