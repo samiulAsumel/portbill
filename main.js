@@ -712,64 +712,59 @@ async function changeAdminPassword() {
 // ════════════════════════════════════════
 // RESTORE FROM GITHUB (Admin Only)
 // ════════════════════════════════════════
-async function restoreFromGitHub(type) {
-  if (!isAdmin) return;
-  const statusEl = document.getElementById("restoreStatus");
-  const setStatus = (msg, cls) => {
-    if (!statusEl) return;
-    statusEl.textContent = msg;
-    statusEl.className = "rot-reg-status" + (cls ? " " + cls : "");
-  };
-  setStatus("Loading from GitHub...");
+async function openRestoreModal() {
+  const modal = document.getElementById('sessionRestoreModal');
+  const list = document.getElementById('sessionRestoreList');
+  const status = document.getElementById('sessionRestoreStatus');
+  if (!modal || !list) return;
+  modal.hidden = false;
+  list.innerHTML = '<div class="srs-loading">⏳ Loading session history…</div>';
+  status.textContent = '';
   try {
-    const data = await loadBillsFromWorker();
-    if (data === null) {
-      setStatus("GitHub fetch failed. Check connection.", "err");
+    const resp = await fetch(PROXY_URL + '/saved-bills/history');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const history = await resp.json();
+    if (!Array.isArray(history) || history.length === 0) {
+      list.innerHTML = '<div class="srs-empty">No saved sessions found on GitHub.</div>';
       return;
     }
-    if (!Array.isArray(data) || data.length === 0) {
-      setStatus("No bills found in GitHub to restore.", "err");
-      return;
-    }
-    // Filter by type if specified
-    let toRestore = data;
-    if (type === "car") toRestore = data.filter(b => b.type === "car");
-    else if (type === "cargo") toRestore = data.filter(b => b.type === "cargo");
-    if (toRestore.length === 0) {
-      setStatus("No " + type + " bills found in GitHub.", "err");
-      return;
-    }
-    // Merge with existing (GitHub is source of truth — overwrite matching bill numbers)
-    const existing = getSavedBills();
-    const merged = [...toRestore];
-    existing.forEach(b => {
-      if (!merged.find(m => m.billNumber === b.billNumber)) merged.push(b);
+    list.innerHTML = '';
+    history.forEach((entry, idx) => {
+      const date = new Date(entry.date);
+      const label = date.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const row = document.createElement('div');
+      row.className = 'srs-row' + (idx === 0 ? ' srs-latest' : '');
+      row.innerHTML = '<div class="srs-info"><span class="srs-index">#' + (idx + 1) + '</span><span class="srs-date">' + label + '</span>' + (idx === 0 ? '<span class="srs-badge">Latest</span>' : '') + '</div><button class="srs-restore-btn" onclick="restoreFromCommit(\'' + entry.sha + '\', \'' + label + '\')">\u2193 Restore</button>';
+      list.appendChild(row);
     });
-    localStorage.setItem(SAVED_BILLS_KEY, JSON.stringify(merged));
-    setStatus("Restored " + toRestore.length + " bill(s) from GitHub.", "ok");
-    showToast("Restored " + toRestore.length + " bill(s) from GitHub", "success");
-    if (currentModule === "saved") renderSavedBills();
-  } catch (e) {
-    setStatus("Restore error: " + e.message, "err");
+  } catch (err) {
+    list.innerHTML = '<div class="srs-error">❌ Could not load history: ' + err.message + '</div>';
+    console.error('Restore history error:', err);
   }
 }
 
-async function pushAllBillsToGitHub() {
-  if (!isAdmin) return;
-  const statusEl = document.getElementById("restoreStatus");
-  const setStatus = (msg, cls) => {
-    if (!statusEl) return;
-    statusEl.textContent = msg;
-    statusEl.className = "rot-reg-status" + (cls ? " " + cls : "");
-  };
-  setStatus("Pushing to GitHub...");
-  const bills = getSavedBills();
-  const ok = await saveBillsToWorker(bills);
-  if (ok) {
-    setStatus("All " + bills.length + " bill(s) pushed to GitHub.", "ok");
-    showToast("All bills pushed to GitHub", "success");
-  } else {
-    setStatus("Push failed. Check console.", "err");
+function closeRestoreModal() {
+  const modal = document.getElementById('sessionRestoreModal');
+  if (modal) modal.hidden = true;
+}
+
+async function restoreFromCommit(sha, label) {
+  const status = document.getElementById('sessionRestoreStatus');
+  if (status) status.textContent = '⏳ Restoring from ' + label + '…';
+  try {
+    const resp = await fetch(PROXY_URL + '/saved-bills/at/' + sha);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const bills = await resp.json();
+    if (!Array.isArray(bills)) throw new Error('Invalid data format');
+    localStorage.setItem('savedBills', JSON.stringify(bills));
+    renderSavedBills();
+    if (status) status.textContent = '✅ Restored ' + bills.length + ' bill(s) from ' + label;
+    showToast('Restored ' + bills.length + ' bill(s) from ' + label, 'success');
+    setTimeout(closeRestoreModal, 1500);
+  } catch (err) {
+    if (status) status.textContent = '❌ Restore failed: ' + err.message;
+    showToast('Restore failed: ' + err.message, 'error');
+    console.error('Restore commit error:', err);
   }
 }
 
