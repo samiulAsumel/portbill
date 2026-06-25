@@ -140,6 +140,23 @@
           </button>
         </div>
       </div>
+      <!-- ROTATION REGISTRY SECTION IN ADMIN MODAL -->
+      <div class="rot-registry" id="rotRegistry" style="display:none;">
+        <div class="rot-reg-title">ROTATION REGISTRY</div>
+        <div class="rot-reg-form">
+          <input type="text" id="rotRegYear" class="rot-reg-input" placeholder="Year e.g. 2026" maxlength="4" />
+          <input type="text" id="rotRegNum" class="rot-reg-input" placeholder="No. e.g. 400" maxlength="6" />
+          <input type="text" id="rotRegCld" class="rot-reg-input rot-reg-cld" placeholder="CLD DD/MM/YYYY" maxlength="10" oninput="formatDate(this)" />
+          <button type="button" class="rot-reg-add-btn" onclick="addRotation()">+ ADD</button>
+        </div>
+        <div class="rot-reg-status" id="rotRegStatus"></div>
+        <div class="rot-reg-table-wrap">
+          <table class="rot-reg-table" id="rotRegTable">
+            <thead><tr><th>Rotation No</th><th>CLD Date</th><th></th></tr></thead>
+            <tbody id="rotRegTbody"></tbody>
+          </table>
+        </div>
+      </div>
     </dialog>
 
     <!-- ════════════════════════════════════════
@@ -165,6 +182,19 @@
                   Weight editable</span
                 >
               </div>
+              <!-- ROTATION ROW -->
+              <div class="rot-row" id="rotRow">
+                <div class="rot-label">ROTATION NO</div>
+                <div class="rot-selects">
+                  <select id="rotYear" class="rot-sel" onchange="onRotYearChange()">
+                    <option value="">&#8212; Year &#8212;</option>
+                  </select>
+                  <select id="rotNum" class="rot-sel" disabled onchange="onRotNumChange()">
+                    <option value="">&#8212; No. &#8212;</option>
+                  </select>
+                  <span class="rot-badge" id="rotBadge"></span>
+                </div>
+              </div>
               <div class="r2">
                 <div class="fg">
                   <label class="lbl" for="cld"
@@ -177,6 +207,7 @@
                     <input
                       type="text"
                       id="cld"
+                      readonly
                       class="cyan-glow"
                       placeholder="DD/MM/YYYY"
                       maxlength="10"
