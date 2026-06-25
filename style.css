@@ -361,6 +361,14 @@ header::before {
   border-bottom-color: var(--sky);
   background: rgba(14,165,233,0.04);
 }
+.tab-btn[hidden] {
+  display: none !important;
+}
+.tab-btn.active.rotation {
+  color: var(--green);
+  border-bottom-color: var(--green);
+  background: rgba(34,197,94,0.05);
+}
 .tab-icon {
   font-size: 15px;
   display: flex; align-items: center; flex-shrink: 0;
@@ -3248,6 +3256,12 @@ button:focus-visible,
   color: var(--sky);
   box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 2px 10px rgba(0,0,0,0.22);
 }
+.tab-btn.rotation.active {
+  background: rgba(34,197,94,0.07);
+  border-color: rgba(34,197,94,0.22);
+  color: var(--green);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 2px 10px rgba(0,0,0,0.22);
+}
 
 /* ── Label: highlight on focus-within ── */
 .fg:focus-within .lbl {
@@ -3611,10 +3625,100 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
      letter-spacing: 0.03em;
 }
 
-/* ── Admin modal — Rotation Registry ── */
+/* ── Admin page — Rotation Registry ── */
+.rotation-page {
+     max-width: 980px;
+}
+
+.rotation-grid {
+     display: grid;
+     grid-template-columns: minmax(0, 1fr);
+     gap: 18px;
+}
+
+.admin-pass-menu {
+     position: relative;
+     display: inline-flex;
+     align-items: center;
+}
+
+#modeBadge[role="button"] {
+     cursor: pointer;
+     user-select: none;
+}
+
+#modeBadge[role="button"]:focus-visible {
+     outline: 2px solid var(--gold);
+     outline-offset: 3px;
+}
+
+.admin-pass-dropdown {
+     position: absolute;
+     top: calc(100% + 10px);
+     right: 0;
+     width: min(360px, calc(100vw - 24px));
+     padding: 14px;
+     background: rgba(21,28,40,0.98);
+     border: 1px solid var(--bdr-2);
+     border-radius: var(--r);
+     box-shadow: var(--shadow-xl);
+     z-index: 260;
+}
+
+.admin-pass-dropdown::before {
+     content: '';
+     position: absolute;
+     top: -6px;
+     right: 24px;
+     width: 10px;
+     height: 10px;
+     background: rgba(21,28,40,0.98);
+     border-left: 1px solid var(--bdr-2);
+     border-top: 1px solid var(--bdr-2);
+     transform: rotate(45deg);
+}
+
+.admin-pass-dropdown[hidden] {
+     display: none !important;
+}
+
+.admin-pass-form {
+     display: grid;
+     grid-template-columns: minmax(0, 1fr);
+     gap: 8px;
+     align-items: center;
+}
+
+.admin-pass-btn {
+     height: 36px;
+     width: 100%;
+}
+
+.admin-pass-status {
+     margin-top: 10px;
+     margin-bottom: 0;
+}
+
+@media (max-width: 520px) {
+     .admin-pass-dropdown {
+          position: fixed;
+          top: 58px;
+          left: 12px;
+          right: 12px;
+          width: auto;
+     }
+
+     .admin-pass-dropdown::before {
+          display: none;
+     }
+}
+
+.admin-only-page:not(.active) {
+     display: none;
+}
+
 .rot-registry {
-     margin-top: 24px;
-     width: clamp(290px, 90vw, 440px);
+     width: 100%;
      padding: 18px;
      background: var(--bg-elevated);
      border: 1px solid var(--bdr-2);
@@ -3762,4 +3866,131 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
 .rot-del-btn:hover {
      background: var(--red-bg);
      border-color: var(--red);
+}
+
+/* ── Saved Bills sub-tabs ── */
+.saved-sub-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--bdr-1);
+  border-radius: var(--r-sm);
+  padding: 4px;
+  width: fit-content;
+}
+
+.saved-sub-tab {
+  padding: 7px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border: none;
+  border-radius: calc(var(--r-sm) - 2px);
+  cursor: pointer;
+  background: transparent;
+  color: var(--tx-2);
+  transition: background 0.15s, color 0.15s;
+}
+
+.saved-sub-tab:hover {
+  color: var(--tx-0);
+  background: var(--bg-hover);
+}
+
+.saved-sub-tab.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent-bdr);
+}
+
+/* ── Saved Bills module ── */
+.saved-bills-table th:nth-child(1),
+.saved-bills-table td:nth-child(1) {
+  width: 40px;
+  text-align: center;
+  color: var(--tx-2);
+}
+
+.saved-bills-table td:nth-child(8) {
+  white-space: nowrap;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.saved-edit-btn {
+  font-size: 11px;
+  padding: 2px 9px;
+  min-height: unset;
+  line-height: 1.4;
+}
+
+@media print {
+  #page-saved { display: none !important; }
+}
+
+
+/* ── Bill metadata + save actions ── */
+.bill-meta-row {
+  margin-bottom: 10px;
+}
+
+.bill-action-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 8px 14px;
+  background: var(--green-bg);
+  border: 1px solid var(--green-bdr);
+  border-radius: var(--r-sm);
+  color: var(--green);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--t-base), border-color var(--t-base), transform var(--t-fast);
+}
+
+.save-btn:hover {
+  background: rgba(34,197,94,0.14);
+  border-color: var(--green);
+  transform: translateY(-1px);
+}
+
+.save-btn.cargo {
+  color: var(--sky-hi);
+  background: var(--sky-bg);
+  border-color: var(--sky-bdr);
+}
+
+.save-btn.cargo:hover {
+  background: rgba(14,165,233,0.14);
+  border-color: var(--sky);
+}
+
+.bill-no-val {
+  color: var(--green);
+}
+
+@media (max-width: 560px) {
+  .bill-action-group,
+  .print-opts-group {
+    width: 100%;
+  }
+
+  .save-btn,
+  .print-btn {
+    flex: 1 1 auto;
+  }
 }

@@ -50,7 +50,19 @@
         PORT<span class="logo-sub"> / BILLING SYSTEM</span>
       </div>
       <div class="hright">
-        <div class="hbadge" id="modeBadge">USER</div>
+        <div class="admin-pass-menu" id="adminPassMenu">
+          <div class="hbadge" id="modeBadge" role="button" tabindex="-1" title="Change admin password" aria-controls="adminPassCard" aria-expanded="false" onclick="openAdminPasswordPanel()" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openAdminPasswordPanel(); }">USER</div>
+          <div class="admin-pass-dropdown" id="adminPassCard" hidden>
+            <div class="rot-reg-title" id="admin-password-title">CHANGE ADMIN PASSWORD</div>
+            <div class="admin-pass-form">
+              <input type="password" id="adminCurrentPass" class="rot-reg-input" placeholder="Current password" autocomplete="current-password" />
+              <input type="password" id="adminNewPass" class="rot-reg-input" placeholder="New password" autocomplete="new-password" />
+              <input type="password" id="adminConfirmPass" class="rot-reg-input" placeholder="Confirm new password" autocomplete="new-password" onkeydown="if (event.key === 'Enter') changeAdminPassword();" />
+              <button type="button" class="rot-reg-add-btn admin-pass-btn" onclick="changeAdminPassword()">UPDATE</button>
+            </div>
+            <div class="rot-reg-status admin-pass-status" id="adminPassStatus"></div>
+          </div>
+        </div>
         <button
           class="admin-btn"
           id="resetRatesBtn"
@@ -98,6 +110,28 @@
       >
         General Cargo Billing
       </button>
+      <button
+        class="tab-btn rotation"
+        id="tab-rotation"
+        role="tab"
+        aria-selected="false"
+        aria-controls="page-rotation"
+        onclick="switchModule('rotation')"
+        hidden
+      >
+        Rotation Registry
+      </button>
+      <button
+        class="tab-btn saved"
+        id="tab-saved"
+        role="tab"
+        aria-selected="false"
+        aria-controls="page-saved"
+        onclick="switchModule('saved')"
+        hidden
+      >
+        Saved Bills
+      </button>
     </div>
 
     <!-- ADMIN MODAL -->
@@ -140,23 +174,6 @@
           </button>
         </div>
       </div>
-      <!-- ROTATION REGISTRY SECTION IN ADMIN MODAL -->
-      <div class="rot-registry" id="rotRegistry" style="display:none;">
-        <div class="rot-reg-title">ROTATION REGISTRY</div>
-        <div class="rot-reg-form">
-          <input type="text" id="rotRegYear" class="rot-reg-input" placeholder="Year e.g. 2026" maxlength="4" />
-          <input type="text" id="rotRegNum" class="rot-reg-input" placeholder="No. e.g. 400" maxlength="6" />
-          <input type="text" id="rotRegCld" class="rot-reg-input rot-reg-cld" placeholder="CLD DD/MM/YYYY" maxlength="10" oninput="formatDate(this)" />
-          <button type="button" class="rot-reg-add-btn" onclick="addRotation()">+ ADD</button>
-        </div>
-        <div class="rot-reg-status" id="rotRegStatus"></div>
-        <div class="rot-reg-table-wrap">
-          <table class="rot-reg-table" id="rotRegTable">
-            <thead><tr><th>Rotation No</th><th>CLD Date</th><th></th></tr></thead>
-            <tbody id="rotRegTbody"></tbody>
-          </table>
-        </div>
-      </div>
     </dialog>
 
     <!-- ════════════════════════════════════════
@@ -181,6 +198,46 @@
                   ><span class="lck"></span> CLD, Delivery &amp;
                   Weight editable</span
                 >
+              </div>
+              <div class="r2 bill-meta-row">
+                <div class="fg">
+                  <label class="lbl" for="car-blNumber">BL Number</label>
+                  <input
+                    type="text"
+                    id="car-blNumber"
+                    class="cyan-glow"
+                    placeholder="e.g. COSU1234567890"
+                    oninput="carRefresh()"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                </div>
+                <div class="fg">
+                  <label class="lbl" for="car-billEntry">Bill of Entry Number</label>
+                  <input
+                    type="text"
+                    id="car-billEntry"
+                    class="cyan-glow"
+                    value="C-"
+                    placeholder="C-"
+                    oninput="carRefresh()"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                </div>
+              </div>
+              <div class="r2 bill-meta-row">
+                <div class="fg">
+                  <label class="lbl" for="car-cnfName">C&amp;F Agent Name</label>
+                  <input
+                    type="text"
+                    id="car-cnfName"
+                    class="cyan-glow"
+                    placeholder="Clearing &amp; Forwarding Agent"
+                    oninput="carRefresh()"
+                    autocomplete="off"
+                  />
+                </div>
               </div>
               <!-- ROTATION ROW -->
               <div class="rot-row" id="rotRow">
@@ -669,6 +726,8 @@
           <hr />
           <div class="rh">
             <div class="rtitle">CAR WHARFRENT BILL STATEMENT</div>
+            <div class="bill-action-group">
+              <button type="button" class="save-btn" onclick="saveBill('car')" aria-label="Save car bill">Save Bill</button>
             <button type="button" class="print-btn" onclick="printBill('car')" aria-label="Print car bill">
               <svg
                 width="14"
@@ -687,6 +746,7 @@
               </svg>
               Print Bill
             </button>
+            </div>
           </div>
           <div id="car-ibar"></div>
           <div class="sr" id="car-srow"></div>
@@ -729,7 +789,7 @@
                   Weight editable</span
                 >
               </div>
-              <div class="r2">
+              <div class="r2 bill-meta-row">
                 <div class="fg">
                   <label class="lbl" for="c-blNumber">BL Number</label>
                   <input
@@ -742,6 +802,21 @@
                     spellcheck="false"
                   />
                 </div>
+                <div class="fg">
+                  <label class="lbl" for="c-billEntry">Bill of Entry Number</label>
+                  <input
+                    type="text"
+                    id="c-billEntry"
+                    class="cargo-glow"
+                    value="C-"
+                    placeholder="C-"
+                    oninput="cargoRefresh()"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                </div>
+              </div>
+              <div class="r2 bill-meta-row">
                 <div class="fg">
                   <label class="lbl" for="c-cnfName">C&amp;F Agent Name</label>
                   <input
@@ -1385,6 +1460,7 @@
                 </label>
                 <span class="print-opt-label payables-label">Payables</span>
               </div>
+              <button type="button" class="save-btn cargo" onclick="saveBill('cargo')" aria-label="Save cargo bill">Save Bill</button>
             <button type="button" class="print-btn cargo" onclick="printBill('cargo')" aria-label="Print cargo bill">
               <svg
                 width="14"
@@ -1418,6 +1494,101 @@
             </div>
           </div>
         </div>
+      </main>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         ADMIN ROTATION REGISTRY
+    ════════════════════════════════════════ -->
+    <div id="page-rotation" class="module-page admin-only-page">
+      <main class="wrap rotation-page">
+        <div class="pgtitle">ROTATION REGISTRY</div>
+        <div class="pgsub">
+          Admin-only rotation numbers and Common Landing Day records
+        </div>
+
+        <div class="rotation-grid">
+          <section class="card rot-registry" id="rotRegistry" style="display:none;" aria-labelledby="rotation-registry-title">
+            <div class="rot-reg-title" id="rotation-registry-title">ADD ROTATION</div>
+            <div class="rot-reg-form">
+              <input type="text" id="rotRegYear" class="rot-reg-input" placeholder="Year e.g. 2026" maxlength="4" inputmode="numeric" />
+              <input type="text" id="rotRegNum" class="rot-reg-input" placeholder="No. e.g. 400" maxlength="6" inputmode="numeric" />
+              <input type="text" id="rotRegCld" class="rot-reg-input rot-reg-cld" placeholder="CLD DD/MM/YYYY" maxlength="10" inputmode="numeric" oninput="formatDate(this)" />
+              <button type="button" class="rot-reg-add-btn" onclick="addRotation()">+ ADD</button>
+            </div>
+            <div class="rot-reg-status" id="rotRegStatus"></div>
+            <div class="rot-reg-table-wrap">
+              <table class="rot-reg-table" id="rotRegTable">
+                <thead><tr><th>Rotation No</th><th>CLD Date</th><th></th></tr></thead>
+                <tbody id="rotRegTbody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         SAVED BILLS MODULE
+    ════════════════════════════════════════ -->
+    <div id="page-saved" class="module-page admin-only-page">
+      <main class="wrap rotation-page">
+        <div class="pgtitle">SAVED BILLS</div>
+        <div class="pgsub">Admin-only — view, edit and delete saved Car &amp; General Cargo bills</div>
+
+        <!-- SUB-TABS -->
+        <div class="saved-sub-tabs" role="tablist" aria-label="Saved bill type">
+          <button class="saved-sub-tab active" id="saved-sub-car" role="tab" aria-selected="true" aria-controls="saved-car-panel" onclick="switchSavedTab('car')">
+            Car Bills
+          </button>
+          <button class="saved-sub-tab" id="saved-sub-cargo" role="tab" aria-selected="false" aria-controls="saved-cargo-panel" onclick="switchSavedTab('cargo')">
+            General Cargo Bills
+          </button>
+        </div>
+
+        <!-- CAR BILLS PANEL -->
+        <section id="saved-car-panel" class="card rot-registry" aria-labelledby="saved-car-title">
+          <div class="rot-reg-title" id="saved-car-title">CAR SAVED BILLS</div>
+          <div class="rot-reg-table-wrap">
+            <table class="rot-reg-table saved-bills-table" id="savedCarTable">
+              <thead>
+                <tr>
+                  <th>Sl.</th>
+                  <th>Bill Number</th>
+                  <th>CLD</th>
+                  <th>Delivery</th>
+                  <th>CNF / BL No</th>
+                  <th>Total (৳)</th>
+                  <th>Saved On</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="savedCarTbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- GC BILLS PANEL -->
+        <section id="saved-cargo-panel" class="card rot-registry" style="display:none;" aria-labelledby="saved-cargo-title">
+          <div class="rot-reg-title" id="saved-cargo-title">GENERAL CARGO SAVED BILLS</div>
+          <div class="rot-reg-table-wrap">
+            <table class="rot-reg-table saved-bills-table" id="savedCargoTable">
+              <thead>
+                <tr>
+                  <th>Sl.</th>
+                  <th>Bill Number</th>
+                  <th>CLD</th>
+                  <th>Delivery</th>
+                  <th>CNF / BL No</th>
+                  <th>Total (৳)</th>
+                  <th>Saved On</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="savedCargoTbody"></tbody>
+            </table>
+          </div>
+        </section>
       </main>
     </div>
 

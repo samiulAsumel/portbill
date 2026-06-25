@@ -12,7 +12,7 @@ const SP_CARGO_IDLE =
   '<rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/>' +
   '<circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>' +
   "<span>Fill in cargo details<br>to see live cost preview</span></div>";
-let isAdmin = false;h
+let isAdmin = false;
 
 // ════════════════════════════════════════
 //  ADMIN RATE PERSISTENCE  (localStorage)
@@ -184,10 +184,26 @@ let loginAttempts = _getAttempts();
 const AU = "admin";
 const AP_HASH =
   "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
+const ADMIN_PASS_STORAGE_KEY = "pb_admin_password_hash";
+const getAdminPasswordHash = () =>
+  localStorage.getItem(ADMIN_PASS_STORAGE_KEY) || AP_HASH;
+async function hashText(value) {
+  if (!crypto?.subtle) throw new Error("no-subtle");
+  const buf = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+  return [...new Uint8Array(buf)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 let currentModule = "car";
 let isInitialLoad = true;
 let lastCarBill = null;
 let lastCargoBill = null;
+const SAVED_BILLS_KEY = "pb_saved_bills";
+const BILL_COUNTER_KEY = "pb_bill_counter";
+let editingBillNumber = { car: null, cargo: null };
 
 // Performance optimization: Cache frequently accessed DOM elements
 const domCache = {
@@ -251,6 +267,13 @@ if (document.readyState === "loading") {
 //  MODULE SWITCH
 // ════════════════════════════════════════
 function switchModule(mod) {
+  if ((mod === "rotation" || mod === "saved") && !isAdmin) {
+    showToast("Admin login required for this module", "warning");
+    mod = "car";
+  }
+  const page = document.getElementById("page-" + mod);
+  const activeTab = document.getElementById("tab-" + mod);
+  if (!page || !activeTab || activeTab.hidden) return;
   currentModule = mod;
   document
     .querySelectorAll(".module-page")
@@ -259,12 +282,37 @@ function switchModule(mod) {
     b.classList.remove("active");
     b.setAttribute("aria-selected", "false");
   });
-  document.getElementById("page-" + mod).classList.add("active");
-  const activeTab = document.getElementById("tab-" + mod);
+  page.classList.add("active");
   activeTab.classList.add("active");
   activeTab.setAttribute("aria-selected", "true");
   document.body.classList.toggle("mode-cargo", mod === "cargo");
+  document.body.classList.toggle("mode-rotation", mod === "rotation");
+  document.body.classList.toggle("mode-saved", mod === "saved");
+  if (mod === "saved") renderSavedBills();
   globalThis.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function updateAdminNavigation() {
+  const rotTab = document.getElementById("tab-rotation");
+  const rotPage = document.getElementById("page-rotation");
+  const savedTab = document.getElementById("tab-saved");
+  const savedPage = document.getElementById("page-saved");
+  if (rotTab) {
+    rotTab.hidden = !isAdmin;
+    rotTab.tabIndex = isAdmin ? 0 : -1;
+    rotTab.setAttribute("aria-hidden", isAdmin ? "false" : "true");
+  }
+  if (savedTab) {
+    savedTab.hidden = !isAdmin;
+    savedTab.tabIndex = isAdmin ? 0 : -1;
+    savedTab.setAttribute("aria-hidden", isAdmin ? "false" : "true");
+  }
+  if (!isAdmin) {
+    closeAdminPasswordPanel();
+    if (rotPage) rotPage.classList.remove("active");
+    if (savedPage) savedPage.classList.remove("active");
+    if (currentModule === "rotation" || currentModule === "saved") switchModule("car");
+  }
 }
 
 // ════════════════════════════════════════
@@ -338,6 +386,113 @@ const fmtN = (n) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+function readTextValue(id) {
+  return (document.getElementById(id)?.value || "").trim();
+}
+function readMeta(prefix) {
+  return {
+    blNumber: escHtml(readTextValue(prefix + "-blNumber")),
+    cnfName: escHtml(readTextValue(prefix + "-cnfName")),
+    billEntryNumber: escHtml(readTextValue(prefix + "-billEntry")),
+  };
+}
+function billDateKey(date = new Date()) {
+  return `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+}
+function readJsonStorage(key, fallback) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || "") ?? fallback;
+  } catch (_) {
+    return fallback;
+  }
+}
+function nextBillNumber(type) {
+  const prefix = type === "cargo" ? "GCA" : "CA";
+  const datePart = billDateKey();
+  const key = `${prefix}-${datePart}`;
+  const counters = readJsonStorage(BILL_COUNTER_KEY, {});
+  counters[key] = Math.max(0, Number.parseInt(counters[key] || "0", 10)) + 1;
+  localStorage.setItem(BILL_COUNTER_KEY, JSON.stringify(counters));
+  return `${prefix}-${datePart}${String(counters[key]).padStart(6, "0")}`;
+}
+function totalForBill(type, b) {
+  if (!b) return 0;
+  if (type === "cargo") return b.gTotal || b.nTotal || 0;
+  return b.hasWharfrent ? b.iTotal + b.oTotal : b.nTotal;
+}
+function billInputSnapshot(type) {
+  const root = document.getElementById(type === "cargo" ? "cargo-inputSection" : "car-inputSection");
+  if (!root) return {};
+  const data = {};
+  root.querySelectorAll("input, select, textarea").forEach((el) => {
+    if (!el.id) return;
+    data[el.id] = el.type === "checkbox" ? el.checked : el.value;
+  });
+  return data;
+}
+function billHtmlSnapshot(type) {
+  const ids = type === "cargo"
+    ? ["cargo-ibar", "cargo-srow", "cargo-insideSec", "cargo-outsideSec", "cargo-breakdownSec", "cargo-grandSec"]
+    : ["car-ibar", "car-srow", "car-insideSec", "car-outsideSec", "car-grandSec"];
+  return ids.map((id) => `<section data-section="${id}">${document.getElementById(id)?.innerHTML || ""}</section>`).join("");
+}
+function getSavedBills() {
+  const bills = readJsonStorage(SAVED_BILLS_KEY, []);
+  return Array.isArray(bills) ? bills : [];
+}
+function persistSavedBill(record) {
+  const bills = getSavedBills();
+  const idx = bills.findIndex((b) => b.billNumber === record.billNumber);
+  if (idx >= 0) bills[idx] = record;
+  else bills.unshift(record);
+  localStorage.setItem(SAVED_BILLS_KEY, JSON.stringify(bills));
+}
+function saveBill(type) {
+  const b = type === "cargo" ? lastCargoBill : lastCarBill;
+  if (!b) {
+    showToast("Generate the bill first before saving.", "warning");
+    return;
+  }
+  const errors = type === "cargo" ? collectCargoErrors() : collectCarErrors();
+  if (reportInputErrors(errors)) return;
+  if (!b.billNumber) b.billNumber = editingBillNumber[type] || nextBillNumber(type);
+  b.savedAt = new Date().toISOString();
+  const metadata = {
+    blNumber: b.blNumber || "",
+    cnfName: b.cnfName || "",
+    billEntryNumber: b.billEntryNumber || "",
+  };
+  persistSavedBill({
+    billNumber: b.billNumber,
+    type,
+    module: type === "cargo" ? "General Cargo" : "Car",
+    savedAt: b.savedAt,
+    cld: fd(b.cld),
+    delivery: b.delivery ? fd(b.delivery) : "",
+    metadata,
+    total: totalForBill(type, b),
+    totalFormatted: fmt(totalForBill(type, b)),
+    inputs: billInputSnapshot(type),
+    partBillingStages: type === "cargo" ? JSON.parse(JSON.stringify(partBillingStages)) : null,
+    html: billHtmlSnapshot(type),
+  });
+  editingBillNumber[type] = null;
+  renderBillNumberBadge(type, b.billNumber);
+  showToast(`Saved bill ${b.billNumber}`, "success");
+  if (currentModule === "saved") renderSavedBills();
+}
+function renderBillNumberBadge(type, billNumber) {
+  if (!billNumber) return;
+  const ibar = document.getElementById(type === "cargo" ? "cargo-ibar" : "car-ibar");
+  const inner = ibar?.querySelector(".ibar > div");
+  if (!inner) return;
+  const existing = ibar.querySelector(".bill-no-ii");
+  if (existing) existing.remove();
+  const badge = document.createElement("div");
+  badge.className = "ii bill-no-ii";
+  badge.innerHTML = `<div class="il">Bill Number</div><div class="iv bill-no-val">${escHtml(billNumber)}</div>`;
+  inner.insertBefore(badge, inner.firstChild);
+}
 const CUT = pd("2024-07-23");
 const CUT_OLD = pd("2024-07-22");
 
@@ -441,20 +596,14 @@ async function doLogin() {
     return;
   }
   try {
-    if (!crypto?.subtle) throw new Error("no-subtle");
-    const buf = await crypto.subtle.digest(
-      "SHA-256",
-      new TextEncoder().encode(p),
-    );
-    const hash = [...new Uint8Array(buf)]
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-    if (u === AU && hash === AP_HASH) {
+    const hash = await hashText(p);
+    if (u === AU && hash === getAdminPasswordHash()) {
       loginAttempts = 0;
       _setAttempts(0);
       isAdmin = true;
       closeModal();
       applyAdmin();
+      switchModule("rotation");
       showToast("Admin mode activated", "success");
     } else {
       loginAttempts++;
@@ -477,6 +626,84 @@ async function doLogin() {
     document.getElementById("mpass").value = "";
   }
 }
+
+function closeAdminPasswordPanel() {
+  const card = document.getElementById("adminPassCard");
+  const badge = document.getElementById("modeBadge");
+  if (card) card.hidden = true;
+  if (badge) badge.setAttribute("aria-expanded", "false");
+}
+
+function openAdminPasswordPanel() {
+  if (!isAdmin) return;
+  const card = document.getElementById("adminPassCard");
+  const badge = document.getElementById("modeBadge");
+  const statusEl = document.getElementById("adminPassStatus");
+  if (!card) return;
+  const willOpen = card.hidden;
+  card.hidden = !willOpen;
+  if (badge) badge.setAttribute("aria-expanded", willOpen ? "true" : "false");
+  if (!willOpen) return;
+  if (statusEl) {
+    statusEl.textContent = "";
+    statusEl.className = "rot-reg-status admin-pass-status";
+  }
+  requestAnimationFrame(() => {
+    const currentEl = document.getElementById("adminCurrentPass");
+    if (currentEl) currentEl.focus();
+  });
+}
+async function changeAdminPassword() {
+  if (!isAdmin) return;
+  const currentEl = document.getElementById("adminCurrentPass");
+  const newEl = document.getElementById("adminNewPass");
+  const confirmEl = document.getElementById("adminConfirmPass");
+  const statusEl = document.getElementById("adminPassStatus");
+  const setStatus = (msg, state) => {
+    if (!statusEl) return;
+    statusEl.textContent = msg;
+    statusEl.className = "rot-reg-status admin-pass-status" + (state ? " " + state : "");
+  };
+  const currentPass = currentEl ? currentEl.value : "";
+  const newPass = newEl ? newEl.value : "";
+  const confirmPass = confirmEl ? confirmEl.value : "";
+
+  if (!currentPass || !newPass || !confirmPass) {
+    setStatus("Please fill all password fields", "err");
+    return;
+  }
+  if (newPass.length < 6) {
+    setStatus("New password must be at least 6 characters", "err");
+    return;
+  }
+  if (newPass !== confirmPass) {
+    setStatus("New password and confirmation do not match", "err");
+    return;
+  }
+
+  try {
+    if ((await hashText(currentPass)) !== getAdminPasswordHash()) {
+      setStatus("Current password is incorrect", "err");
+      if (currentEl) currentEl.focus();
+      return;
+    }
+    localStorage.setItem(ADMIN_PASS_STORAGE_KEY, await hashText(newPass));
+    loginAttempts = 0;
+    _setAttempts(0);
+    [currentEl, newEl, confirmEl].forEach((el) => {
+      if (el) el.value = "";
+    });
+    setStatus("Admin password updated", "ok");
+    showToast("Admin password updated", "success");
+  } catch (e) {
+    setStatus(
+      e.message === "no-subtle"
+        ? "Password change requires HTTPS or localhost"
+        : "Password update failed. Please try again.",
+      "err",
+    );
+  }
+}
 function applyAdmin() {
   document.getElementById("adot").style.background = isAdmin
     ? "var(--gold)"
@@ -486,10 +713,12 @@ function applyAdmin() {
     : "Admin";
   const adminIcon = document.getElementById("adminIcon");
   if (adminIcon) adminIcon.style.display = isAdmin ? "none" : "block";
-  document.getElementById("modeBadge").style.display = isAdmin
-    ? "inline-flex"
-    : "none";
-  document.getElementById("modeBadge").textContent = isAdmin ? "ADMIN" : "USER";
+  const modeBadge = document.getElementById("modeBadge");
+  modeBadge.style.display = isAdmin ? "inline-flex" : "none";
+  modeBadge.textContent = isAdmin ? "ADMIN" : "USER";
+  modeBadge.tabIndex = isAdmin ? 0 : -1;
+  modeBadge.setAttribute("aria-label", "Change admin password");
+  if (!isAdmin) closeAdminPasswordPanel();
   isAdmin
     ? document.getElementById("adminBtn").classList.add("active")
     : document.getElementById("adminBtn").classList.remove("active");
@@ -575,6 +804,7 @@ function applyAdmin() {
     }
   });
 
+  applyRotationAccessState();
   carRefresh();
   cargoRefresh();
 }
@@ -601,6 +831,7 @@ function onWeightChange() {
 }
 
 function carCompute() {
+  const meta = readMeta("car");
   const cld = pd(document.getElementById("cld").value);
   const _fdRaw = Number.parseInt(document.getElementById("freeDays").value, 10);
   const freeDays = Number.isNaN(_fdRaw) ? 4 : Math.max(0, _fdRaw);
@@ -750,6 +981,8 @@ function carCompute() {
   const nLevy = levyAmt;
   const nTotal = r2(nBase + nVat + nLevy);
   return {
+    ...meta,
+    billNumber: "",
     cld,
     freeEnd,
     storStart,
@@ -988,7 +1221,7 @@ function carCalculate() {
           ? "Old Rates"
           : "New Rates";
     document.getElementById("car-ibar").innerHTML =
-      `<div class="ibar"><div><div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Car Wharfrent Starts</div><div class="iv">${wharfrentStarts}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Weight</div><div class="iv">${b.weight} ton(s)</div></div><div class="ii"><div class="il">Car Wharfrent Days</div><div class="iv" style="color:var(--gold)">${wharfrentDaysText}</div></div><div class="ii"><div class="il">Rate Mode</div><div class="iv" style="color:${rateModeColor}">${rateModeText}</div></div></div></div>`;
+      `<div class="ibar"><div>${b.billNumber ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>` : ""}${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv">${b.blNumber}</div></div>` : ""}${b.billEntryNumber ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&amp;F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Car Wharfrent Starts</div><div class="iv">${wharfrentStarts}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Weight</div><div class="iv">${b.weight} ton(s)</div></div><div class="ii"><div class="il">Car Wharfrent Days</div><div class="iv" style="color:var(--gold)">${wharfrentDaysText}</div></div><div class="ii"><div class="il">Rate Mode</div><div class="iv" style="color:${rateModeColor}">${rateModeText}</div></div></div></div>`;
     if (b.hasWharfrent) {
       document.getElementById("car-srow").innerHTML =
         `<div class="sc cg"><div class="sl">Car Grand Total</div><div class="sv">${fmtN(b.iTotal + b.oTotal)}</div><div class="ss">Inside + Outside · incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Total (Full Rate)</div><div class="sv">${fmtN(b.iTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div><div class="sc cp"><div class="sl">Outside Total (½ Rate)</div><div class="sv">${fmtN(b.oTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div>`;
@@ -1029,6 +1262,11 @@ function carCalculate() {
 function carReset() {
   document.getElementById("results").style.display = "none";
   document.getElementById("car-preview").innerHTML = SP_CAR_IDLE;
+  ["car-blNumber", "car-cnfName"].forEach((id) => { const el = document.getElementById(id); if (el) el.value = ""; });
+  const carBoE = document.getElementById("car-billEntry");
+  if (carBoE) carBoE.value = "C-";
+  lastCarBill = null;
+  editingBillNumber.car = null;
   document.getElementById("weight").value = 2;
   document.getElementById("chkHoisting").checked = false;
   document.getElementById("weightWarn").classList.remove("show");
@@ -2348,12 +2586,7 @@ function buildPartBillingPrintSection(b, side) {
 
 function cargoCompute() {
   // NOSONAR
-  const blNumber = escHtml(
-    (document.getElementById("c-blNumber")?.value || "").trim(),
-  );
-  const cnfName = escHtml(
-    (document.getElementById("c-cnfName")?.value || "").trim(),
-  );
+  const meta = readMeta("c");
   const cld = pd(document.getElementById("c-cld").value);
   const _cfdRaw = Number.parseInt(
     document.getElementById("c-freeDays").value,
@@ -2846,8 +3079,8 @@ function cargoCompute() {
     nTotal,
     isPartBilling,
     pbPeriods,
-    blNumber,
-    cnfName,
+    ...meta,
+    billNumber: "",
   };
 }
 
@@ -3355,7 +3588,7 @@ function cargoCalculate() {
       const firstDel = vp.length > 0 ? fd(vp[0].deliveryDate) : "—";
       const lastDel = vp.length > 0 ? fd(vp[vp.length - 1].deliveryDate) : "—";
       document.getElementById("cargo-ibar").innerHTML =
-        `<div class="ibar"><div>${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${fd(b.storStart)}</div></div><div class="ii"><div class="il">First Delivery</div><div class="iv">${firstDel}</div></div><div class="ii"><div class="il">Last Delivery</div><div class="iv">${lastDel}</div></div><div class="ii"><div class="il">Delivery Stages</div><div class="iv" style="color:var(--cargo-accent)">${vp.length} stages</div></div><div class="ii"><div class="il">Initial Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Total Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.totalDays} days</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
+        `<div class="ibar"><div>${b.billNumber ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>` : ""}${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>` : ""}${b.billEntryNumber ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${fd(b.storStart)}</div></div><div class="ii"><div class="il">First Delivery</div><div class="iv">${firstDel}</div></div><div class="ii"><div class="il">Last Delivery</div><div class="iv">${lastDel}</div></div><div class="ii"><div class="il">Delivery Stages</div><div class="iv" style="color:var(--cargo-accent)">${vp.length} stages</div></div><div class="ii"><div class="il">Initial Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Total Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.totalDays} days</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
       document.getElementById("cargo-srow").innerHTML =
         `<div class="sc cg"><div class="sl">Grand Total — Part Billing</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(b.gTotal)}</div><div class="ss">${vp.length} stages · incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Sub-Total</div><div class="sv">${fmtN(b.iBase)}</div><div class="ss">Before VAT &amp; Levy · ${b.totalDays} days</div></div><div class="sc cp"><div class="sl">Outside Sub-Total</div><div class="sv">${fmtN(b.oBase)}</div><div class="ss">Before VAT &amp; Levy · ${b.totalDays} days</div></div>`;
       const pbInDesc =
@@ -3373,7 +3606,7 @@ function cargoCalculate() {
         `<div style="margin-bottom:20px;"><div class="slbl sl-payable">▪ Bill Summary — VAT &amp; Levy on Inside + Outside</div><div class="card" style="padding:0;overflow:hidden;">${buildCombinedSummaryTable(b)}</div></div>`;
     } else {
       document.getElementById("cargo-ibar").innerHTML =
-        `<div class="ibar"><div>${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${b.hasWharfrent ? fd(b.storStart) : "—"}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Total Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.hasWharfrent ? b.totalDays + " days" : "In free time"}</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
+        `<div class="ibar"><div>${b.billNumber ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>` : ""}${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>` : ""}${b.billEntryNumber ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${b.hasWharfrent ? fd(b.storStart) : "—"}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Total Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.hasWharfrent ? b.totalDays + " days" : "In free time"}</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
       if (b.hasWharfrent) {
         document.getElementById("cargo-srow").innerHTML =
           `<div class="sc cg"><div class="sl">General Cargo Grand Total</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(b.gTotal)}</div><div class="ss">incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Sub-Total</div><div class="sv">${fmtN(b.iBase)}</div><div class="ss">Full rate · before VAT</div></div><div class="sc cp"><div class="sl">Outside Sub-Total</div><div class="sv">${fmtN(b.oBase)}</div><div class="ss">½ rate · before VAT</div></div>`;
@@ -3432,6 +3665,11 @@ function cargoCalculate() {
 function cargoReset() {
   document.getElementById("cargo-results").style.display = "none";
   document.getElementById("cargo-preview").innerHTML = SP_CARGO_IDLE;
+  ["c-blNumber", "c-cnfName"].forEach((id) => { const el = document.getElementById(id); if (el) el.value = ""; });
+  const cargoBoE = document.getElementById("c-billEntry");
+  if (cargoBoE) cargoBoE.value = "C-";
+  lastCargoBill = null;
+  editingBillNumber.cargo = null;
   cargoIncludePayables = true;
   cargoIncludeWharfrent = true;
   const allPayEl = document.getElementById("c-chkAllPayables");
@@ -4491,8 +4729,11 @@ function printBill(type) {
       month: "2-digit",
       year: "numeric",
     });
-    const refCode = type === "cargo" ? "GC" : type.toUpperCase();
-    const billRef = `PB-${refCode}-${Date.now().toString().slice(-8)}`;
+    const billRef = b.billNumber || nextBillNumber(type);
+    if (!b.billNumber) {
+      b.billNumber = billRef;
+      renderBillNumberBadge(type, billRef);
+    }
 
     let sectionsHtml = "";
     let grandTotal, grandLabel;
@@ -4507,6 +4748,9 @@ function printBill(type) {
             ? "Old Rates (Pre-23/07/2024)"
             : "New Rates (From 23/07/2024)";
       infoHtml = `<div class="info-grid">
+      ${b.blNumber ? `<div class="info-cell"><div class="info-label">BL Number</div><div class="info-value">${b.blNumber}</div></div>` : ""}
+      ${b.billEntryNumber ? `<div class="info-cell"><div class="info-label">Bill of Entry</div><div class="info-value">${b.billEntryNumber}</div></div>` : ""}
+      ${b.cnfName ? `<div class="info-cell"><div class="info-label">C&amp;F Agent</div><div class="info-value">${b.cnfName}</div></div>` : ""}
       <div class="info-cell"><div class="info-label">CLD</div><div class="info-value">${fd(b.cld)}</div></div>
       <div class="info-cell"><div class="info-label">Free Time Ends</div><div class="info-value">${fd(b.freeEnd)}</div></div>
       <div class="info-cell"><div class="info-label">Car Wharfrent Starts</div><div class="info-value">${b.hasWharfrent ? fd(b.storStart) : "—"}</div></div>
@@ -4682,6 +4926,7 @@ function printBill(type) {
           vp.length > 0 ? fd(vp[vp.length - 1].deliveryDate) : "—";
         infoHtml = `<div class="info-grid">
         ${b.blNumber ? `<div class="info-cell"><div class="info-label">BL Number</div><div class="info-value">${b.blNumber}</div></div>` : ""}
+        ${b.billEntryNumber ? `<div class="info-cell"><div class="info-label">Bill of Entry</div><div class="info-value">${b.billEntryNumber}</div></div>` : ""}
         ${b.cnfName ? `<div class="info-cell"><div class="info-label">C&amp;F Agent</div><div class="info-value">${b.cnfName}</div></div>` : ""}
         <div class="info-cell"><div class="info-label">CLD</div><div class="info-value">${fd(b.cld)}</div></div>
         <div class="info-cell"><div class="info-label">Free Time Ends</div><div class="info-value">${fd(b.freeEnd)}</div></div>
@@ -4699,6 +4944,7 @@ function printBill(type) {
       } else {
         infoHtml = `<div class="info-grid">
         ${b.blNumber ? `<div class="info-cell"><div class="info-label">BL Number</div><div class="info-value">${b.blNumber}</div></div>` : ""}
+        ${b.billEntryNumber ? `<div class="info-cell"><div class="info-label">Bill of Entry</div><div class="info-value">${b.billEntryNumber}</div></div>` : ""}
         ${b.cnfName ? `<div class="info-cell"><div class="info-label">C&amp;F Agent</div><div class="info-value">${b.cnfName}</div></div>` : ""}
         <div class="info-cell"><div class="info-label">CLD</div><div class="info-value">${fd(b.cld)}</div></div>
         <div class="info-cell"><div class="info-label">Free Time Ends</div><div class="info-value">${fd(b.freeEnd)}</div></div>
@@ -4993,7 +5239,7 @@ overlay.addEventListener("cancel", (e) => {
 
 // Tab keyboard navigation (arrow keys)
 document.querySelector(".module-tabs").addEventListener("keydown", (e) => {
-  const tabs = [...document.querySelectorAll(".tab-btn")];
+  const tabs = [...document.querySelectorAll(".tab-btn:not([hidden])")];
   const idx = tabs.indexOf(document.activeElement);
   if (idx === -1) return;
   if (e.key === "ArrowRight") {
@@ -5039,6 +5285,17 @@ document.addEventListener("mousedown", (e) => {
   }
 });
 
+document.addEventListener("click", (e) => {
+  const menu = document.getElementById("adminPassMenu");
+  const card = document.getElementById("adminPassCard");
+  if (!isAdmin || !menu || !card || card.hidden) return;
+  if (!menu.contains(e.target)) closeAdminPasswordPanel();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeAdminPasswordPanel();
+});
+
 // Floating particles
 (function () {
   const container = document.createElement("div");
@@ -5076,6 +5333,7 @@ async function loadRotations() {
     const data = await r.json();
     _rotations = Array.isArray(data) ? data : [];
     populateYearDropdown();
+    if (isAdmin) renderRotationTable();
   } catch (e) {
     console.warn("loadRotations failed:", e.message);
     _rotations = [];
@@ -5313,62 +5571,30 @@ async function saveRotationsToWorker(rotationsArr) {
   }
 }
 
-// ─── ADMIN MODAL INTEGRATION ────────────────────────────────────
-
-// Override openModal to show rotation registry when admin is logged in
-var _origToggleAdmin = typeof toggleAdmin === "function" ? toggleAdmin : null;
-
-function openAdminModal() {
-  var overlay = document.getElementById("overlay");
-  if (overlay) {
-    var reg = document.getElementById("rotRegistry");
-    if (isAdmin) {
-      // Already admin — show registry directly
-      if (reg) { reg.style.display = "block"; renderRotationTable(); }
-    } else {
-      // Show login form
-      if (reg) reg.style.display = "none";
-    }
-    overlay.showModal ? overlay.showModal() : (overlay.open = true);
-  }
-}
-
-// Hook into admin state changes — patch applyAdmin to also handle CLD and registry
-var _origApplyAdmin = typeof applyAdmin === "function" ? applyAdmin : null;
-if (_origApplyAdmin) {
-  // Replace applyAdmin with extended version
-  window.applyAdmin = function() {
-    _origApplyAdmin();
-    // Handle CLD lock/unlock for Car Billing
-    var cldEl = document.getElementById("cld");
-    if (cldEl) {
-      if (isAdmin) {
-        cldEl.removeAttribute("readonly");
-        cldEl.classList.remove("cld-locked");
-        cldEl.classList.add("ae");
-      } else {
-        cldEl.setAttribute("readonly", "");
-        cldEl.classList.remove("ae");
-        cldEl.classList.add("cld-locked");
-      }
-    }
-    // Show/hide rotation registry in modal
-    var reg = document.getElementById("rotRegistry");
-    if (reg) reg.style.display = isAdmin ? "block" : "none";
-    if (isAdmin) renderRotationTable();
-  };
-}
-
 // ─── STARTUP ────────────────────────────────────────────────────
+
+function applyRotationAccessState() {
+  var cldEl = document.getElementById("cld");
+  if (cldEl) {
+    if (isAdmin) {
+      cldEl.removeAttribute("readonly");
+      cldEl.classList.remove("cld-locked");
+      cldEl.classList.add("ae");
+    } else {
+      cldEl.setAttribute("readonly", "");
+      cldEl.classList.remove("ae");
+      cldEl.classList.add("cld-locked");
+    }
+  }
+  updateAdminNavigation();
+  toggleRotationRegistry();
+}
 
 // Initialize rotation system when page loads
 document.addEventListener("DOMContentLoaded", function() {
+  updateAdminNavigation();
+  applyRotationAccessState();
   loadRotations();
-  // Set initial CLD lock state (user mode = locked)
-  var cldEl = document.getElementById("cld");
-  if (cldEl && !isAdmin) {
-    cldEl.classList.add("cld-locked");
-  }
 });
 
 // Patch carReset to also reset rotation state
@@ -5400,34 +5626,149 @@ if (_origCarCalculate) {
   };
 }
 
-// FIX: Re-open admin modal after login to show the rotation registry.
-// applyAdmin closes the dialog; this patch reopens it when user becomes admin.
-(function() {
-  var _p = typeof window.applyAdmin === "function" ? window.applyAdmin : null;
-  if (!_p) return;
-  window.applyAdmin = function() {
-    var wasAdmin = isAdmin;
-    _p();
-    if (!wasAdmin && isAdmin) {
-      var ov = document.getElementById("overlay");
-      if (ov && !ov.open) { if (ov.showModal) ov.showModal(); else ov.open = true; }
-    }
-  };
-})();
+// ════════════════════════════════════════
+//  SAVED BILLS MODULE
+// ════════════════════════════════════════
 
-// FIX v2: patch doLogin (async) to reopen overlay with rotation registry after successful login.
-// The original doLogin calls closeModal() then applyAdmin() directly by closure reference,
-// so patching window.applyAdmin alone does not work. Patching window.doLogin works because
-// the HTML onclick calls doLogin() via global scope.
-(function() {
-  var _origDoLogin = typeof window.doLogin === "function" ? window.doLogin : null;
-  if (!_origDoLogin) return;
-  window.doLogin = async function() {
-    var wasBefore = isAdmin;
-    await _origDoLogin();
-    if (!wasBefore && isAdmin) {
-      var ov = document.getElementById("overlay");
-      if (ov && !ov.open) { if (ov.showModal) ov.showModal(); else ov.open = true; }
+// Switch between Car / GC sub-tabs inside the Saved Bills module
+function switchSavedTab(type) {
+  const carPanel   = document.getElementById("saved-car-panel");
+  const cargoPanel = document.getElementById("saved-cargo-panel");
+  const carBtn     = document.getElementById("saved-sub-car");
+  const cargoBtn   = document.getElementById("saved-sub-cargo");
+  const isCar = type !== "cargo";
+  if (carPanel)   carPanel.style.display   = isCar ? "" : "none";
+  if (cargoPanel) cargoPanel.style.display = isCar ? "none" : "";
+  if (carBtn)   { carBtn.classList.toggle("active", isCar);   carBtn.setAttribute("aria-selected",  String(isCar)); }
+  if (cargoBtn) { cargoBtn.classList.toggle("active", !isCar); cargoBtn.setAttribute("aria-selected", String(!isCar)); }
+}
+
+// Parse a bill number back into its parts: prefix, datePart (YYYYMMDD), seq
+function parseBillNumber(num) {
+  if (!num) return null;
+  const m = String(num).match(/^([A-Z]+)-(\d{8})(\d{6})$/);
+  if (!m) return null;
+  return { prefix: m[1], datePart: m[2], seq: parseInt(m[3], 10) };
+}
+
+// Re-render both Car and GC saved-bills tables
+function renderSavedBills() {
+  const carTbody = document.getElementById("savedCarTbody");
+  const cargoTbody = document.getElementById("savedCargoTbody");
+  if (!carTbody || !cargoTbody) return;
+
+  const all = getSavedBills();
+  const carBills = all.filter((b) => b.type !== "cargo").sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+  const cargoBills = all.filter((b) => b.type === "cargo").sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+
+  function buildRows(bills) {
+    if (!bills.length) {
+      return '<tr><td colspan="7" style="text-align:center;color:var(--tx-2);padding:14px;">No saved bills yet</td></tr>';
     }
-  };
-})();
+    return bills.map((b, i) => {
+      const meta = b.metadata || {};
+      const cnf = escHtml(meta.cnfName || "—");
+      const bl = escHtml(meta.blNumber || "—");
+      const label = cnf !== "—" ? cnf : bl;
+      const savedDate = b.savedAt ? new Date(b.savedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" }) : "—";
+      return `<tr>
+        <td>${i + 1}</td>
+        <td style="font-variant-numeric:tabular-nums lining-nums;font-family:var(--font-mono)">${escHtml(b.billNumber || "")}</td>
+        <td>${escHtml(b.cld || "—")}</td>
+        <td>${escHtml(b.delivery || "—")}</td>
+        <td>${label}</td>
+        <td style="font-variant-numeric:tabular-nums lining-nums">${escHtml(b.totalFormatted || "—")}</td>
+        <td>${savedDate}</td>
+        <td>
+          <button type="button" class="rot-reg-add-btn saved-edit-btn" onclick="editSavedBill(${escHtml(JSON.stringify(b.billNumber))})">Edit</button>
+          <button type="button" class="rot-del-btn" onclick="deleteSavedBill(${escHtml(JSON.stringify(b.billNumber))})">Delete</button>
+        </td>
+      </tr>`;
+    }).join("");
+  }
+
+  carTbody.innerHTML = buildRows(carBills);
+  cargoTbody.innerHTML = buildRows(cargoBills);
+}
+
+// Load a saved bill back into the Car/GC form for editing
+function editSavedBill(billNumber) {
+  const all = getSavedBills();
+  const record = all.find((b) => b.billNumber === billNumber);
+  if (!record) { showToast("Bill not found", "error"); return; }
+
+  const type = record.type;
+  switchModule(type === "cargo" ? "cargo" : "car");
+
+  // Restore scalar inputs from snapshot
+  const inputs = record.inputs || {};
+  Object.entries(inputs).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.type === "checkbox") el.checked = !!val;
+    else el.value = val;
+  });
+
+  // For cargo: restore part-billing stages then trigger the stage UI
+  if (type === "cargo") {
+    const savedStages = record.partBillingStages;
+    if (Array.isArray(savedStages) && savedStages.length > 0) {
+      partBillingStages = JSON.parse(JSON.stringify(savedStages));
+    }
+    // onPartBillingChange reads the checkbox state we already restored above
+    onPartBillingChange();
+  }
+
+  // Mark as editing so next Save overwrites this bill number
+  editingBillNumber[type] = billNumber;
+
+  // Re-run calculation to populate results
+  if (type === "cargo") cargoCalculate();
+  else carCalculate();
+
+  showToast(`Editing ${billNumber} — modify and Save to update`, "info");
+}
+
+// Delete a saved bill and resequence numbers in its date group
+function deleteSavedBill(billNumber) {
+  if (!window.confirm(`Delete bill ${billNumber}? This cannot be undone.`)) return;
+
+  const parsed = parseBillNumber(billNumber);
+  let all = getSavedBills();
+  const target = all.find((b) => b.billNumber === billNumber);
+  if (!target) return;
+  const type = target.type;
+  const prefix = parsed ? parsed.prefix : (type === "cargo" ? "GCA" : "CA");
+
+  // Remove the bill
+  all = all.filter((b) => b.billNumber !== billNumber);
+
+  if (parsed) {
+    // Resequence within the same date group for this type
+    const dateKey = parsed.datePart;
+    const sameGroup = all
+      .filter((b) => {
+        const p = parseBillNumber(b.billNumber);
+        return p && p.prefix === prefix && p.datePart === dateKey;
+      })
+      .sort((a, b) => new Date(a.savedAt) - new Date(b.savedAt));
+
+    sameGroup.forEach((b, idx) => {
+      b.billNumber = `${prefix}-${dateKey}${String(idx + 1).padStart(6, "0")}`;
+    });
+
+    // Rebuild the counter so future saves continue from the right place
+    const counters = readJsonStorage(BILL_COUNTER_KEY, {});
+    const cKey = `${prefix}-${dateKey}`;
+    counters[cKey] = sameGroup.length;
+    localStorage.setItem(BILL_COUNTER_KEY, JSON.stringify(counters));
+  }
+
+  localStorage.setItem(SAVED_BILLS_KEY, JSON.stringify(all));
+
+  // If this bill was being edited, clear the editing marker
+  if (editingBillNumber[type] === billNumber) editingBillNumber[type] = null;
+
+  showToast(`Deleted ${billNumber}`, "success");
+  renderSavedBills();
+}
