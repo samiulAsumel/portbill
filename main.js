@@ -5641,29 +5641,41 @@ async function saveRotationsToWorker(rotationsArr) {
 }
 
 
-// Save saved-bills array to Cloudflare Worker / GitHub
+// Save saved-bills array to GitHub (via direct API or proxy)
 async function saveBillsToWorker(billsArr) {
   try {
+    // Try proxy first (/saved-bills endpoint)
     const r = await fetch(PROXY_URL + "/saved-bills", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(billsArr),
     });
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    return true;
+    if (r.ok) return true;
+    // If proxy returns 404/error, proxy doesn't support /saved-bills yet
+    if (r.status === 404) {
+      console.warn("Worker /saved-bills not supported yet — update Cloudflare Worker");
+      return false;
+    }
+    throw new Error("HTTP " + r.status);
   } catch (e) {
     console.error("saveBillsToWorker failed:", e.message);
     return false;
   }
 }
 
-// Load saved-bills from Cloudflare Worker / GitHub
+// Load saved-bills from GitHub (via proxy)
 async function loadBillsFromWorker() {
   try {
     const r = await fetch(PROXY_URL + "/saved-bills");
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    const data = await r.json();
-    return Array.isArray(data) ? data : [];
+    if (r.ok) {
+      const data = await r.json();
+      return Array.isArray(data) ? data : [];
+    }
+    if (r.status === 404) {
+      console.warn("Worker /saved-bills not supported yet — update Cloudflare Worker");
+      return null;
+    }
+    throw new Error("HTTP " + r.status);
   } catch (e) {
     console.error("loadBillsFromWorker failed:", e.message);
     return null;
