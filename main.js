@@ -8,11 +8,11 @@ const SP_CAR_IDLE =
   "<span>Fill in shipment details<br>to see live cost preview</span></div>";
 const SP_CARGO_IDLE =
   '<div class="sp-idle">' +
-  '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' +
+  '<svg width="28" height="28" viewBox="0 0 24 24" fill="nonhe" stroke="currentColor" stroke-width="1.5">' +
   '<rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/>' +
   '<circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>' +
   "<span>Fill in cargo details<br>to see live cost preview</span></div>";
-let isAdmin = false;
+let isAdmin = false;h
 
 // ════════════════════════════════════════
 //  ADMIN RATE PERSISTENCE  (localStorage)
