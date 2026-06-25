@@ -3485,3 +3485,280 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
 /* ── Cargo bill table sep/tot: sky overrides ─  */
 /* (cargo-grand is the gbox class; bt inside car/cargo sections don't have a container class
    so accent vars handle it — when body.mode-cargo, var(--accent-rgb) = sky) */
+
+
+/* ══════════════════════════════════════════════════════════════
+   ROTATION NUMBER SYSTEM — Car Billing Module
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Rotation row in car billing input form ── */
+.rot-row {
+     display: flex;
+     align-items: center;
+     gap: 12px;
+     padding: 10px 14px;
+     background: var(--bg-elevated);
+     border: 1px solid var(--bdr-1);
+     border-radius: var(--r-sm);
+     margin-bottom: 10px;
+}
+
+.rot-label {
+     font-size: 10px;
+     font-weight: 700;
+     letter-spacing: 0.08em;
+     color: var(--tx-2);
+     text-transform: uppercase;
+     white-space: nowrap;
+     min-width: 90px;
+}
+
+.rot-selects {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     flex: 1;
+     flex-wrap: wrap;
+}
+
+.rot-sel {
+     background: var(--bg-input);
+     border: 1px solid var(--bdr-2);
+     border-radius: var(--r-xs);
+     color: var(--tx-0);
+     font-size: 13px;
+     padding: 5px 10px;
+     cursor: pointer;
+     transition: border-color 0.15s;
+     appearance: none;
+     -webkit-appearance: none;
+     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237e96b0'/%3E%3C/svg%3E");
+     background-repeat: no-repeat;
+     background-position: right 8px center;
+     padding-right: 26px;
+}
+
+.rot-sel:focus {
+     outline: none;
+     border-color: var(--accent-bdr);
+     box-shadow: 0 0 0 2px var(--accent-ring);
+}
+
+.rot-sel:disabled {
+     opacity: 0.4;
+     cursor: not-allowed;
+}
+
+.rot-sel option {
+     background: var(--bg-card);
+     color: var(--tx-0);
+}
+
+.rot-badge {
+     display: inline-flex;
+     align-items: center;
+     padding: 3px 9px;
+     background: var(--accent-bg);
+     border: 1px solid var(--accent-bdr);
+     border-radius: 20px;
+     color: var(--accent);
+     font-size: 12px;
+     font-weight: 600;
+     letter-spacing: 0.04em;
+     white-space: nowrap;
+     min-width: 0;
+     transition: opacity 0.2s;
+}
+
+.rot-badge:empty {
+     display: none;
+}
+
+/* ── CLD locked state (user mode — set by rotation selection) ── */
+.cld-locked {
+     background: var(--bg-elevated) !important;
+     border-color: var(--bdr-1) !important;
+     color: var(--tx-1) !important;
+     cursor: default !important;
+     pointer-events: none;
+     opacity: 0.75;
+}
+
+/* ── Rotation info in bill info bar ── */
+.rot-bill-ii {
+     display: flex;
+     flex-direction: column;
+     gap: 2px;
+     padding: 6px 10px;
+     background: var(--accent-bg);
+     border: 1px solid var(--accent-bdr);
+     border-radius: var(--r-xs);
+}
+
+.rot-bill-ii .il {
+     font-size: 9px;
+     font-weight: 700;
+     letter-spacing: 0.1em;
+     color: var(--tx-2);
+     text-transform: uppercase;
+}
+
+.rot-val {
+     font-size: 13px;
+     font-weight: 700;
+     color: var(--accent);
+     font-variant-numeric: tabular-nums lining-nums;
+     letter-spacing: 0.03em;
+}
+
+/* ── Admin modal — Rotation Registry ── */
+.rot-registry {
+     margin-top: 24px;
+     padding: 18px;
+     background: var(--bg-elevated);
+     border: 1px solid var(--bdr-2);
+     border-radius: var(--r);
+}
+
+.rot-reg-title {
+     font-size: 10px;
+     font-weight: 700;
+     letter-spacing: 0.1em;
+     text-transform: uppercase;
+     color: var(--accent);
+     margin-bottom: 14px;
+     padding-bottom: 8px;
+     border-bottom: 1px solid var(--bdr-1);
+}
+
+.rot-reg-form {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     flex-wrap: wrap;
+     margin-bottom: 10px;
+}
+
+.rot-reg-input {
+     flex: 1;
+     min-width: 90px;
+     background: var(--bg-input);
+     border: 1px solid var(--bdr-2);
+     border-radius: var(--r-xs);
+     color: var(--tx-0);
+     font-size: 13px;
+     padding: 7px 10px;
+     transition: border-color 0.15s;
+}
+
+.rot-reg-input:focus {
+     outline: none;
+     border-color: var(--accent-bdr);
+     box-shadow: 0 0 0 2px var(--accent-ring);
+}
+
+.rot-reg-input::placeholder {
+     color: var(--tx-3);
+}
+
+.rot-reg-cld {
+     font-variant-numeric: tabular-nums lining-nums;
+}
+
+.rot-reg-add-btn {
+     background: var(--accent-bg);
+     border: 1px solid var(--accent-bdr);
+     border-radius: var(--r-xs);
+     color: var(--accent);
+     font-size: 12px;
+     font-weight: 700;
+     letter-spacing: 0.06em;
+     padding: 7px 14px;
+     cursor: pointer;
+     white-space: nowrap;
+     transition: background 0.15s, border-color 0.15s;
+}
+
+.rot-reg-add-btn:hover {
+     background: rgba(var(--accent-rgb), 0.15);
+     border-color: var(--accent);
+}
+
+.rot-reg-status {
+     min-height: 18px;
+     font-size: 11px;
+     color: var(--tx-1);
+     margin-bottom: 8px;
+     transition: color 0.2s;
+}
+
+.rot-reg-status.ok {
+     color: var(--green);
+}
+
+.rot-reg-status.err {
+     color: var(--red);
+}
+
+.rot-reg-table-wrap {
+     overflow-x: auto;
+     border-radius: var(--r-xs);
+     border: 1px solid var(--bdr-1);
+}
+
+.rot-reg-table {
+     width: 100%;
+     border-collapse: collapse;
+     font-size: 12px;
+}
+
+.rot-reg-table thead tr {
+     background: var(--bg-card);
+}
+
+.rot-reg-table thead th {
+     padding: 8px 12px;
+     font-size: 10px;
+     font-weight: 700;
+     letter-spacing: 0.08em;
+     text-transform: uppercase;
+     color: var(--tx-2);
+     text-align: left;
+     border-bottom: 1px solid var(--bdr-1);
+}
+
+.rot-reg-table tbody tr {
+     border-bottom: 1px solid var(--bdr-0);
+     transition: background 0.12s;
+}
+
+.rot-reg-table tbody tr:last-child {
+     border-bottom: none;
+}
+
+.rot-reg-table tbody tr:hover {
+     background: var(--bg-hover);
+}
+
+.rot-reg-table tbody td {
+     padding: 8px 12px;
+     color: var(--tx-0);
+     font-variant-numeric: tabular-nums lining-nums;
+}
+
+.rot-del-btn {
+     background: transparent;
+     border: 1px solid var(--red-bdr);
+     border-radius: var(--r-xs);
+     color: var(--red);
+     font-size: 11px;
+     padding: 2px 8px;
+     cursor: pointer;
+     transition: background 0.12s, border-color 0.12s;
+     line-height: 1.4;
+}
+
+.rot-del-btn:hover {
+     background: var(--red-bg);
+     border-color: var(--red);
+}
