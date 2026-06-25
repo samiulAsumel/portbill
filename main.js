@@ -5056,3 +5056,346 @@ document.addEventListener("mousedown", (e) => {
     container.appendChild(p);
   }
 })();
+
+
+// ═══════════════════════════════════════════════════════════════
+// ROTATION NUMBER SYSTEM — Car Billing Module
+// ═══════════════════════════════════════════════════════════════
+
+const PROXY_URL = "https://portbill-proxy.sa-sumel91.workers.dev";
+
+// Rotation state
+let _rotations = [];
+let _selectedRotation = null;
+
+// Load rotations from Cloudflare Worker on startup
+async function loadRotations() {
+  try {
+    const r = await fetch(PROXY_URL + "/rotations");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    _rotations = Array.isArray(data) ? data : [];
+    populateYearDropdown();
+  } catch (e) {
+    console.warn("loadRotations failed:", e.message);
+    _rotations = [];
+  }
+}
+
+// Populate year dropdown from loaded rotations
+function populateYearDropdown() {
+  const yearSel = document.getElementById("rotYear");
+  if (!yearSel) return;
+  const years = [...new Set(_rotations.map(r => r.year))].sort((a, b) => b - a);
+  yearSel.innerHTML = '<option value="">&#8212; Year &#8212;</option>';
+  years.forEach(function(y) {
+    var opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    yearSel.appendChild(opt);
+  });
+  // Re-select previous if available
+  if (_selectedRotation) {
+    yearSel.value = _selectedRotation.year;
+    populateNumberDropdown(_selectedRotation.year);
+    var numSel = document.getElementById("rotNum");
+    if (numSel) numSel.value = _selectedRotation.id;
+  }
+}
+
+// Populate number dropdown when a year is selected
+function populateNumberDropdown(year) {
+  var numSel = document.getElementById("rotNum");
+  if (!numSel) return;
+  var filtered = _rotations.filter(function(r) { return String(r.year) === String(year); });
+  numSel.innerHTML = '<option value="">&#8212; No. &#8212;</option>';
+  numSel.disabled = filtered.length === 0;
+  filtered.forEach(function(r) {
+    var opt = document.createElement("option");
+    opt.value = r.id;
+    opt.textContent = year + "/" + r.num;
+    numSel.appendChild(opt);
+  });
+}
+
+// Called when year dropdown changes
+function onRotYearChange() {
+  var yearSel = document.getElementById("rotYear");
+  var year = yearSel.value;
+  populateNumberDropdown(year);
+  // Clear previous selection
+  _selectedRotation = null;
+  var badge = document.getElementById("rotBadge");
+  if (badge) badge.textContent = "";
+  // Clear CLD (only if not admin)
+  var cldEl = document.getElementById("cld");
+  if (cldEl && !isAdmin) { cldEl.value = ""; carRefresh(); }
+}
+
+// Called when number dropdown changes — fills CLD
+function onRotNumChange() {
+  var numSel = document.getElementById("rotNum");
+  var id = numSel.value;
+  if (!id) {
+    _selectedRotation = null;
+    var badge = document.getElementById("rotBadge");
+    if (badge) badge.textContent = "";
+    var cldEl = document.getElementById("cld");
+    if (cldEl && !isAdmin) { cldEl.value = ""; carRefresh(); }
+    return;
+  }
+  var rot = _rotations.find(function(r) { return String(r.id) === String(id); });
+  if (!rot) return;
+  _selectedRotation = rot;
+  // Set badge
+  var badge = document.getElementById("rotBadge");
+  if (badge) badge.textContent = rot.year + "/" + rot.num;
+  // Fill CLD field
+  var cldEl = document.getElementById("cld");
+  if (cldEl) {
+    cldEl.value = rot.cld;
+    carRefresh();
+  }
+  // Show rotation No in bill if already generated
+  refreshRotationInBill();
+}
+
+// Get selected rotation display string
+function getSelectedRotationStr() {
+  if (!_selectedRotation) return "";
+  return _selectedRotation.year + "/" + _selectedRotation.num;
+}
+
+// Show rotation No in bill statement info bar
+function refreshRotationInBill() {
+  var ibar = document.getElementById("car-ibar");
+  if (!ibar || !ibar.querySelector) return;
+  // Remove any existing rotation badge
+  var existingBadge = document.getElementById("rot-bill-badge");
+  if (existingBadge) existingBadge.remove();
+  if (!_selectedRotation) return;
+  // Add rotation info to the ibar
+  var rotStr = _selectedRotation.year + "/" + _selectedRotation.num;
+  var badge = document.createElement("div");
+  badge.id = "rot-bill-badge";
+  badge.className = "ii rot-bill-ii";
+  badge.innerHTML = '<div class="il">Rotation No</div><div class="iv rot-val">' + rotStr + '</div>';
+  // Insert as first child of first div in ibar
+  var firstDiv = ibar.querySelector(".ibar > div");
+  if (firstDiv) firstDiv.insertBefore(badge, firstDiv.firstChild);
+}
+
+// ─── ADMIN ROTATION REGISTRY ───────────────────────────────────
+
+// Show/hide rotation registry based on admin state
+function toggleRotationRegistry() {
+  var reg = document.getElementById("rotRegistry");
+  if (!reg) return;
+  if (isAdmin) {
+    reg.style.display = "block";
+    renderRotationTable();
+    // Open the admin modal if not open
+  } else {
+    reg.style.display = "none";
+  }
+}
+
+// Add a new rotation (admin only)
+async function addRotation() {
+  if (!isAdmin) return;
+  var yearEl = document.getElementById("rotRegYear");
+  var numEl = document.getElementById("rotRegNum");
+  var cldEl = document.getElementById("rotRegCld");
+  var statusEl = document.getElementById("rotRegStatus");
+
+  var year = yearEl ? yearEl.value.trim() : "";
+  var num = numEl ? numEl.value.trim() : "";
+  var cld = cldEl ? cldEl.value.trim() : "";
+
+  if (!year || !num || !cld) {
+    if (statusEl) { statusEl.textContent = "Please fill all fields"; statusEl.className = "rot-reg-status err"; }
+    return;
+  }
+  // Validate year
+  if (!/^[0-9]{4}$/.test(year)) {
+    if (statusEl) { statusEl.textContent = "Year must be 4 digits (e.g. 2026)"; statusEl.className = "rot-reg-status err"; }
+    return;
+  }
+  // Validate CLD date format
+  if (!/^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/.test(cld)) {
+    if (statusEl) { statusEl.textContent = "CLD must be DD/MM/YYYY"; statusEl.className = "rot-reg-status err"; }
+    return;
+  }
+  // Check for duplicate
+  var isDup = _rotations.some(function(r) { return String(r.year) === year && String(r.num) === num; });
+  if (isDup) {
+    if (statusEl) { statusEl.textContent = "Rotation " + year + "/" + num + " already exists"; statusEl.className = "rot-reg-status err"; }
+    return;
+  }
+
+  var newRot = { id: Date.now().toString(), year: parseInt(year, 10), num: num, cld: cld };
+  var updated = _rotations.concat([newRot]);
+
+  if (statusEl) { statusEl.textContent = "Saving..."; statusEl.className = "rot-reg-status"; }
+  var ok = await saveRotationsToWorker(updated);
+  if (ok) {
+    _rotations = updated;
+    if (yearEl) yearEl.value = "";
+    if (numEl) numEl.value = "";
+    if (cldEl) cldEl.value = "";
+    if (statusEl) { statusEl.textContent = "Rotation " + year + "/" + num + " added"; statusEl.className = "rot-reg-status ok"; }
+    renderRotationTable();
+    populateYearDropdown();
+  } else {
+    if (statusEl) { statusEl.textContent = "Save failed — check console"; statusEl.className = "rot-reg-status err"; }
+  }
+}
+
+// Delete a rotation (admin only)
+async function deleteRotation(id) {
+  if (!isAdmin) return;
+  var statusEl = document.getElementById("rotRegStatus");
+  var updated = _rotations.filter(function(r) { return String(r.id) !== String(id); });
+  if (statusEl) { statusEl.textContent = "Deleting..."; statusEl.className = "rot-reg-status"; }
+  var ok = await saveRotationsToWorker(updated);
+  if (ok) {
+    _rotations = updated;
+    if (_selectedRotation && String(_selectedRotation.id) === String(id)) {
+      _selectedRotation = null;
+      var badge = document.getElementById("rotBadge");
+      if (badge) badge.textContent = "";
+      var cldField = document.getElementById("cld");
+      if (cldField) { cldField.value = ""; carRefresh(); }
+    }
+    if (statusEl) { statusEl.textContent = "Rotation deleted"; statusEl.className = "rot-reg-status ok"; }
+    renderRotationTable();
+    populateYearDropdown();
+  } else {
+    if (statusEl) { statusEl.textContent = "Delete failed — check console"; statusEl.className = "rot-reg-status err"; }
+  }
+}
+
+// Render the rotation registry table
+function renderRotationTable() {
+  var tbody = document.getElementById("rotRegTbody");
+  if (!tbody) return;
+  // Sort by CLD descending (newest first)
+  var sorted = _rotations.slice().sort(function(a, b) {
+    function parseDMY(s) {
+      if (!s) return 0;
+      var p = s.split("/");
+      return new Date(+p[2], +p[1] - 1, +p[0]).getTime();
+    }
+    return parseDMY(b.cld) - parseDMY(a.cld);
+  });
+  tbody.innerHTML = sorted.map(function(r) {
+    return '<tr><td>' + r.year + '/' + r.num + '</td><td>' + r.cld + '</td>' +
+      '<td><button class="rot-del-btn" onclick="deleteRotation(\''+r.id+'\')">✕</button></td></tr>';
+  }).join("");
+  if (sorted.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--m2);padding:12px;">No rotations added yet</td></tr>';
+  }
+}
+
+// Save rotations array to Cloudflare Worker
+async function saveRotationsToWorker(rotationsArr) {
+  try {
+    var r = await fetch(PROXY_URL + "/rotations", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rotationsArr)
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return true;
+  } catch (e) {
+    console.error("saveRotationsToWorker failed:", e.message);
+    return false;
+  }
+}
+
+// ─── ADMIN MODAL INTEGRATION ────────────────────────────────────
+
+// Override openModal to show rotation registry when admin is logged in
+var _origToggleAdmin = typeof toggleAdmin === "function" ? toggleAdmin : null;
+
+function openAdminModal() {
+  var overlay = document.getElementById("overlay");
+  if (overlay) {
+    var reg = document.getElementById("rotRegistry");
+    if (isAdmin) {
+      // Already admin — show registry directly
+      if (reg) { reg.style.display = "block"; renderRotationTable(); }
+    } else {
+      // Show login form
+      if (reg) reg.style.display = "none";
+    }
+    overlay.showModal ? overlay.showModal() : (overlay.open = true);
+  }
+}
+
+// Hook into admin state changes — patch applyAdmin to also handle CLD and registry
+var _origApplyAdmin = typeof applyAdmin === "function" ? applyAdmin : null;
+if (_origApplyAdmin) {
+  // Replace applyAdmin with extended version
+  window.applyAdmin = function() {
+    _origApplyAdmin();
+    // Handle CLD lock/unlock for Car Billing
+    var cldEl = document.getElementById("cld");
+    if (cldEl) {
+      if (isAdmin) {
+        cldEl.removeAttribute("readonly");
+        cldEl.classList.remove("cld-locked");
+        cldEl.classList.add("ae");
+      } else {
+        cldEl.setAttribute("readonly", "");
+        cldEl.classList.remove("ae");
+        cldEl.classList.add("cld-locked");
+      }
+    }
+    // Show/hide rotation registry in modal
+    var reg = document.getElementById("rotRegistry");
+    if (reg) reg.style.display = isAdmin ? "block" : "none";
+    if (isAdmin) renderRotationTable();
+  };
+}
+
+// ─── STARTUP ────────────────────────────────────────────────────
+
+// Initialize rotation system when page loads
+document.addEventListener("DOMContentLoaded", function() {
+  loadRotations();
+  // Set initial CLD lock state (user mode = locked)
+  var cldEl = document.getElementById("cld");
+  if (cldEl && !isAdmin) {
+    cldEl.classList.add("cld-locked");
+  }
+});
+
+// Patch carReset to also reset rotation state
+var _origCarReset = typeof carReset === "function" ? carReset : null;
+if (_origCarReset) {
+  window.carReset = function() {
+    _origCarReset();
+    // Reset rotation dropdowns
+    _selectedRotation = null;
+    var yearSel = document.getElementById("rotYear");
+    var numSel = document.getElementById("rotNum");
+    var badge = document.getElementById("rotBadge");
+    if (yearSel) yearSel.value = "";
+    if (numSel) { numSel.innerHTML = '<option value="">&#8212; No. &#8212;</option>'; numSel.disabled = true; }
+    if (badge) badge.textContent = "";
+    // Remove rotation from bill
+    var billBadge = document.getElementById("rot-bill-badge");
+    if (billBadge) billBadge.remove();
+  };
+}
+
+// Patch carCalculate to add rotation to bill after generation
+var _origCarCalculate = typeof carCalculate === "function" ? carCalculate : null;
+if (_origCarCalculate) {
+  window.carCalculate = function() {
+    _origCarCalculate();
+    // After bill generation, add rotation info to bill
+    setTimeout(refreshRotationInBill, 50);
+  };
+}
