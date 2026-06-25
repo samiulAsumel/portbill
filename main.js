@@ -5399,3 +5399,18 @@ if (_origCarCalculate) {
     setTimeout(refreshRotationInBill, 50);
   };
 }
+
+// FIX: Re-open admin modal after login to show the rotation registry.
+// applyAdmin closes the dialog; this patch reopens it when user becomes admin.
+(function() {
+  var _p = typeof window.applyAdmin === "function" ? window.applyAdmin : null;
+  if (!_p) return;
+  window.applyAdmin = function() {
+    var wasAdmin = isAdmin;
+    _p();
+    if (!wasAdmin && isAdmin) {
+      var ov = document.getElementById("overlay");
+      if (ov && !ov.open) { if (ov.showModal) ov.showModal(); else ov.open = true; }
+    }
+  };
+})();
