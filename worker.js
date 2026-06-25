@@ -9,10 +9,12 @@
 //   BRANCH    = main
 //
 // Routes handled:
-//   GET  /rotations      → read rotations.json from portbill-data
-//   PUT  /rotations      → write rotations.json to portbill-data (creates commit)
-//   GET  /saved-bills    → read saved-bills.json from portbill-data
-//   PUT  /saved-bills    → write saved-bills.json to portbill-data (creates commit)
+//   GET  /rotations               → read rotations.json from portbill-data
+//   PUT  /rotations               → write rotations.json to portbill-data (creates commit)
+//   GET  /saved-bills             → read saved-bills.json from portbill-data
+//   PUT  /saved-bills             → write saved-bills.json to portbill-data (creates commit)
+//   GET  /saved-bills/history     → list last 13 commits for saved-bills.json
+//   GET  /saved-bills/at/:sha     → get saved-bills.json content at a specific commit SHA
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -29,10 +31,10 @@ const PATH_TO_FILE = {
 // Commit messages for each file operation
 const COMMIT_MESSAGES = {
   "rotations.json": {
-    put: "feat(rotations): update registry",
+    update: "feat(rotations): update rotation registry",
   },
   "saved-bills.json": {
-    put: "feat(saved-bills): update saved bills",
+    update: "feat(saved-bills): update saved bills",
   },
 };
 
@@ -46,6 +48,57 @@ export default {
       return new Response(null, { headers: CORS_HEADERS });
     }
 
+    const OWNER = env.REPO_OWNER || "samiulAsumel";
+    const REPO  = env.REPO_NAME  || "portbill-data";
+    const BRANCH = env.BRANCH    || "main";
+    const TOKEN = env.GH_TOKEN;
+
+    const ghHeaders = {
+      Authorization: `token ${TOKEN}`,
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "portbill-proxy",
+    };
+
+    // ── GET /saved-bills/history ─────────────────────────────────────────────
+    if (path === "/saved-bills/history" && request.method === "GET") {
+      const commitsUrl = `https://api.github.com/repos/${OWNER}/${REPO}/commits?path=saved-bills.json&sha=${BRANCH}&per_page=13`;
+      const resp = await fetch(commitsUrl, { headers: ghHeaders });
+      const errBody = await resp.text();
+      if (!resp.ok) {
+        return new Response(errBody, { status: resp.status, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
+      }
+      const commits = JSON.parse(errBody);
+      const history = commits.map(c => ({
+        sha: c.sha,
+        message: c.commit.message,
+        date: c.commit.author.date,
+        author: c.commit.author.name,
+      }));
+      return new Response(JSON.stringify(history), {
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── GET /saved-bills/at/:sha ─────────────────────────────────────────────
+    if (path.startsWith("/saved-bills/at/") && request.method === "GET") {
+      const sha = path.replace("/saved-bills/at/", "").trim();
+      if (!sha) {
+        return new Response(JSON.stringify({ error: "Missing commit SHA" }), { status: 400, headers: CORS_HEADERS });
+      }
+      const fileUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/saved-bills.json?ref=${sha}`;
+      const resp = await fetch(fileUrl, { headers: ghHeaders });
+      const errBody = await resp.text();
+      if (!resp.ok) {
+        return new Response(errBody, { status: resp.status, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
+      }
+      const data = JSON.parse(errBody);
+      const content = atob(data.content.replace(/\n/g, ""));
+      return new Response(content, {
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Generic GET/PUT for /rotations and /saved-bills ──────────────────────
     const filename = PATH_TO_FILE[path];
     if (!filename) {
       return new Response(JSON.stringify({ error: "Unknown path: " + path }), {
@@ -54,18 +107,7 @@ export default {
       });
     }
 
-    const OWNER = env.REPO_OWNER || "samiulAsumel";
-    const REPO = env.REPO_NAME || "portbill-data";
-    const BRANCH = env.BRANCH || "main";
-    const TOKEN = env.GH_TOKEN;
     const API_BASE = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filename}`;
-
-    const ghHeaders = {
-      Authorization: `token ${TOKEN}`,
-      Accept: "application/vnd.github.v3+json",
-      "User-Agent": "portbill-worker/1.0",
-      "Content-Type": "application/json",
-    };
 
     // GET: read the file from GitHub
     if (request.method === "GET") {
@@ -90,13 +132,11 @@ export default {
     // PUT: update the file in GitHub (creates a commit)
     if (request.method === "PUT") {
       const body = await request.text();
-
       // Get current file SHA (needed for update)
       const currentResp = await fetch(`${API_BASE}?ref=${BRANCH}`, {
         headers: ghHeaders,
       });
-
-      let sha = null;
+      let sha = undefined;
       if (currentResp.ok) {
         const currentData = await currentResp.json();
         sha = currentData.sha;
@@ -104,18 +144,15 @@ export default {
 
       // Encode content to base64
       const encoded = btoa(unescape(encodeURIComponent(body)));
+      const commitMsg = COMMIT_MESSAGES[filename]?.update || `feat: update ${filename}`;
 
-      const commitMsg = COMMIT_MESSAGES[filename]?.put || `update ${filename}`;
+      const payload = { message: commitMsg, content: encoded, branch: BRANCH };
+      if (sha) payload.sha = sha;
 
       const updateResp = await fetch(API_BASE, {
         method: "PUT",
-        headers: ghHeaders,
-        body: JSON.stringify({
-          message: commitMsg,
-          content: encoded,
-          sha: sha,
-          branch: BRANCH,
-        }),
+        headers: { ...ghHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       if (!updateResp.ok) {
@@ -126,7 +163,8 @@ export default {
         });
       }
 
-      return new Response(JSON.stringify({ ok: true }), {
+      const result = await updateResp.json();
+      return new Response(JSON.stringify({ ok: true, sha: result.content?.sha, commit: result.commit?.sha }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
