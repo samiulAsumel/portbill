@@ -480,6 +480,10 @@ function saveBill(type) {
   renderBillNumberBadge(type, b.billNumber);
   showToast(`Saved bill ${b.billNumber}`, "success");
   if (currentModule === "saved") renderSavedBills();
+  // Sync to GitHub (async, non-blocking)
+  saveBillsToWorker(getSavedBills()).then(ok => {
+    if (!ok) showToast("GitHub sync failed — saved locally only", "warning");
+  });
 }
 function renderBillNumberBadge(type, billNumber) {
   if (!billNumber) return;
@@ -704,6 +708,71 @@ async function changeAdminPassword() {
     );
   }
 }
+
+// ════════════════════════════════════════
+// RESTORE FROM GITHUB (Admin Only)
+// ════════════════════════════════════════
+async function restoreFromGitHub(type) {
+  if (!isAdmin) return;
+  const statusEl = document.getElementById("restoreStatus");
+  const setStatus = (msg, cls) => {
+    if (!statusEl) return;
+    statusEl.textContent = msg;
+    statusEl.className = "rot-reg-status" + (cls ? " " + cls : "");
+  };
+  setStatus("Loading from GitHub...");
+  try {
+    const data = await loadBillsFromWorker();
+    if (data === null) {
+      setStatus("GitHub fetch failed. Check connection.", "err");
+      return;
+    }
+    if (!Array.isArray(data) || data.length === 0) {
+      setStatus("No bills found in GitHub to restore.", "err");
+      return;
+    }
+    // Filter by type if specified
+    let toRestore = data;
+    if (type === "car") toRestore = data.filter(b => b.type === "car");
+    else if (type === "cargo") toRestore = data.filter(b => b.type === "cargo");
+    if (toRestore.length === 0) {
+      setStatus("No " + type + " bills found in GitHub.", "err");
+      return;
+    }
+    // Merge with existing (GitHub is source of truth — overwrite matching bill numbers)
+    const existing = getSavedBills();
+    const merged = [...toRestore];
+    existing.forEach(b => {
+      if (!merged.find(m => m.billNumber === b.billNumber)) merged.push(b);
+    });
+    localStorage.setItem(SAVED_BILLS_KEY, JSON.stringify(merged));
+    setStatus("Restored " + toRestore.length + " bill(s) from GitHub.", "ok");
+    showToast("Restored " + toRestore.length + " bill(s) from GitHub", "success");
+    if (currentModule === "saved") renderSavedBills();
+  } catch (e) {
+    setStatus("Restore error: " + e.message, "err");
+  }
+}
+
+async function pushAllBillsToGitHub() {
+  if (!isAdmin) return;
+  const statusEl = document.getElementById("restoreStatus");
+  const setStatus = (msg, cls) => {
+    if (!statusEl) return;
+    statusEl.textContent = msg;
+    statusEl.className = "rot-reg-status" + (cls ? " " + cls : "");
+  };
+  setStatus("Pushing to GitHub...");
+  const bills = getSavedBills();
+  const ok = await saveBillsToWorker(bills);
+  if (ok) {
+    setStatus("All " + bills.length + " bill(s) pushed to GitHub.", "ok");
+    showToast("All bills pushed to GitHub", "success");
+  } else {
+    setStatus("Push failed. Check console.", "err");
+  }
+}
+
 function applyAdmin() {
   document.getElementById("adot").style.background = isAdmin
     ? "var(--gold)"
@@ -5571,6 +5640,36 @@ async function saveRotationsToWorker(rotationsArr) {
   }
 }
 
+
+// Save saved-bills array to Cloudflare Worker / GitHub
+async function saveBillsToWorker(billsArr) {
+  try {
+    const r = await fetch(PROXY_URL + "/saved-bills", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(billsArr),
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return true;
+  } catch (e) {
+    console.error("saveBillsToWorker failed:", e.message);
+    return false;
+  }
+}
+
+// Load saved-bills from Cloudflare Worker / GitHub
+async function loadBillsFromWorker() {
+  try {
+    const r = await fetch(PROXY_URL + "/saved-bills");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.error("loadBillsFromWorker failed:", e.message);
+    return null;
+  }
+}
+
 // ─── STARTUP ────────────────────────────────────────────────────
 
 function applyRotationAccessState() {
@@ -5771,4 +5870,8 @@ function deleteSavedBill(billNumber) {
 
   showToast(`Deleted ${billNumber}`, "success");
   renderSavedBills();
+  // Sync to GitHub (async, non-blocking)
+  saveBillsToWorker(getSavedBills()).then(ok => {
+    if (!ok) showToast("GitHub sync failed — deleted locally only", "warning");
+  });
 }
