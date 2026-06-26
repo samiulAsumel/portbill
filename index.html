@@ -201,6 +201,17 @@
               </div>
               <div class="r2 bill-meta-row">
                 <div class="fg">
+                  <label class="lbl" for="car-cnfName">C&amp;F Agent Name</label>
+                  <input
+                    type="text"
+                    id="car-cnfName"
+                    class="cyan-glow"
+                    placeholder="Clearing &amp; Forwarding Agent"
+                    oninput="carRefresh()"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="fg">
                   <label class="lbl" for="car-blNumber">BL Number</label>
                   <input
                     type="text"
@@ -212,6 +223,8 @@
                     spellcheck="false"
                   />
                 </div>
+              </div>
+              <div class="r2 bill-meta-row">
                 <div class="fg">
                   <label class="lbl" for="car-billEntry">Bill of Entry Number</label>
                   <input
@@ -225,29 +238,31 @@
                     spellcheck="false"
                   />
                 </div>
-              </div>
-              <div class="r2 bill-meta-row">
                 <div class="fg">
-                  <label class="lbl" for="car-cnfName">C&amp;F Agent Name</label>
-                  <input
-                    type="text"
-                    id="car-cnfName"
-                    class="cyan-glow"
-                    placeholder="Clearing &amp; Forwarding Agent"
-                    oninput="carRefresh()"
-                    autocomplete="off"
-                  />
+                  <label class="lbl" for="car-billEntryDate">Bill of Entry Date</label>
+                  <div class="date-field-wrap">
+                    <input
+                      type="text"
+                      id="car-billEntryDate"
+                      class="cyan-glow"
+                      placeholder="DD/MM/YYYY"
+                      maxlength="10"
+                      oninput="formatDate(this); carRefresh();"
+                      autocomplete="off"
+                    />
+                    <span class="cal" aria-hidden="true"></span>
+                  </div>
                 </div>
               </div>
               <!-- ROTATION ROW -->
               <div class="rot-row" id="rotRow">
-                <div class="rot-label">ROTATION NO</div>
+                <div class="rot-label">Rotation No.</div>
                 <div class="rot-selects">
                   <select id="rotYear" class="rot-sel" onchange="onRotYearChange()">
-                    <option value="">&#8212; Year &#8212;</option>
+                    <option value="">Year</option>
                   </select>
                   <select id="rotNum" class="rot-sel" disabled onchange="onRotNumChange()">
-                    <option value="">&#8212; No. &#8212;</option>
+                    <option value="">Number</option>
                   </select>
                   <span class="rot-badge" id="rotBadge"></span>
                 </div>
@@ -791,6 +806,17 @@
               </div>
               <div class="r2 bill-meta-row">
                 <div class="fg">
+                  <label class="lbl" for="c-cnfName">C&amp;F Agent Name</label>
+                  <input
+                    type="text"
+                    id="c-cnfName"
+                    class="cargo-glow"
+                    placeholder="Clearing &amp; Forwarding Agent"
+                    oninput="cargoRefresh()"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="fg">
                   <label class="lbl" for="c-blNumber">BL Number</label>
                   <input
                     type="text"
@@ -802,6 +828,8 @@
                     spellcheck="false"
                   />
                 </div>
+              </div>
+              <div class="r2 bill-meta-row">
                 <div class="fg">
                   <label class="lbl" for="c-billEntry">Bill of Entry Number</label>
                   <input
@@ -815,18 +843,20 @@
                     spellcheck="false"
                   />
                 </div>
-              </div>
-              <div class="r2 bill-meta-row">
                 <div class="fg">
-                  <label class="lbl" for="c-cnfName">C&amp;F Agent Name</label>
-                  <input
-                    type="text"
-                    id="c-cnfName"
-                    class="cargo-glow"
-                    placeholder="Clearing &amp; Forwarding Agent"
-                    oninput="cargoRefresh()"
-                    autocomplete="off"
-                  />
+                  <label class="lbl" for="c-billEntryDate">Bill of Entry Date</label>
+                  <div class="date-field-wrap">
+                    <input
+                      type="text"
+                      id="c-billEntryDate"
+                      class="cargo-glow"
+                      placeholder="DD/MM/YYYY"
+                      maxlength="10"
+                      oninput="formatDate(this); cargoRefresh();"
+                      autocomplete="off"
+                    />
+                    <span class="cal" aria-hidden="true"></span>
+                  </div>
                 </div>
               </div>
               <div class="r2">

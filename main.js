@@ -403,9 +403,10 @@ function readTextValue(id) {
 }
 function readMeta(prefix) {
   return {
-    blNumber: escHtml(readTextValue(prefix + "-blNumber")),
     cnfName: escHtml(readTextValue(prefix + "-cnfName")),
+    blNumber: escHtml(readTextValue(prefix + "-blNumber")),
     billEntryNumber: escHtml(readTextValue(prefix + "-billEntry")),
+    billEntryDate: escHtml(readTextValue(prefix + "-billEntryDate")),
   };
 }
 function billDateKey(date = new Date()) {
@@ -470,9 +471,10 @@ function saveBill(type) {
   if (!b.billNumber) b.billNumber = editingBillNumber[type] || nextBillNumber(type);
   b.savedAt = new Date().toISOString();
   const metadata = {
-    blNumber: b.blNumber || "",
     cnfName: b.cnfName || "",
+    blNumber: b.blNumber || "",
     billEntryNumber: b.billEntryNumber || "",
+    billEntryDate: b.billEntryDate || "",
   };
   persistSavedBill({
     billNumber: b.billNumber,
@@ -1276,7 +1278,7 @@ function carCalculate() {
           ? "Old Rates"
           : "New Rates";
     document.getElementById("car-ibar").innerHTML =
-      `<div class="ibar"><div>${b.billNumber ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>` : ""}${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv">${b.blNumber}</div></div>` : ""}${b.billEntryNumber ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&amp;F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Car Wharfrent Starts</div><div class="iv">${wharfrentStarts}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Weight</div><div class="iv">${b.weight} ton(s)</div></div><div class="ii"><div class="il">Car Wharfrent Days</div><div class="iv" style="color:var(--gold)">${wharfrentDaysText}</div></div><div class="ii"><div class="il">Rate Mode</div><div class="iv" style="color:${rateModeColor}">${rateModeText}</div></div></div></div>`;
+      `<div class="ibar"><div>${b.billNumber ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&amp;F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv">${b.blNumber}</div></div>` : ""}${b.billEntryNumber ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>` : ""}${b.billEntryDate ? `<div class="ii"><div class="il">B/E Date</div><div class="iv">${b.billEntryDate}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Car Wharfrent Starts</div><div class="iv">${wharfrentStarts}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Weight</div><div class="iv">${b.weight} ton(s)</div></div><div class="ii"><div class="il">Car Wharfrent Days</div><div class="iv" style="color:var(--gold)">${wharfrentDaysText}</div></div><div class="ii"><div class="il">Rate Mode</div><div class="iv" style="color:${rateModeColor}">${rateModeText}</div></div></div></div>`;
     if (b.hasWharfrent) {
       document.getElementById("car-srow").innerHTML =
         `<div class="sc cg"><div class="sl">Car Grand Total</div><div class="sv">${fmtN(b.iTotal + b.oTotal)}</div><div class="ss">Inside + Outside · incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Total (Full Rate)</div><div class="sv">${fmtN(b.iTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div><div class="sc cp"><div class="sl">Outside Total (½ Rate)</div><div class="sv">${fmtN(b.oTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div>`;
@@ -1317,7 +1319,7 @@ function carCalculate() {
 function carReset() {
   document.getElementById("results").style.display = "none";
   document.getElementById("car-preview").innerHTML = SP_CAR_IDLE;
-  ["car-blNumber", "car-cnfName"].forEach((id) => { const el = document.getElementById(id); if (el) el.value = ""; });
+  ["car-cnfName", "car-blNumber", "car-billEntryDate"].forEach((id) => { const el = document.getElementById(id); if (el) el.value = ""; });
   const carBoE = document.getElementById("car-billEntry");
   if (carBoE) carBoE.value = "C-";
   lastCarBill = null;
@@ -3643,7 +3645,7 @@ function cargoCalculate() {
       const firstDel = vp.length > 0 ? fd(vp[0].deliveryDate) : "—";
       const lastDel = vp.length > 0 ? fd(vp[vp.length - 1].deliveryDate) : "—";
       document.getElementById("cargo-ibar").innerHTML =
-        `<div class="ibar"><div>${b.billNumber ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>` : ""}${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>` : ""}${b.billEntryNumber ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${fd(b.storStart)}</div></div><div class="ii"><div class="il">First Delivery</div><div class="iv">${firstDel}</div></div><div class="ii"><div class="il">Last Delivery</div><div class="iv">${lastDel}</div></div><div class="ii"><div class="il">Delivery Stages</div><div class="iv" style="color:var(--cargo-accent)">${vp.length} stages</div></div><div class="ii"><div class="il">Initial Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Total Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.totalDays} days</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
+        `<div class="ibar"><div>${b.billNumber ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>` : ""}${b.billEntryNumber ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>` : ""}${b.billEntryDate ? `<div class="ii"><div class="il">B/E Date</div><div class="iv">${b.billEntryDate}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${fd(b.storStart)}</div></div><div class="ii"><div class="il">First Delivery</div><div class="iv">${firstDel}</div></div><div class="ii"><div class="il">Last Delivery</div><div class="iv">${lastDel}</div></div><div class="ii"><div class="il">Delivery Stages</div><div class="iv" style="color:var(--cargo-accent)">${vp.length} stages</div></div><div class="ii"><div class="il">Initial Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Total Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.totalDays} days</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
       document.getElementById("cargo-srow").innerHTML =
         `<div class="sc cg"><div class="sl">Grand Total — Part Billing</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(b.gTotal)}</div><div class="ss">${vp.length} stages · incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Sub-Total</div><div class="sv">${fmtN(b.iBase)}</div><div class="ss">Before VAT &amp; Levy · ${b.totalDays} days</div></div><div class="sc cp"><div class="sl">Outside Sub-Total</div><div class="sv">${fmtN(b.oBase)}</div><div class="ss">Before VAT &amp; Levy · ${b.totalDays} days</div></div>`;
       const pbInDesc =
@@ -3661,7 +3663,7 @@ function cargoCalculate() {
         `<div style="margin-bottom:20px;"><div class="slbl sl-payable">▪ Bill Summary — VAT &amp; Levy on Inside + Outside</div><div class="card" style="padding:0;overflow:hidden;">${buildCombinedSummaryTable(b)}</div></div>`;
     } else {
       document.getElementById("cargo-ibar").innerHTML =
-        `<div class="ibar"><div>${b.billNumber ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>` : ""}${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>` : ""}${b.billEntryNumber ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${b.hasWharfrent ? fd(b.storStart) : "—"}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Total Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.hasWharfrent ? b.totalDays + " days" : "In free time"}</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
+        `<div class="ibar"><div>${b.billNumber ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>` : ""}${b.billEntryNumber ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>` : ""}${b.billEntryDate ? `<div class="ii"><div class="il">B/E Date</div><div class="iv">${b.billEntryDate}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${b.hasWharfrent ? fd(b.storStart) : "—"}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Total Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.hasWharfrent ? b.totalDays + " days" : "In free time"}</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
       if (b.hasWharfrent) {
         document.getElementById("cargo-srow").innerHTML =
           `<div class="sc cg"><div class="sl">General Cargo Grand Total</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(b.gTotal)}</div><div class="ss">incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Sub-Total</div><div class="sv">${fmtN(b.iBase)}</div><div class="ss">Full rate · before VAT</div></div><div class="sc cp"><div class="sl">Outside Sub-Total</div><div class="sv">${fmtN(b.oBase)}</div><div class="ss">½ rate · before VAT</div></div>`;
@@ -3720,7 +3722,7 @@ function cargoCalculate() {
 function cargoReset() {
   document.getElementById("cargo-results").style.display = "none";
   document.getElementById("cargo-preview").innerHTML = SP_CARGO_IDLE;
-  ["c-blNumber", "c-cnfName"].forEach((id) => { const el = document.getElementById(id); if (el) el.value = ""; });
+  ["c-cnfName", "c-blNumber", "c-billEntryDate"].forEach((id) => { const el = document.getElementById(id); if (el) el.value = ""; });
   const cargoBoE = document.getElementById("c-billEntry");
   if (cargoBoE) cargoBoE.value = "C-";
   lastCargoBill = null;
@@ -4803,9 +4805,10 @@ function printBill(type) {
             ? "Old Rates (Pre-23/07/2024)"
             : "New Rates (From 23/07/2024)";
       infoHtml = `<div class="info-grid">
+      ${b.cnfName ? `<div class="info-cell"><div class="info-label">C&amp;F Agent</div><div class="info-value">${b.cnfName}</div></div>` : ""}
       ${b.blNumber ? `<div class="info-cell"><div class="info-label">BL Number</div><div class="info-value">${b.blNumber}</div></div>` : ""}
       ${b.billEntryNumber ? `<div class="info-cell"><div class="info-label">Bill of Entry</div><div class="info-value">${b.billEntryNumber}</div></div>` : ""}
-      ${b.cnfName ? `<div class="info-cell"><div class="info-label">C&amp;F Agent</div><div class="info-value">${b.cnfName}</div></div>` : ""}
+      ${b.billEntryDate ? `<div class="info-cell"><div class="info-label">B/E Date</div><div class="info-value">${b.billEntryDate}</div></div>` : ""}
       <div class="info-cell"><div class="info-label">CLD</div><div class="info-value">${fd(b.cld)}</div></div>
       <div class="info-cell"><div class="info-label">Free Time Ends</div><div class="info-value">${fd(b.freeEnd)}</div></div>
       <div class="info-cell"><div class="info-label">Car Wharfrent Starts</div><div class="info-value">${b.hasWharfrent ? fd(b.storStart) : "—"}</div></div>
@@ -4980,9 +4983,10 @@ function printBill(type) {
         const lastDel =
           vp.length > 0 ? fd(vp[vp.length - 1].deliveryDate) : "—";
         infoHtml = `<div class="info-grid">
+        ${b.cnfName ? `<div class="info-cell"><div class="info-label">C&amp;F Agent</div><div class="info-value">${b.cnfName}</div></div>` : ""}
         ${b.blNumber ? `<div class="info-cell"><div class="info-label">BL Number</div><div class="info-value">${b.blNumber}</div></div>` : ""}
         ${b.billEntryNumber ? `<div class="info-cell"><div class="info-label">Bill of Entry</div><div class="info-value">${b.billEntryNumber}</div></div>` : ""}
-        ${b.cnfName ? `<div class="info-cell"><div class="info-label">C&amp;F Agent</div><div class="info-value">${b.cnfName}</div></div>` : ""}
+        ${b.billEntryDate ? `<div class="info-cell"><div class="info-label">B/E Date</div><div class="info-value">${b.billEntryDate}</div></div>` : ""}
         <div class="info-cell"><div class="info-label">CLD</div><div class="info-value">${fd(b.cld)}</div></div>
         <div class="info-cell"><div class="info-label">Free Time Ends</div><div class="info-value">${fd(b.freeEnd)}</div></div>
         <div class="info-cell"><div class="info-label">Wharfrent Starts</div><div class="info-value">${fd(b.storStart)}</div></div>
@@ -4998,9 +5002,10 @@ function printBill(type) {
       </div>`;
       } else {
         infoHtml = `<div class="info-grid">
+        ${b.cnfName ? `<div class="info-cell"><div class="info-label">C&amp;F Agent</div><div class="info-value">${b.cnfName}</div></div>` : ""}
         ${b.blNumber ? `<div class="info-cell"><div class="info-label">BL Number</div><div class="info-value">${b.blNumber}</div></div>` : ""}
         ${b.billEntryNumber ? `<div class="info-cell"><div class="info-label">Bill of Entry</div><div class="info-value">${b.billEntryNumber}</div></div>` : ""}
-        ${b.cnfName ? `<div class="info-cell"><div class="info-label">C&amp;F Agent</div><div class="info-value">${b.cnfName}</div></div>` : ""}
+        ${b.billEntryDate ? `<div class="info-cell"><div class="info-label">B/E Date</div><div class="info-value">${b.billEntryDate}</div></div>` : ""}
         <div class="info-cell"><div class="info-label">CLD</div><div class="info-value">${fd(b.cld)}</div></div>
         <div class="info-cell"><div class="info-label">Free Time Ends</div><div class="info-value">${fd(b.freeEnd)}</div></div>
         <div class="info-cell"><div class="info-label">Wharfrent Starts</div><div class="info-value">${b.hasWharfrent ? fd(b.storStart) : "—"}</div></div>
