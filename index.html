@@ -254,16 +254,21 @@
                   </div>
                 </div>
               </div>
-              <!-- ROTATION ROW -->
-              <div class="rot-row" id="rotRow">
-                <div class="rot-label">Rotation No.</div>
-                <div class="rot-selects">
-                  <select id="rotYear" class="rot-sel" onchange="onRotYearChange()">
-                    <option value="">Year</option>
-                  </select>
-                  <select id="rotNum" class="rot-sel" disabled onchange="onRotNumChange()">
-                    <option value="">Number</option>
-                  </select>
+              <!-- ROTATION CARD -->
+              <div class="rot-card" id="rotRow">
+                <div class="rot-card-head">
+                  <span class="rot-anchor" aria-hidden="true"></span>
+                  <span class="rot-card-title">Rotation No.</span>
+                </div>
+                <div class="rot-card-body">
+                  <div class="rot-seg">
+                    <select id="rotYear" class="rot-sel" onchange="onRotYearChange()">
+                      <option value="">Year</option>
+                    </select>
+                    <select id="rotNum" class="rot-sel" disabled onchange="onRotNumChange()">
+                      <option value="">Number</option>
+                    </select>
+                  </div>
                   <span class="rot-badge" id="rotBadge"></span>
                 </div>
               </div>
