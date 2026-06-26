@@ -3959,6 +3959,132 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
   line-height: 1.4;
 }
 
+/* ── Saved bills: panel header with search bar ── */
+.sb-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.sb-panel-head .rot-reg-title {
+  margin-bottom: 0;
+}
+.sb-search-wrap {
+  flex: 1;
+  min-width: 160px;
+  max-width: 320px;
+}
+.sb-search {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--bdr-2);
+  border-radius: var(--r-xs);
+  color: var(--tx-1);
+  font-size: 12px;
+  padding: 5px 10px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.sb-search:focus {
+  border-color: var(--accent-bdr);
+  box-shadow: 0 0 0 2px var(--accent-ring);
+}
+.sb-search::placeholder {
+  color: var(--tx-3);
+}
+
+/* ── Saved bills: print button ── */
+.saved-print-btn {
+  font-size: 11px;
+  padding: 2px 9px;
+  min-height: unset;
+  line-height: 1.4;
+  background: transparent;
+  border: 1px solid var(--accent-bdr);
+  color: var(--accent);
+  border-radius: var(--r-xs);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.saved-print-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── Mobile improvements (≤ 480px) ── */
+@media (max-width: 480px) {
+  /* Header */
+  .header-inner {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  .logo-text {
+    font-size: 15px;
+  }
+  .header-actions {
+    gap: 6px;
+  }
+
+  /* Module tabs */
+  .tabs {
+    gap: 2px;
+  }
+  .tab {
+    font-size: 10px;
+    padding: 6px 8px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Cards */
+  .card {
+    padding: 12px 10px;
+    border-radius: var(--r-sm);
+  }
+
+  /* Rotation card selects stack vertically on mobile */
+  .rot-card-body {
+    flex-wrap: wrap;
+  }
+  .rot-seg {
+    width: 100%;
+  }
+
+  /* Grand total box */
+  .gt-box {
+    font-size: 22px;
+  }
+
+  /* Tables — horizontal scroll */
+  .rot-reg-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .rot-reg-table {
+    min-width: 560px;
+  }
+  .saved-bills-table {
+    min-width: 640px;
+  }
+
+  /* Search bar full-width on mobile */
+  .sb-panel-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .sb-search-wrap {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Action buttons in saved bills — wrap */
+  .saved-bills-table td:nth-child(8) {
+    flex-wrap: wrap;
+  }
+}
+
 @media print {
   #page-saved { display: none !important; }
 }

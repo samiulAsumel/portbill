@@ -27,6 +27,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
+    <link rel="manifest" href="manifest.json" />
   </head>
   <body>
     <!-- HEADER -->
@@ -252,6 +253,7 @@
                     />
                     <span class="cal" aria-hidden="true"></span>
                   </div>
+                  <div class="field-hint hint-muted" id="car-billEntryDate-hint">DD/MM/YYYY</div>
                 </div>
               </div>
               <!-- ROTATION CARD -->
@@ -862,6 +864,7 @@
                     />
                     <span class="cal" aria-hidden="true"></span>
                   </div>
+                  <div class="field-hint hint-muted" id="c-billEntryDate-hint">DD/MM/YYYY</div>
                 </div>
               </div>
               <div class="r2">
@@ -1583,7 +1586,12 @@
 
         <!-- CAR BILLS PANEL -->
         <section id="saved-car-panel" class="card rot-registry" aria-labelledby="saved-car-title">
-          <div class="rot-reg-title" id="saved-car-title">CAR SAVED BILLS</div>
+          <div class="sb-panel-head">
+            <div class="rot-reg-title" id="saved-car-title">CAR SAVED BILLS</div>
+            <div class="sb-search-wrap">
+              <input type="search" id="sbCarSearch" class="sb-search" placeholder="Search bill no., BL, C&amp;F, CLD…" oninput="sbSearch('car',this.value)" autocomplete="off" />
+            </div>
+          </div>
           <div class="rot-reg-table-wrap">
             <table class="rot-reg-table saved-bills-table" id="savedCarTable">
               <thead>
@@ -1605,7 +1613,12 @@
 
         <!-- GC BILLS PANEL -->
         <section id="saved-cargo-panel" class="card rot-registry" style="display:none;" aria-labelledby="saved-cargo-title">
-          <div class="rot-reg-title" id="saved-cargo-title">GENERAL CARGO SAVED BILLS</div>
+          <div class="sb-panel-head">
+            <div class="rot-reg-title" id="saved-cargo-title">GENERAL CARGO SAVED BILLS</div>
+            <div class="sb-search-wrap">
+              <input type="search" id="sbCargoSearch" class="sb-search" placeholder="Search bill no., BL, C&amp;F, CLD…" oninput="sbSearch('cargo',this.value)" autocomplete="off" />
+            </div>
+          </div>
           <div class="rot-reg-table-wrap">
             <table class="rot-reg-table saved-bills-table" id="savedCargoTable">
               <thead>
@@ -1768,5 +1781,7 @@
         </div>
       </div>
     </noscript>
-    <script src="main.js" defer></script></body>
+    <script src="main.js" defer></script>
+    <script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js')); }</script>
+  </body>
 </html>

@@ -491,6 +491,7 @@ function saveBill(type) {
     html: billHtmlSnapshot(type),
   });
   editingBillNumber[type] = null;
+  clearDraft(type);
   renderBillNumberBadge(type, b.billNumber);
   showToast(`Saved bill ${b.billNumber}`, "success");
   if (currentModule === "saved") renderSavedBills();
@@ -1077,6 +1078,7 @@ function carRefreshNow() {
     validateDateField("cld", "cld-hint", "CLD");
     validateDateField("delivery", "delivery-hint", "delivery date");
     validateDateOrder("cld", "delivery", "delivery-hint");
+    validateDateField("car-billEntryDate", "car-billEntryDate-hint", "B/E Date");
     const cld_ = pd(document.getElementById("cld").value);
     const _fd_raw = Number.parseInt(
       document.getElementById("freeDays").value,
@@ -1327,6 +1329,7 @@ function carReset() {
   document.getElementById("weight").value = 2;
   document.getElementById("chkHoisting").checked = false;
   document.getElementById("weightWarn").classList.remove("show");
+  clearDraft('car');
   globalThis.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -3197,6 +3200,7 @@ function cargoRefreshNow() {
     validateDateField("c-cld", "c-cld-hint", "CLD");
     validateDateField("c-delivery", "c-delivery-hint", "delivery date");
     validateDateOrder("c-cld", "c-delivery", "c-delivery-hint");
+    validateDateField("c-billEntryDate", "c-billEntryDate-hint", "B/E Date");
     cargoValidateSplit();
     cargoValidateRemovalTon();
     cargoValidateWeighmentTon();
@@ -3805,6 +3809,7 @@ function cargoReset() {
     const el = document.getElementById(id);
     if (el) el.classList.remove("show");
   });
+  clearDraft('cargo');
   globalThis.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -5723,6 +5728,89 @@ function applyRotationAccessState() {
 }
 
 // Initialize rotation system and sync cloud data on page load
+// ── Print a saved bill directly without staying in Edit mode ──────────────────
+function printSavedBill(billNumber) {
+  const all = getSavedBills();
+  const record = all.find((b) => b.billNumber === billNumber);
+  if (!record) { showToast('Bill not found', 'error'); return; }
+  const type = record.type === 'cargo' ? 'cargo' : 'car';
+  editSavedBill(billNumber);
+  setTimeout(() => printBill(type), 80);
+}
+
+// ── Saved bills search ────────────────────────────────────────────────────────
+let _sbCarSearch = '';
+let _sbCargoSearch = '';
+
+function sbSearch(type, q) {
+  if (type === 'cargo') _sbCargoSearch = q.trim().toLowerCase();
+  else _sbCarSearch = q.trim().toLowerCase();
+  renderSavedBills();
+}
+
+function matchesBillSearch(b, q) {
+  if (!q) return true;
+  const meta = b.metadata || {};
+  const haystack = [
+    b.billNumber, b.cld, b.delivery,
+    meta.cnfName, meta.blNumber, meta.billEntryNumber,
+    b.totalFormatted,
+  ].filter(Boolean).join(' ').toLowerCase();
+  return haystack.includes(q);
+}
+
+// ── Draft auto-save ───────────────────────────────────────────────────────────
+const DRAFT_TTL = 24 * 60 * 60 * 1000;
+const DRAFT_KEYS = { car: 'pb_draft_car', cargo: 'pb_draft_cargo' };
+
+function saveDraft(type) {
+  try {
+    localStorage.setItem(DRAFT_KEYS[type], JSON.stringify({ ts: Date.now(), inputs: billInputSnapshot(type) }));
+  } catch (_) {}
+}
+
+function clearDraft(type) {
+  try { localStorage.removeItem(DRAFT_KEYS[type]); } catch (_) {}
+}
+
+function getDraft(type) {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEYS[type]);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (!d || !d.inputs || Date.now() - d.ts > DRAFT_TTL) {
+      localStorage.removeItem(DRAFT_KEYS[type]);
+      return null;
+    }
+    return d;
+  } catch (_) { return null; }
+}
+
+function hasMeaningfulDraft(inputs, type) {
+  if (type === 'car') {
+    return !!(inputs['car-blNumber'] || inputs['car-cnfName'] ||
+              (inputs['car-billEntry'] && inputs['car-billEntry'] !== 'C-'));
+  }
+  return !!(inputs['c-blNumber'] || inputs['c-cnfName'] ||
+            (inputs['c-billEntry'] && inputs['c-billEntry'] !== 'C-'));
+}
+
+function restoreFormDraft(type) {
+  const draft = getDraft(type);
+  if (!draft || !hasMeaningfulDraft(draft.inputs, type)) return;
+  const root = document.getElementById(type === 'cargo' ? 'cargo-inputSection' : 'car-inputSection');
+  if (!root) return;
+  Object.entries(draft.inputs).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.type === 'checkbox') el.checked = !!val;
+    else el.value = val;
+  });
+  if (type === 'cargo') cargoRefresh();
+  else carRefresh();
+  showToast('Draft restored from your last session.', 'info');
+}
+
 document.addEventListener("DOMContentLoaded", function() {
   loadConfigFromGitHub();
   updateAdminNavigation();
@@ -5735,6 +5823,18 @@ document.addEventListener("DOMContentLoaded", function() {
     localStorage.setItem(SAVED_BILLS_KEY, JSON.stringify(bills));
     if (currentModule === 'saved') renderSavedBills();
   });
+
+  // Restore drafts for both modules after defaults are set
+  setTimeout(() => {
+    restoreFormDraft('car');
+    restoreFormDraft('cargo');
+  }, 0);
+
+  // Auto-save draft every 10 seconds
+  setInterval(() => {
+    saveDraft('car');
+    saveDraft('cargo');
+  }, 10000);
 });
 
 // Patch carReset to also reset rotation state
@@ -5748,11 +5848,12 @@ if (_origCarReset) {
     var numSel = document.getElementById("rotNum");
     var badge = document.getElementById("rotBadge");
     if (yearSel) yearSel.value = "";
-    if (numSel) { numSel.innerHTML = '<option value="">&#8212; No. &#8212;</option>'; numSel.disabled = true; }
+    if (numSel) { numSel.innerHTML = '<option value="">Rotation Number</option>'; numSel.disabled = true; }
     if (badge) badge.textContent = "";
     // Remove rotation from bill
     var billBadge = document.getElementById("rot-bill-badge");
     if (billBadge) billBadge.remove();
+    clearDraft('car');
   };
 }
 
@@ -5801,16 +5902,21 @@ function renderSavedBills() {
   const carBills = all.filter((b) => b.type !== "cargo").sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
   const cargoBills = all.filter((b) => b.type === "cargo").sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
 
-  function buildRows(bills) {
+  function buildRows(bills, searchQ) {
+    const visible = searchQ ? bills.filter((b) => matchesBillSearch(b, searchQ)) : bills;
     if (!bills.length) {
-      return '<tr><td colspan="7" style="text-align:center;color:var(--tx-2);padding:14px;">No saved bills yet</td></tr>';
+      return '<tr><td colspan="8" style="text-align:center;color:var(--tx-2);padding:14px;">No saved bills yet</td></tr>';
     }
-    return bills.map((b, i) => {
+    if (!visible.length) {
+      return '<tr><td colspan="8" style="text-align:center;color:var(--tx-2);padding:14px;">No bills match your search</td></tr>';
+    }
+    return visible.map((b, i) => {
       const meta = b.metadata || {};
       const cnf = escHtml(meta.cnfName || "—");
       const bl = escHtml(meta.blNumber || "—");
       const label = cnf !== "—" ? cnf : bl;
       const savedDate = b.savedAt ? new Date(b.savedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" }) : "—";
+      const bn = escHtml(JSON.stringify(b.billNumber));
       return `<tr>
         <td>${i + 1}</td>
         <td style="font-variant-numeric:tabular-nums lining-nums;font-family:var(--font-mono)">${escHtml(b.billNumber || "")}</td>
@@ -5820,15 +5926,16 @@ function renderSavedBills() {
         <td style="font-variant-numeric:tabular-nums lining-nums">${escHtml(b.totalFormatted || "—")}</td>
         <td>${savedDate}</td>
         <td>
-          <button type="button" class="rot-reg-add-btn saved-edit-btn" onclick="editSavedBill(${escHtml(JSON.stringify(b.billNumber))})">Edit</button>
-          <button type="button" class="rot-del-btn" onclick="deleteSavedBill(${escHtml(JSON.stringify(b.billNumber))})">Delete</button>
+          <button type="button" class="rot-reg-add-btn saved-edit-btn" onclick="editSavedBill(${bn})">Edit</button>
+          <button type="button" class="saved-print-btn" onclick="printSavedBill(${bn})">Print</button>
+          <button type="button" class="rot-del-btn" onclick="deleteSavedBill(${bn})">Delete</button>
         </td>
       </tr>`;
     }).join("");
   }
 
-  carTbody.innerHTML = buildRows(carBills);
-  cargoTbody.innerHTML = buildRows(cargoBills);
+  carTbody.innerHTML = buildRows(carBills, _sbCarSearch);
+  cargoTbody.innerHTML = buildRows(cargoBills, _sbCargoSearch);
 }
 
 // Load a saved bill back into the Car/GC form for editing
