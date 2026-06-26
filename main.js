@@ -5405,7 +5405,7 @@ function populateYearDropdown() {
   const yearSel = document.getElementById("rotYear");
   if (!yearSel) return;
   const years = [...new Set(_rotations.map(r => r.year))].sort((a, b) => b - a);
-  yearSel.innerHTML = '<option value="">&#8212; Year &#8212;</option>';
+  yearSel.innerHTML = '<option value="">Rotation Year</option>';
   years.forEach(function(y) {
     var opt = document.createElement("option");
     opt.value = y;
@@ -5426,12 +5426,12 @@ function populateNumberDropdown(year) {
   var numSel = document.getElementById("rotNum");
   if (!numSel) return;
   var filtered = _rotations.filter(function(r) { return String(r.year) === String(year); });
-  numSel.innerHTML = '<option value="">&#8212; No. &#8212;</option>';
+  numSel.innerHTML = '<option value="">Rotation Number</option>';
   numSel.disabled = filtered.length === 0;
   filtered.forEach(function(r) {
     var opt = document.createElement("option");
     opt.value = r.id;
-    opt.textContent = year + "/" + r.num;
+    opt.textContent = r.num;
     numSel.appendChild(opt);
   });
 }
