@@ -292,7 +292,7 @@ Cargo Landing / Removal / Hoisting are always formula-derived and remain locked 
 
 The password is **SHA-256 hashed** in `main.js` (`AP_HASH`) — never stored in plain text. Login is locked after **5 failed attempts** (counter in `sessionStorage`; resets on page refresh).
 
-To set a custom password, replace `AP_HASH` in `main.js` with `SHA-256(yourNewPassword)`.
+To change the password: log in, open the Admin Password panel via the mode badge, enter the new password, and click **UPDATE**. The new hash is stored in `localStorage` and synced to the Cloudflare Worker (`/config`). Remember to also update `WRITE_TOKEN_HASH` in your Cloudflare Worker secrets to match the new password (see [Cloudflare Worker Setup](#cloudflare-worker-setup-cross-device-sync)).
 
 ### Rate Persistence
 
@@ -382,11 +382,11 @@ The Worker URL is `https://portbill-proxy.sa-sumel91.workers.dev`. `GET /config`
 portbill/
 ├── index.html   — Markup: header, module tabs, admin dialog, print-preview dialog,
 │                  Car page (#page-car) and Cargo page (#page-cargo)
-├── style.css    — All styles (~3487 lines): design tokens, accent variable system,
+├── style.css    — All styles (~4073 lines): design tokens, accent variable system,
 │                  component styles, date-field-wrap / .cal icon, toast, inline
 │                  validation, explanation box, calc-rows, print rules,
 │                  responsive layout (360 px → 4 K)
-├── main.js      — All logic (~5058 lines):
+├── main.js      — All logic (~5910 lines):
 │                  · RATE_DEFAULTS + localStorage persistence (top)
 │                  · Admin auth / SHA-256 (~L460)
 │                  · Car billing engine: carCompute() → calcSlabs() → buildCarBillTable()
