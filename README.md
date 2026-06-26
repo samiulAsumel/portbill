@@ -169,11 +169,11 @@ The printed invoice automatically adapts its accent color to the active module �
 | Element                        | Car invoice              | Cargo invoice             |
 | ------------------------------ | ------------------------ | ------------------------- |
 | Letterhead / primary borders   | Deep navy `#0b1d3c`      | Same                      |
-| Accent rule, title, grand bar  | Warm gold `#c09230`      | Sky blue `#0ea5c9`        |
+| Accent rule, title, grand bar  | Warm gold `#c09230`      | Sky blue `#0ea5e9`        |
 | Inside Port section & summary  | Royal blue `#1050a8`     | Same                      |
 | Outside Port section & summary | Indigo `#5020b0`         | Same                      |
 | Payable Charges section        | Forest green `#0a5c3c`   | Same                      |
-| Grand total amount             | Gold `#c09230`           | Sky `#0ea5c9`             |
+| Grand total amount             | Gold `#c09230`           | Sky `#0ea5e9`             |
 
 The emblem SVG in the letterhead also uses the accent color and renders as a compass-rose with directional arrows.
 
@@ -231,6 +231,8 @@ Validation errors and admin events surface as non-blocking **toast banners** at 
 
 Date fields show a `DD/MM/YYYY` hint below the input. The hint turns red with an error message for invalid dates and green for valid ones. Validated on every keystroke.
 
+The validator (`isValidDateStr`) uses a **calendar rollover guard**: after constructing the `Date` object it re-checks that `getFullYear`, `getMonth`, and `getDate` match the parsed parts. This prevents impossible dates such as `31/02/2024` from silently rolling over to March 2 and producing wrong billing periods.
+
 **Cross-field date-order checks** run once both fields hold a well-formed date (format errors take precedence and the order check no-ops until they clear):
 
 - **Delivery vs. CLD** (both modules): the delivery date may not fall before the CLD. On conflict the delivery field is flagged red with *"Delivery date is before CLD"*.
@@ -262,14 +264,7 @@ Single-column on mobile, two-column grid at ≥ 768 px. Tested from 360 px up to
 
 ## Admin Mode
 
-The admin button (`#adminBtn`) is **hidden by default** (`display:none`). To reveal it:
-
-```js
-// Browser DevTools → Console:
-document.getElementById("adminBtn").style.display = "inline-flex";
-```
-
-Or hold **Ctrl + Shift** and click anywhere on the page.
+The admin button (`#adminBtn`) is **always visible** in the header. Click it — or hold **Ctrl + Shift** and click anywhere on the page — to open the login modal.
 
 **Credentials:** `admin` / `admin`
 
@@ -472,7 +467,7 @@ const escHtml = (v) =>
   );
 ```
 
-This covers the **BL Number** and **C&F Agent Name** fields (which flow into the printed invoice) and part-billing **stage dates** (re-rendered via `innerHTML`). Any new user-facing text field that ends up in an HTML template string must go through `escHtml()`.
+This covers the **BL Number** and **C&F Agent Name** fields (which flow into the printed invoice), part-billing **stage dates** (re-rendered via `innerHTML`), and **rotation registry rows** (`r.num` and `r.cld` in `renderRotationTable`). Any new user-facing text field that ends up in an HTML template string must go through `escHtml()`.
 
 ---
 
@@ -481,6 +476,29 @@ This covers the **BL Number** and **C&F Agent Name** fields (which flow into the
 All generated bills carry the notice:
 
 > _"This document is generated for informational and estimation purposes only and does not constitute an official invoice or legally binding charge statement. Final billing is subject to official verification by the Port Authority."_
+
+---
+
+## Changelog
+
+### v3.5.1 — Bug Fixes
+
+| # | Area | Fix |
+|---|------|-----|
+| 1 | Date validation | `isValidDateStr` now checks for calendar rollover — impossible dates like `31/02` fail validation instead of silently computing as March 2 |
+| 2 | Print invoice | Fixed cargo accent color typo in `buildInvoiceHtml`: `#0ea5c9` → `#0ea5e9` (matches `--sky` CSS token) |
+| 3 | Worker sync | `saveConfigToWorker` and `loadConfigFromGitHub` now use the shared `PROXY_URL` constant instead of a duplicated hardcoded string — single point of truth for the Worker URL |
+| 4 | Rotation registry | `renderRotationTable` now wraps `r.num` and `r.cld` in `escHtml()` before `innerHTML` insertion |
+
+### v3.5 — Previous Release
+
+- Cross-device sync via Cloudflare Worker proxy to GitHub
+- Part Billing (multi-stage cargo delivery)
+- Self Drive wharfrent at Car Billing slab rates
+- Saved Bills module with edit / delete / resequence
+- Rotation Registry (admin-only CLD lookup)
+- Admin password change with cloud sync
+- Wharfrent / Payables print toggles (Cargo)
 
 ---
 
