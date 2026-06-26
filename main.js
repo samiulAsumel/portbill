@@ -5893,7 +5893,7 @@ if (_origCarReset) {
     // Remove rotation from bill
     var billBadge = document.getElementById("rot-bill-badge");
     if (billBadge) billBadge.remove();
-    clearDraft('car');
+    // clearDraft('car') already called inside _origCarReset()
   };
 }
 
