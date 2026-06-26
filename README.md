@@ -355,6 +355,25 @@ favicon.svg
 
 ES2022+, CSS Grid, CSS Custom Properties, native `<dialog>`, `IntersectionObserver`, `crypto.subtle` (for admin login SHA-256). All modern versions of Chrome, Firefox, Safari, and Edge are supported.
 
+### Cloudflare Worker Setup (cross-device sync)
+
+`worker.js` is a Cloudflare Worker that proxies read/write access to a private GitHub repository (`portbill-data`). `GET` requests are open; `PUT` requests require a bearer token whose SHA-256 hash matches the `WRITE_TOKEN_HASH` Cloudflare secret. The client sends the admin password as the bearer token, so the secret must be the SHA-256 of the admin password.
+
+**One-time setup after deploying the Worker or changing the admin password:**
+
+```bash
+# 1. Compute the SHA-256 of your admin password (replace <password> with the actual value)
+echo -n "<password>" | sha256sum
+
+# 2. Store the hash as a Cloudflare secret (you will be prompted to paste it)
+wrangler secret put WRITE_TOKEN_HASH
+
+# 3. Redeploy the Worker
+wrangler deploy worker.js
+```
+
+The Worker URL is `https://portbill-proxy.sa-sumel91.workers.dev`. `GET /config`, `GET /rotations`, and `GET /saved-bills` remain unauthenticated (read-only, non-sensitive data).
+
 ---
 
 ## File Structure

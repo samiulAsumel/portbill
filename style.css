@@ -446,6 +446,7 @@ header::before {
 }
 .merr.show { display: block; }
 .mbtns { display: flex; gap: 10px; margin-top: 8px; }
+.confirm-msg { font-size: 14px; color: var(--tx-0); line-height: 1.55; margin-bottom: 20px; }
 
 /* ════════════════════════════
    LAYOUT

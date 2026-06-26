@@ -62,8 +62,6 @@
             </div>
             <div class="rot-reg-status admin-pass-status" id="adminPassStatus"></div>
           </div>
-    <!-- Restore Bills from GitHub -->
-    
         </div>
         <button
           class="admin-btn"
@@ -1689,6 +1687,17 @@
           title="Bill Preview"
           sandbox="allow-same-origin allow-modals"
         ></iframe>
+      </div>
+    </dialog>
+
+    <!-- CONFIRM DIALOG -->
+    <dialog class="overlay" id="confirmDialog" aria-labelledby="confirmMsg">
+      <div class="modal">
+        <p class="confirm-msg" id="confirmMsg"></p>
+        <div class="mbtns">
+          <button type="button" class="btn bsm" id="confirmOkBtn">OK</button>
+          <button type="button" class="btn bsm bg" id="confirmCancelBtn">CANCEL</button>
+        </div>
       </div>
     </dialog>
 

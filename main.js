@@ -1,4 +1,13 @@
 // ════════════════════════════════════════
+//  DEBUG LOGGER  (silent in production)
+// ════════════════════════════════════════
+const DEBUG = false;
+const dbg = {
+  warn:  (...a) => { if (DEBUG) console.warn(...a); },
+  error: (...a) => { if (DEBUG) console.error(...a); },
+};
+
+// ════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════
 const SP_CAR_IDLE =
@@ -8,7 +17,7 @@ const SP_CAR_IDLE =
   "<span>Fill in shipment details<br>to see live cost preview</span></div>";
 const SP_CARGO_IDLE =
   '<div class="sp-idle">' +
-  '<svg width="28" height="28" viewBox="0 0 24 24" fill="nonhe" stroke="currentColor" stroke-width="1.5">' +
+  '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' +
   '<rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/>' +
   '<circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>' +
   "<span>Fill in cargo details<br>to see live cost preview</span></div>";
@@ -167,9 +176,10 @@ function loadSavedRates() {
   });
 }
 
-function resetRatesToDefaults() {
+async function resetRatesToDefaults() {
   if (!isAdmin) return;
-  if (!confirm("সব rate factory default-এ reset হবে। নিশ্চিত?")) return;
+  const ok = await confirmModal('Reset all rates to factory defaults? This cannot be undone.');
+  if (!ok) return;
   localStorage.removeItem(RATE_STORAGE_KEY);
   loadSavedRates();
   carRefresh();
@@ -186,6 +196,8 @@ const AP_HASH =
   "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
 const ADMIN_PASS_STORAGE_KEY = "pb_admin_password_hash";
 let _cloudPasswordHash = null;
+// Plaintext admin password held in memory for the session — used as Worker write bearer token
+let _sessionWriteToken = null;
 const getAdminPasswordHash = () =>
   _cloudPasswordHash || localStorage.getItem(ADMIN_PASS_STORAGE_KEY) || AP_HASH;
 async function hashText(value) {
@@ -572,6 +584,7 @@ function calcSlabs( //NOSONAR
 function toggleAdmin() {
   if (isAdmin) {
     isAdmin = false;
+    _sessionWriteToken = null;
     applyAdmin();
     showToast("Logged out of admin mode", "info");
     return;
@@ -589,6 +602,34 @@ function closeModal() {
   dlg.classList.remove("is-open");
   setTimeout(() => dlg.close(), 320);
 }
+
+// Reusable in-app confirm dialog. Returns a Promise<boolean>.
+// Falls back to window.confirm if the dialog element is absent.
+function confirmModal(message) {
+  return new Promise(function(resolve) {
+    const dlg = document.getElementById('confirmDialog');
+    const msgEl = document.getElementById('confirmMsg');
+    if (!dlg || !msgEl) { resolve(window.confirm(message)); return; }
+    msgEl.textContent = message;
+    dlg.classList.remove('is-open');
+    dlg.showModal();
+    requestAnimationFrame(() => dlg.classList.add('is-open'));
+    const okBtn = document.getElementById('confirmOkBtn');
+    const cancelBtn = document.getElementById('confirmCancelBtn');
+    function finish(result) {
+      dlg.classList.remove('is-open');
+      setTimeout(() => dlg.close(), 320);
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      resolve(result);
+    }
+    function onOk() { finish(true); }
+    function onCancel() { finish(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+  });
+}
+
 async function doLogin() {
   const u = document.getElementById("muser").value.trim();
   const p = document.getElementById("mpass").value;
@@ -606,6 +647,7 @@ async function doLogin() {
       loginAttempts = 0;
       _setAttempts(0);
       isAdmin = true;
+      _sessionWriteToken = p;
       closeModal();
       applyAdmin();
       switchModule("rotation");
@@ -5349,7 +5391,7 @@ async function loadRotations() {
     populateYearDropdown();
     if (isAdmin) renderRotationTable();
   } catch (e) {
-    console.warn("loadRotations failed:", e.message);
+    dbg.warn("loadRotations failed:", e.message);
     _rotations = [];
   }
 }
@@ -5569,51 +5611,55 @@ function renderRotationTable() {
   }
 }
 
+// Returns headers for authenticated Worker PUT requests.
+// The bearer token is the admin password (never stored — held in memory only).
+function putHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  if (_sessionWriteToken) h['Authorization'] = 'Bearer ' + _sessionWriteToken;
+  return h;
+}
+
 // Save rotations array to Cloudflare Worker
 async function saveRotationsToWorker(rotationsArr) {
+  if (!isAdmin || !_sessionWriteToken) return false;
   try {
     var r = await fetch(PROXY_URL + "/rotations", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: putHeaders(),
       body: JSON.stringify(rotationsArr)
     });
     if (!r.ok) throw new Error("HTTP " + r.status);
     return true;
   } catch (e) {
-    console.error("saveRotationsToWorker failed:", e.message);
+    dbg.error("saveRotationsToWorker failed:", e.message);
     return false;
   }
 }
 
-
-// Save saved-bills array to GitHub (via direct API or proxy)
+// Save saved-bills array to Cloudflare Worker
 async function saveBillsToWorker(billsArr) {
+  if (!isAdmin || !_sessionWriteToken) return false;
   try {
-    // Try proxy first (/saved-bills endpoint)
     const r = await fetch(PROXY_URL + "/saved-bills", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: putHeaders(),
       body: JSON.stringify(billsArr),
     });
     if (r.ok) return true;
-    // If proxy returns 404/error, proxy doesn't support /saved-bills yet
-    if (r.status === 404) {
-      console.warn("Worker /saved-bills not supported yet — update Cloudflare Worker");
-      return false;
-    }
     throw new Error("HTTP " + r.status);
   } catch (e) {
-    console.error("saveBillsToWorker failed:", e.message);
+    dbg.error("saveBillsToWorker failed:", e.message);
     return false;
   }
 }
 
 async function saveConfigToWorker(config) {
+  if (!isAdmin || !_sessionWriteToken) return false;
   const WORKER = 'https://portbill-proxy.sa-sumel91.workers.dev';
   try {
     const res = await fetch(WORKER + '/config', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: putHeaders(),
       body: JSON.stringify(config),
     });
     return res.ok;
@@ -5633,7 +5679,7 @@ async function loadConfigFromGitHub() {
   } catch (_) { /* offline — use localStorage */ }
 }
 
-// Load saved-bills from GitHub (via proxy)
+// Load saved-bills from Cloudflare Worker on startup (enables cross-device sync)
 async function loadBillsFromWorker() {
   try {
     const r = await fetch(PROXY_URL + "/saved-bills");
@@ -5641,13 +5687,9 @@ async function loadBillsFromWorker() {
       const data = await r.json();
       return Array.isArray(data) ? data : [];
     }
-    if (r.status === 404) {
-      console.warn("Worker /saved-bills not supported yet — update Cloudflare Worker");
-      return null;
-    }
     throw new Error("HTTP " + r.status);
   } catch (e) {
-    console.error("loadBillsFromWorker failed:", e.message);
+    dbg.warn("loadBillsFromWorker failed:", e.message);
     return null;
   }
 }
@@ -5671,12 +5713,19 @@ function applyRotationAccessState() {
   toggleRotationRegistry();
 }
 
-// Initialize rotation system when page loads
+// Initialize rotation system and sync cloud data on page load
 document.addEventListener("DOMContentLoaded", function() {
   loadConfigFromGitHub();
   updateAdminNavigation();
   applyRotationAccessState();
   loadRotations();
+  // Pull saved bills from cloud — cloud is source of truth for cross-device sync.
+  // Falls back silently to existing localStorage data when offline or on 404.
+  loadBillsFromWorker().then(function(bills) {
+    if (!Array.isArray(bills)) return;
+    localStorage.setItem(SAVED_BILLS_KEY, JSON.stringify(bills));
+    if (currentModule === 'saved') renderSavedBills();
+  });
 });
 
 // Patch carReset to also reset rotation state
@@ -5812,8 +5861,9 @@ function editSavedBill(billNumber) {
 }
 
 // Delete a saved bill and resequence numbers in its date group
-function deleteSavedBill(billNumber) {
-  if (!window.confirm(`Delete bill ${billNumber}? This cannot be undone.`)) return;
+async function deleteSavedBill(billNumber) {
+  const ok = await confirmModal(`Delete bill ${billNumber}? This cannot be undone.`);
+  if (!ok) return;
 
   const parsed = parseBillNumber(billNumber);
   let all = getSavedBills();

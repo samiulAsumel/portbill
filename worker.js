@@ -4,8 +4,13 @@
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, PUT, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
+
+async function sha256hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 const PATH_TO_FILE = {
   "/rotations": "rotations.json",
@@ -71,6 +76,25 @@ export default {
     }
 
     if (method === "PUT") {
+      // Verify bearer token against the stored hash (WRITE_TOKEN_HASH Cloudflare secret).
+      // If the secret is not set, PUT is blocked to prevent accidental open-write access.
+      const tokenHash = env.WRITE_TOKEN_HASH;
+      if (!tokenHash) {
+        return new Response(JSON.stringify({ error: "Write access not configured" }), {
+          status: 503,
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        });
+      }
+      const authHeader = request.headers.get("Authorization") || "";
+      const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+      const submittedHash = token ? await sha256hex(token) : "";
+      if (submittedHash !== tokenHash) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        });
+      }
+
       const body = await request.text();
       try { JSON.parse(body); } catch {
         return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
