@@ -1781,6 +1781,16 @@
         </div>
       </div>
     </noscript>
+    <!-- PWA install banner — shown by JS when beforeinstallprompt fires and app is not standalone -->
+    <div id="pwaInstallBanner" class="pwa-banner" role="banner" aria-label="Install app" hidden>
+      <div class="pwa-banner-icon" aria-hidden="true"></div>
+      <div class="pwa-banner-text">
+        <strong>Install Port Billing</strong>
+        <span>Add to home screen for offline access</span>
+      </div>
+      <button type="button" class="pwa-banner-install" id="pwaInstallBtn">Install</button>
+      <button type="button" class="pwa-banner-close" id="pwaInstallClose" aria-label="Dismiss">✕</button>
+    </div>
     <script src="main.js" defer></script>
     <script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js')); }</script>
   </body>

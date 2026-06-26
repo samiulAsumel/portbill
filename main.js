@@ -5728,6 +5728,46 @@ function applyRotationAccessState() {
 }
 
 // Initialize rotation system and sync cloud data on page load
+// ── PWA install banner ────────────────────────────────────────────────────────
+(function () {
+  // Don't show if already running as installed PWA
+  if (window.matchMedia('(display-mode: standalone)').matches) return;
+
+  let deferredPrompt = null;
+  const banner = document.getElementById('pwaInstallBanner');
+  const installBtn = document.getElementById('pwaInstallBtn');
+  const closeBtn = document.getElementById('pwaInstallClose');
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (banner) banner.hidden = false;
+  });
+
+  if (installBtn) {
+    installBtn.addEventListener('click', function () {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function () {
+        deferredPrompt = null;
+        if (banner) banner.hidden = true;
+      });
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function () {
+      if (banner) banner.hidden = true;
+    });
+  }
+
+  // Hide banner once the app is installed
+  window.addEventListener('appinstalled', function () {
+    if (banner) banner.hidden = true;
+    deferredPrompt = null;
+  });
+}());
+
 // ── Print a saved bill directly without staying in Edit mode ──────────────────
 function printSavedBill(billNumber) {
   const all = getSavedBills();
