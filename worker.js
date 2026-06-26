@@ -76,23 +76,19 @@ export default {
     }
 
     if (method === "PUT") {
-      // Verify bearer token against the stored hash (WRITE_TOKEN_HASH Cloudflare secret).
-      // If the secret is not set, PUT is blocked to prevent accidental open-write access.
+      // If WRITE_TOKEN_HASH is configured, verify the bearer token (opt-in hardening).
+      // Without the secret the Worker falls back to open-write — same as original behaviour.
       const tokenHash = env.WRITE_TOKEN_HASH;
-      if (!tokenHash) {
-        return new Response(JSON.stringify({ error: "Write access not configured" }), {
-          status: 503,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-        });
-      }
-      const authHeader = request.headers.get("Authorization") || "";
-      const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-      const submittedHash = token ? await sha256hex(token) : "";
-      if (submittedHash !== tokenHash) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-        });
+      if (tokenHash) {
+        const authHeader = request.headers.get("Authorization") || "";
+        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+        const submittedHash = token ? await sha256hex(token) : "";
+        if (submittedHash !== tokenHash) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          });
+        }
       }
 
       const body = await request.text();

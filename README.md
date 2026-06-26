@@ -357,7 +357,10 @@ ES2022+, CSS Grid, CSS Custom Properties, native `<dialog>`, `IntersectionObserv
 
 ### Cloudflare Worker Setup (cross-device sync)
 
-`worker.js` is a Cloudflare Worker that proxies read/write access to a private GitHub repository (`portbill-data`). `GET` requests are open; `PUT` requests require a bearer token whose SHA-256 hash matches the `WRITE_TOKEN_HASH` Cloudflare secret. The client sends the admin password as the bearer token, so the secret must be the SHA-256 of the admin password.
+`worker.js` is a Cloudflare Worker that proxies read/write access to a private GitHub repository (`portbill-data`). `GET` requests are always open. `PUT` requests work in two modes:
+
+- **Without `WRITE_TOKEN_HASH`** (default): writes are open — same as original behaviour. Suitable for personal use where the Worker URL is treated as obscure.
+- **With `WRITE_TOKEN_HASH`** (opt-in hardening): `PUT` requests must carry `Authorization: Bearer <password>`; the SHA-256 of the token is compared to the stored hash. `401` is returned on mismatch. Set this secret once you want to lock down write access.
 
 **One-time setup after deploying the Worker or changing the admin password:**
 

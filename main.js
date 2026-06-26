@@ -5636,9 +5636,10 @@ async function saveRotationsToWorker(rotationsArr) {
   }
 }
 
-// Save saved-bills array to Cloudflare Worker
+// Save saved-bills array to Cloudflare Worker.
+// Bill saving is not admin-gated — any user can save bills.
+// Sends bearer token when in admin mode; Worker accepts both authenticated and open writes.
 async function saveBillsToWorker(billsArr) {
-  if (!isAdmin || !_sessionWriteToken) return false;
   try {
     const r = await fetch(PROXY_URL + "/saved-bills", {
       method: "PUT",
