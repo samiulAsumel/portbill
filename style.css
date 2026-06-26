@@ -3901,6 +3901,10 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
      border-color: var(--red);
 }
 
+.rot-year-group {
+     cursor: pointer;
+     user-select: none;
+}
 .rot-year-group td {
      background: var(--bg-1);
      color: var(--tx-1);
@@ -3911,12 +3915,29 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
      padding: 5px 12px;
      border-top: 2px solid var(--bdr-1);
      border-bottom: 1px solid var(--bdr-1);
+     transition: background 0.12s;
 }
 .rot-year-group:first-child td {
      border-top: none;
 }
-.rot-year-group:hover {
-     background: inherit !important;
+.rot-year-group:hover td {
+     background: var(--bg-hover);
+}
+.rot-year-chevron {
+     display: inline-block;
+     width: 0;
+     height: 0;
+     border-left: 4px solid transparent;
+     border-right: 4px solid transparent;
+     border-top: 5px solid currentColor;
+     margin-right: 7px;
+     vertical-align: middle;
+     position: relative;
+     top: -1px;
+     transition: transform 0.18s ease;
+}
+.rot-year-group.collapsed .rot-year-chevron {
+     transform: rotate(-90deg);
 }
 .rot-year-count {
      font-weight: 400;

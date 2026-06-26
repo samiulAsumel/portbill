@@ -5395,6 +5395,7 @@ const PROXY_URL = "https://portbill-proxy.sa-sumel91.workers.dev";
 // Rotation state
 let _rotations = [];
 let _selectedRotation = null;
+let _collapsedYears = new Set();
 
 // Load rotations from Cloudflare Worker on startup
 async function loadRotations() {
@@ -5628,14 +5629,34 @@ function renderRotationTable() {
   var years = Object.keys(byYear).sort(function(a, b) { return +b - +a; });
   var html = '';
   years.forEach(function(year) {
+    var collapsed = _collapsedYears.has(year);
     var group = byYear[year].slice().sort(function(a, b) { return parseDMY(b.cld) - parseDMY(a.cld); });
-    html += '<tr class="rot-year-group"><td colspan="3">' + escHtml(year) + ' <span class="rot-year-count">(' + group.length + ')</span></td></tr>';
+    html += '<tr class="rot-year-group' + (collapsed ? ' collapsed' : '') + '" data-year-hdr="' + escHtml(year) + '" onclick="toggleYearGroup(\'' + escHtml(year) + '\')">' +
+      '<td colspan="3"><span class="rot-year-chevron"></span>' + escHtml(year) + ' <span class="rot-year-count">(' + group.length + ')</span></td></tr>';
     group.forEach(function(r) {
-      html += '<tr><td>' + escHtml(year) + '/' + escHtml(String(r.num)) + '</td><td>' + escHtml(String(r.cld || '')) + '</td>' +
-        '<td><button class="rot-del-btn" onclick="deleteRotation(\'' + r.id + '\')">✕</button></td></tr>';
+      html += '<tr' + (collapsed ? ' style="display:none"' : '') + ' data-year-row="' + escHtml(year) + '">' +
+        '<td>' + escHtml(year) + '/' + escHtml(String(r.num)) + '</td><td>' + escHtml(String(r.cld || '')) + '</td>' +
+        '<td><button class="rot-del-btn" onclick="event.stopPropagation();deleteRotation(\'' + r.id + '\')">✕</button></td></tr>';
     });
   });
   tbody.innerHTML = html;
+}
+
+// Toggle expand/collapse for a year group in the rotation registry
+function toggleYearGroup(year) {
+  if (_collapsedYears.has(year)) {
+    _collapsedYears.delete(year);
+  } else {
+    _collapsedYears.add(year);
+  }
+  var collapsed = _collapsedYears.has(year);
+  var tbody = document.getElementById("rotRegTbody");
+  if (!tbody) return;
+  tbody.querySelectorAll('[data-year-row="' + year + '"]').forEach(function(row) {
+    row.style.display = collapsed ? 'none' : '';
+  });
+  var hdr = tbody.querySelector('[data-year-hdr="' + year + '"]');
+  if (hdr) hdr.classList.toggle('collapsed', collapsed);
 }
 
 // Returns headers for authenticated Worker PUT requests.
