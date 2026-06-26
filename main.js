@@ -5604,26 +5604,38 @@ async function deleteRotation(id) {
   }
 }
 
-// Render the rotation registry table
+// Render the rotation registry table grouped by year (newest year first)
 function renderRotationTable() {
   var tbody = document.getElementById("rotRegTbody");
   if (!tbody) return;
-  // Sort by CLD descending (newest first)
-  var sorted = _rotations.slice().sort(function(a, b) {
-    function parseDMY(s) {
-      if (!s) return 0;
-      var p = s.split("/");
-      return new Date(+p[2], +p[1] - 1, +p[0]).getTime();
-    }
-    return parseDMY(b.cld) - parseDMY(a.cld);
-  });
-  tbody.innerHTML = sorted.map(function(r) {
-    return '<tr><td>' + r.year + '/' + escHtml(String(r.num)) + '</td><td>' + escHtml(String(r.cld || '')) + '</td>' +
-      '<td><button class="rot-del-btn" onclick="deleteRotation(\''+r.id+'\')">✕</button></td></tr>';
-  }).join("");
-  if (sorted.length === 0) {
+  if (_rotations.length === 0) {
     tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--m2);padding:12px;">No rotations added yet</td></tr>';
+    return;
   }
+  function parseDMY(s) {
+    if (!s) return 0;
+    var p = s.split("/");
+    return new Date(+p[2], +p[1] - 1, +p[0]).getTime();
+  }
+  // Group by year
+  var byYear = {};
+  _rotations.forEach(function(r) {
+    var y = String(r.year);
+    if (!byYear[y]) byYear[y] = [];
+    byYear[y].push(r);
+  });
+  // Years descending, within each year sort by CLD descending
+  var years = Object.keys(byYear).sort(function(a, b) { return +b - +a; });
+  var html = '';
+  years.forEach(function(year) {
+    var group = byYear[year].slice().sort(function(a, b) { return parseDMY(b.cld) - parseDMY(a.cld); });
+    html += '<tr class="rot-year-group"><td colspan="3">' + escHtml(year) + ' <span class="rot-year-count">(' + group.length + ')</span></td></tr>';
+    group.forEach(function(r) {
+      html += '<tr><td>' + escHtml(year) + '/' + escHtml(String(r.num)) + '</td><td>' + escHtml(String(r.cld || '')) + '</td>' +
+        '<td><button class="rot-del-btn" onclick="deleteRotation(\'' + r.id + '\')">✕</button></td></tr>';
+    });
+  });
+  tbody.innerHTML = html;
 }
 
 // Returns headers for authenticated Worker PUT requests.

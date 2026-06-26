@@ -3901,6 +3901,29 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
      border-color: var(--red);
 }
 
+.rot-year-group td {
+     background: var(--bg-1);
+     color: var(--tx-1);
+     font-size: 10px;
+     font-weight: 700;
+     letter-spacing: 0.1em;
+     text-transform: uppercase;
+     padding: 5px 12px;
+     border-top: 2px solid var(--bdr-1);
+     border-bottom: 1px solid var(--bdr-1);
+}
+.rot-year-group:first-child td {
+     border-top: none;
+}
+.rot-year-group:hover {
+     background: inherit !important;
+}
+.rot-year-count {
+     font-weight: 400;
+     opacity: 0.6;
+     font-size: 10px;
+}
+
 /* ── Saved Bills sub-tabs ── */
 .saved-sub-tabs {
   display: flex;
