@@ -1573,6 +1573,9 @@ function collectCarErrors() {
     });
   if (isValidDateStr(cldV) && isValidDateStr(delV) && pd(delV) < pd(cldV))
     errors.push({ id: "delivery", msg: "Delivery date is before the CLD." });
+  const carBeDate = (document.getElementById("car-billEntryDate")?.value || "").trim();
+  if (carBeDate && !isValidDateStr(carBeDate))
+    errors.push({ id: "car-billEntryDate", msg: "Bill of Entry Date is not a valid date (DD/MM/YYYY)." });
   // Vehicle weight must be a positive number — guards the `|| 2` compute fallback
   // so a cleared/zero field can't silently bill as the 2-ton default.
   const wV = (document.getElementById("weight")?.value || "").trim();
@@ -1602,6 +1605,9 @@ function collectCargoErrors() {
       msg: "Total weight must be greater than 0 ton.",
     });
 
+  const cargoBeDate = (document.getElementById("c-billEntryDate")?.value || "").trim();
+  if (cargoBeDate && !isValidDateStr(cargoBeDate))
+    errors.push({ id: "c-billEntryDate", msg: "Bill of Entry Date is not a valid date (DD/MM/YYYY)." });
   const isPb = !!document.getElementById("c-partBilling")?.checked;
   if (isPb) {
     validatePartBillingDates(); // refresh inline stage hints first
