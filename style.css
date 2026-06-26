@@ -4233,7 +4233,7 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
 /* ── PWA install banner ── */
 .pwa-banner {
   position: fixed;
-  bottom: 16px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 32px);
@@ -4247,11 +4247,11 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
   padding: 12px 14px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   z-index: 9990;
-  animation: pwaSlideUp 0.28s ease;
+  animation: pwaSlideDown 0.28s ease;
 }
 .pwa-banner[hidden] { display: none; }
-@keyframes pwaSlideUp {
-  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+@keyframes pwaSlideDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 .pwa-banner-icon {
