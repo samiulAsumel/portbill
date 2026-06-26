@@ -81,10 +81,9 @@ function isValidDateStr(s) {
   const d = new Date(+parts[2], +parts[1] - 1, +parts[0]);
   return (
     !Number.isNaN(d.getTime()) &&
-    +parts[1] >= 1 &&
-    +parts[1] <= 12 &&
-    +parts[0] >= 1 &&
-    +parts[0] <= 31
+    d.getFullYear() === +parts[2] &&
+    d.getMonth() + 1 === +parts[1] &&
+    d.getDate() === +parts[0]
   );
 }
 function setFieldState(inputId, hintId, state, msg) {
@@ -3821,7 +3820,7 @@ function buildInvoiceHtml(opts) {
     isCargo,
   } = opts;
 
-  const accentColor  = isCargo ? "#0ea5c9" : "#c09230";
+  const accentColor  = isCargo ? "#0ea5e9" : "#c09230";
   const accentHi     = isCargo ? "#22c1e0" : "#d4a840";
   const accentLo     = isCargo ? "#0a7f9a" : "#9a7020";
   const accentBg     = isCargo ? "#edfafd" : "#fdf8ee";
@@ -5603,7 +5602,7 @@ function renderRotationTable() {
     return parseDMY(b.cld) - parseDMY(a.cld);
   });
   tbody.innerHTML = sorted.map(function(r) {
-    return '<tr><td>' + r.year + '/' + r.num + '</td><td>' + r.cld + '</td>' +
+    return '<tr><td>' + r.year + '/' + escHtml(String(r.num)) + '</td><td>' + escHtml(String(r.cld || '')) + '</td>' +
       '<td><button class="rot-del-btn" onclick="deleteRotation(\''+r.id+'\')">✕</button></td></tr>';
   }).join("");
   if (sorted.length === 0) {
@@ -5656,9 +5655,8 @@ async function saveBillsToWorker(billsArr) {
 
 async function saveConfigToWorker(config) {
   if (!isAdmin || !_sessionWriteToken) return false;
-  const WORKER = 'https://portbill-proxy.sa-sumel91.workers.dev';
   try {
-    const res = await fetch(WORKER + '/config', {
+    const res = await fetch(PROXY_URL + '/config', {
       method: 'PUT',
       headers: putHeaders(),
       body: JSON.stringify(config),
@@ -5668,9 +5666,8 @@ async function saveConfigToWorker(config) {
 }
 
 async function loadConfigFromGitHub() {
-  const WORKER = 'https://portbill-proxy.sa-sumel91.workers.dev';
   try {
-    const res = await fetch(WORKER + '/config');
+    const res = await fetch(PROXY_URL + '/config');
     if (!res.ok) return;
     const cfg = await res.json();
     if (cfg && cfg.adminPasswordHash) {
