@@ -185,8 +185,9 @@ const AU = "admin";
 const AP_HASH =
   "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
 const ADMIN_PASS_STORAGE_KEY = "pb_admin_password_hash";
+let _cloudPasswordHash = null;
 const getAdminPasswordHash = () =>
-  localStorage.getItem(ADMIN_PASS_STORAGE_KEY) || AP_HASH;
+  _cloudPasswordHash || localStorage.getItem(ADMIN_PASS_STORAGE_KEY) || AP_HASH;
 async function hashText(value) {
   if (!crypto?.subtle) throw new Error("no-subtle");
   const buf = await crypto.subtle.digest(
@@ -691,7 +692,10 @@ async function changeAdminPassword() {
       if (currentEl) currentEl.focus();
       return;
     }
-    localStorage.setItem(ADMIN_PASS_STORAGE_KEY, await hashText(newPass));
+  const newHash = await hashText(newPass);
+  localStorage.setItem(ADMIN_PASS_STORAGE_KEY, newHash);
+  _cloudPasswordHash = newHash;
+  saveConfigToWorker({ adminPasswordHash: newHash });
     loginAttempts = 0;
     _setAttempts(0);
     [currentEl, newEl, confirmEl].forEach((el) => {
@@ -5604,6 +5608,31 @@ async function saveBillsToWorker(billsArr) {
   }
 }
 
+async function saveConfigToWorker(config) {
+  const WORKER = 'https://portbill-proxy.sa-sumel91.workers.dev';
+  try {
+    const res = await fetch(WORKER + '/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    });
+    return res.ok;
+  } catch (_) { return false; }
+}
+
+async function loadConfigFromGitHub() {
+  const WORKER = 'https://portbill-proxy.sa-sumel91.workers.dev';
+  try {
+    const res = await fetch(WORKER + '/config');
+    if (!res.ok) return;
+    const cfg = await res.json();
+    if (cfg && cfg.adminPasswordHash) {
+      _cloudPasswordHash = cfg.adminPasswordHash;
+      localStorage.setItem(ADMIN_PASS_STORAGE_KEY, cfg.adminPasswordHash);
+    }
+  } catch (_) { /* offline — use localStorage */ }
+}
+
 // Load saved-bills from GitHub (via proxy)
 async function loadBillsFromWorker() {
   try {
@@ -5644,6 +5673,7 @@ function applyRotationAccessState() {
 
 // Initialize rotation system when page loads
 document.addEventListener("DOMContentLoaded", function() {
+  loadConfigFromGitHub();
   updateAdminNavigation();
   applyRotationAccessState();
   loadRotations();
