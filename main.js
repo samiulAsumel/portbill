@@ -1021,7 +1021,7 @@ function carCompute() {
       amt: nn("rLanding") * 1.25 * 0.5 * weight,
     });
   const levyAmt = gb("chkLevy") ? nn("rLevy") * weight : 0;
-  const r2 = (v) => Math.floor(v * 100 + 0.5 + 1e-9) / 100;
+  const r2 = (v) => Math.ceil(v * 100 - 0.5) / 100;
   const paySub = payables.reduce((a, p) => a + p.amt, 0);
   // Car module: Inside (full rate) and Outside (½ rate) are each a COMPLETE
   // bill — base (wharfrent + payables) + its own VAT + its own Levy. VAT and
@@ -2597,7 +2597,7 @@ function buildPartBillingPrintSection(b, side) {
       });
     }
   });
-  const rp2 = (v) => Math.floor(v * 100 + 0.5 + 1e-9) / 100;
+  const rp2 = (v) => Math.ceil(v * 100 - 0.5) / 100;
   const wharfTotal = isIn ? b.insideWharfrent : b.outsideWharfrent;
   const filteredPay = cargoIncludePayables
     ? isIn
@@ -3077,7 +3077,7 @@ function cargoCompute() {
   const outsidePaySub = outsidePayables.reduce((a, p) => a + p.amt, 0);
   const paySub = payables.reduce((a, p) => a + p.amt, 0);
 
-  const r2 = (v) => Math.floor(v * 100 + 0.5 + 1e-9) / 100;
+  const r2 = (v) => Math.ceil(v * 100 - 0.5) / 100;
   // Per-portion sub-totals = wharfrent + payables (the VAT base). These show as
   // "Inside / Outside Sub-Total" on the bill — NO VAT or Levy per section.
   const iBase = r2(insideWharfrent + insidePaySub);
@@ -3447,7 +3447,7 @@ function buildCargoBillTable(b, side) {
 //             so wVat + pVat exactly equals the actual VAT charged on the bill)
 //  Levy:      Per-ton port charge — entirely attributed to Payable row
 function cargoBreakdownData(b) {
-  const r2 = (v) => Math.floor(v * 100 + 0.5 + 1e-9) / 100;
+  const r2 = (v) => Math.ceil(v * 100 - 0.5) / 100;
   if (!b.hasWharfrent) {
     return {
       hasWharfrent: false,
@@ -5039,7 +5039,7 @@ function printBill(type) {
           sectionsHtml += buildPartBillingPrintSection(b, side);
         });
         // VAT + Levy charged ONCE on the combined base (toggle-adjusted).
-        const _rp = (v) => Math.floor(v * 100 + 0.5 + 1e-9) / 100;
+        const _rp = (v) => Math.ceil(v * 100 - 0.5) / 100;
         const _pbInBase = _rp(b.iBase - (cargoIncludePayables ? 0 : b.insidePaySub));
         const _pbOutBase = _rp(b.oBase - (cargoIncludePayables ? 0 : b.outsidePaySub));
         const _pbGBase = _rp(_pbInBase + _pbOutBase);
@@ -5058,7 +5058,7 @@ function printBill(type) {
       } else if (b.hasWharfrent && includeWharfrent) {
         // Per-portion sub-totals (toggle-adjusted). VAT + Levy are charged ONCE
         // on the combined base in the BILL SUMMARY appended after both sections.
-        const _rp = (v) => Math.floor(v * 100 + 0.5 + 1e-9) / 100;
+        const _rp = (v) => Math.ceil(v * 100 - 0.5) / 100;
         const inAdjBase = _rp(b.iBase - (cargoIncludePayables ? 0 : b.insidePaySub));
         const outAdjBase = _rp(b.oBase - (cargoIncludePayables ? 0 : b.outsidePaySub));
         const gBaseAdj = _rp(inAdjBase + outAdjBase);
@@ -5438,6 +5438,7 @@ function populateNumberDropdown(year) {
   var numSel = document.getElementById("rotNum");
   if (!numSel) return;
   var filtered = _rotations.filter(function(r) { return String(r.year) === String(year); });
+  filtered = filtered.slice().sort(function(a, b) { return parseDMY(b.cld) - parseDMY(a.cld); });
   numSel.innerHTML = '<option value="">Rotation Number</option>';
   numSel.disabled = filtered.length === 0;
   filtered.forEach(function(r) {
