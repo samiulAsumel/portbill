@@ -15,41 +15,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check HTML and JS files for mojibake characters
+      - name: Check for mojibake in HTML and JS files
         run: |
-          python3 -c "
-import re, sys, os
-
-# Mojibake pattern: Latin-1 surrogate bytes stored as Unicode codepoints
-# e.g. U+00E2 U+0080 U+0094 instead of proper U+2014 (em dash)
-pattern = re.compile(r'[\xc2-\xef][\x80-\xbf]+')
-
-files = ['index.html', 'main.js', 'style.css']
-found = False
-
-for filepath in files:
-    if not os.path.isfile(filepath):
-        continue
-    with open(filepath, 'r', encoding='utf-8') as f:
-        content = f.read()
-    matches = pattern.findall(content)
-    if matches:
-        found = True
-        print(f'ERROR: {filepath} has {len(matches)} mojibake sequence(s)!')
-        for m in matches[:3]:
-            idx = content.find(m)
-            line_no = content[:idx].count(chr(10)) + 1
-            try:
-                fixed = m.encode('latin-1').decode('utf-8')
-            except Exception:
-                fixed = '?'
-            print(f'  Line {line_no}: {repr(m)} -> should be {repr(fixed)}')
-    else:
-        print(f'OK: {filepath}')
-
-if found:
-    print()
-    print('FIX: Save files with UTF-8 encoding in your editor.')
-    print('VS Code: click encoding in status bar -> Save with Encoding -> UTF-8')
-    sys.exit(1)
-"
+          # Mojibake = UTF-8 multibyte sequences stored as Latin-1 codepoints
+          # In raw bytes: valid UTF-8 file should NOT have 0xC2-0xEF followed by 0x80-0xBF
+          # when the declared charset is UTF-8 (these appear as â Â Ã characters).
+          # We use grep -P to search for the pattern in files declared as UTF-8.
+          
+          FAILED=0
+          for FILE in index.html main.js style.css; do
+            [ -f "$FILE" ] || continue
+            
+            # Count sequences: byte 0xC2-0xEF followed by 0x80-0xBF  
+            # In a valid UTF-8 HTML file these would be legitimate multibytes.
+            # But if the file also contains literal â (U+00E2 = 0xE2 in Latin-1)
+            # followed by low bytes, it means double-encoding occurred.
+            # Simpler: just grep for the literal mojibake character sequences.
+            
+            COUNT=$(grep -Pc '[\xc2-\xef][\x80-\xbf]' "$FILE" || true)
+            if [ "$COUNT" -gt "0" ]; then
+              echo "ERROR: $FILE has $COUNT line(s) with mojibake sequences!"
+              grep -Pn '[\xc2-\xef][\x80-\xbf]' "$FILE" | head -5
+              FAILED=1
+            else
+              echo "OK: $FILE"
+            fi
+          done
+          
+          if [ "$FAILED" -ne "0" ]; then
+            echo ""
+            echo "Fix: Save your files with UTF-8 encoding."
+            echo "VS Code: click encoding in status bar -> Save with Encoding -> UTF-8"
+            exit 1
+          fi
+          echo "All files passed encoding check!"
