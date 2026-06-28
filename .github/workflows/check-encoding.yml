@@ -1,0 +1,84 @@
+name: Check UTF-8 Encoding
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-encoding:
+    runs-on: ubuntu-latest
+    name: Detect mojibake / encoding corruption
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for mojibake characters in HTML/JS files
+        run: |
+          echo "Scanning for UTF-8 mojibake sequences..."
+          
+          # These are the Latin-1 byte sequences that appear when UTF-8 
+          # multibyte chars are incorrectly saved as individual Latin-1 chars.
+          # Pattern: look for the most common mojibake starters followed by
+          # their continuation bytes (stored as individual Latin-1 codepoints).
+          
+          FOUND=0
+          
+          for file in index.html main.js style.css; do
+            if [ ! -f "$file" ]; then continue; fi
+            
+            # Use python3 to detect mojibake: read file as UTF-8, check for
+            # sequences of latin-1 chars that decode as UTF-8 multibyte chars
+            python3 - "$file" <<'PYEOF'
+import sys, re
+
+filepath = sys.argv[1]
+with open(filepath, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# Mojibake pattern: latin-1 bytes stored as individual unicode chars
+# Most common: chars in range U+0080-U+00BF following U+00C2-U+00EF
+mojibake_pattern = re.compile(
+    r'[Â-ï][-¿]+'
+)
+
+matches = mojibake_pattern.findall(content)
+
+if matches:
+    print(f"ERROR: {filepath} contains {len(matches)} mojibake sequence(s)!")
+    # Show a sample
+    for m in matches[:5]:
+        # Find line number
+        idx = content.find(m)
+        line_no = content[:idx].count('\n') + 1
+        print(f"  Line {line_no}: {repr(m)}")
+    
+    # Try to decode as UTF-8 bytes to show what it should be
+    try:
+        encoded = m.encode('latin-1')
+        decoded = encoded.decode('utf-8')
+        print(f"  Should be: {decoded!r}")
+    except Exception:
+        pass
+    sys.exit(1)
+else:
+    print(f"OK: {filepath} — no encoding issues found")
+PYEOF
+            
+            if [ $? -ne 0 ]; then
+              FOUND=1
+            fi
+          done
+          
+          if [ $FOUND -ne 0 ]; then
+            echo ""
+            echo "==============================================" 
+            echo "ENCODING ERROR: Fix by saving files as UTF-8"
+            echo "In VS Code: Click encoding in bottom bar -> Save with Encoding -> UTF-8"
+            echo "=============================================="
+            exit 1
+          fi
+          
+          echo "All files passed encoding check!"
