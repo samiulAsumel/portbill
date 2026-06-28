@@ -5438,7 +5438,7 @@ function populateNumberDropdown(year) {
   var numSel = document.getElementById("rotNum");
   if (!numSel) return;
   var filtered = _rotations.filter(function(r) { return String(r.year) === String(year); });
-  filtered = filtered.slice().sort(function(a, b) { return parseDMY(b.cld) - parseDMY(a.cld); });
+  filtered = filtered.slice().sort(function(a, b) { function dmyMs(s) { if (!s) return 0; var p = s.split("/"); return new Date(+p[2], +p[1]-1, +p[0]).getTime(); } return dmyMs(b.cld) - dmyMs(a.cld); });
   numSel.innerHTML = '<option value="">Rotation Number</option>';
   numSel.disabled = filtered.length === 0;
   filtered.forEach(function(r) {
