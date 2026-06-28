@@ -1021,7 +1021,7 @@ function carCompute() {
       amt: nn("rLanding") * 1.25 * 0.5 * weight,
     });
   const levyAmt = gb("chkLevy") ? nn("rLevy") * weight : 0;
-  const r2 = (v) => Math.ceil(v * 100 - 0.5) / 100;
+  const r2 = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0;
   const paySub = payables.reduce((a, p) => a + p.amt, 0);
   // Car module: Inside (full rate) and Outside (½ rate) are each a COMPLETE
   // bill — base (wharfrent + payables) + its own VAT + its own Levy. VAT and
@@ -1329,7 +1329,20 @@ function carReset() {
   document.getElementById("weight").value = 2;
   document.getElementById("chkHoisting").checked = false;
   document.getElementById("weightWarn").classList.remove("show");
-  clearDraft('car');
+    // Reset date fields to today's date
+  const _carToday = new Date();
+  const _carTodayStr = formatDateForInput(_carToday);
+  const _cldEl = document.getElementById("cld");
+  if (_cldEl) { _cldEl.value = _carTodayStr; }
+  const _delEl = document.getElementById("delivery");
+  if (_delEl) { _delEl.value = _carTodayStr; }
+  const _cldHintEl = document.getElementById("cld-hint");
+  if (_cldHintEl) { _cldHintEl.textContent = _carTodayStr; _cldHintEl.className = "field-hint hint-ok"; }
+  const _delHintEl = document.getElementById("delivery-hint");
+  if (_delHintEl) { _delHintEl.textContent = _carTodayStr; _delHintEl.className = "field-hint hint-ok"; }
+  const _carBeHint = document.getElementById("car-billEntryDate-hint");
+  if (_carBeHint) { _carBeHint.textContent = "DD/MM/YYYY"; _carBeHint.className = "field-hint hint-muted"; }
+clearDraft('car');
   globalThis.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -2597,7 +2610,7 @@ function buildPartBillingPrintSection(b, side) {
       });
     }
   });
-  const rp2 = (v) => Math.ceil(v * 100 - 0.5) / 100;
+  const rp2 = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0;
   const wharfTotal = isIn ? b.insideWharfrent : b.outsideWharfrent;
   const filteredPay = cargoIncludePayables
     ? isIn
@@ -3077,7 +3090,7 @@ function cargoCompute() {
   const outsidePaySub = outsidePayables.reduce((a, p) => a + p.amt, 0);
   const paySub = payables.reduce((a, p) => a + p.amt, 0);
 
-  const r2 = (v) => Math.ceil(v * 100 - 0.5) / 100;
+  const r2 = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0;
   // Per-portion sub-totals = wharfrent + payables (the VAT base). These show as
   // "Inside / Outside Sub-Total" on the bill — NO VAT or Levy per section.
   const iBase = r2(insideWharfrent + insidePaySub);
@@ -3332,7 +3345,7 @@ function cargoRefreshNow() {
         `<div class="pvr"><span class="pvr-lbl">Total Wharfrent Days</span><span class="pvr-val v-cyan">${b.totalDays} days</span></div>` +
         `<div class="pvr"><span class="pvr-lbl">Inside Sub-Total (before VAT)</span><span class="pvr-val v-blue">${fmt(b.iBase)}</span></div>` +
         `<div class="pvr"><span class="pvr-lbl">Outside Sub-Total (before VAT)</span><span class="pvr-val v-purple">${fmt(b.oBase)}</span></div>` +
-        `<div class="pvr pvr-grand pvr-grand-cargo"><span class="pvr-lbl">Grand Total (incl. VAT &amp; Levy)</span><span class="pvr-val v-cyan">${fmt(b.gTotal)}</span></div>`;
+        `<div class="pvr pvr-grand pvr-grand-cargo"><span class="pvr-lbl">General Cargo Grand Total (incl. VAT &amp; Levy)</span><span class="pvr-val v-cyan">${fmt(b.gTotal)}</span></div>`;
     } else if (b.hasWharfrent) {
       pv.innerHTML =
         `<div class="pvr"><span class="pvr-lbl">Wharfrent Days</span><span class="pvr-val v-cyan">${b.totalDays} days</span></div>` +
@@ -3447,7 +3460,7 @@ function buildCargoBillTable(b, side) {
 //             so wVat + pVat exactly equals the actual VAT charged on the bill)
 //  Levy:      Per-ton port charge — entirely attributed to Payable row
 function cargoBreakdownData(b) {
-  const r2 = (v) => Math.ceil(v * 100 - 0.5) / 100;
+  const r2 = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0;
   if (!b.hasWharfrent) {
     return {
       hasWharfrent: false,
@@ -3808,6 +3821,23 @@ function cargoReset() {
   ].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.classList.remove("show");
+  });
+  // Reset date and weight fields to defaults
+  const _today = new Date();
+  const _todayStr = formatDateForInput(_today);
+  const _cCldEl = document.getElementById("c-cld");
+  if (_cCldEl) { _cCldEl.value = _todayStr; }
+  const _cDelEl = document.getElementById("c-delivery");
+  if (_cDelEl) { _cDelEl.value = _todayStr; }
+  const _cCldHint = document.getElementById("c-cld-hint");
+  if (_cCldHint) { _cCldHint.textContent = _todayStr; _cCldHint.className = "field-hint hint-ok"; }
+  const _cDelHint = document.getElementById("c-delivery-hint");
+  if (_cDelHint) { _cDelHint.textContent = _todayStr; _cDelHint.className = "field-hint hint-ok"; }
+  const _cBeHint = document.getElementById("c-billEntryDate-hint");
+  if (_cBeHint) { _cBeHint.textContent = "DD/MM/YYYY"; _cBeHint.className = "field-hint hint-muted"; }
+  ["c-weight", "c-inside", "c-outside"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
   });
   clearDraft('cargo');
   globalThis.scrollTo({ top: 0, behavior: "smooth" });
@@ -5039,7 +5069,7 @@ function printBill(type) {
           sectionsHtml += buildPartBillingPrintSection(b, side);
         });
         // VAT + Levy charged ONCE on the combined base (toggle-adjusted).
-        const _rp = (v) => Math.ceil(v * 100 - 0.5) / 100;
+        const _rp = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0;
         const _pbInBase = _rp(b.iBase - (cargoIncludePayables ? 0 : b.insidePaySub));
         const _pbOutBase = _rp(b.oBase - (cargoIncludePayables ? 0 : b.outsidePaySub));
         const _pbGBase = _rp(_pbInBase + _pbOutBase);
@@ -5058,7 +5088,7 @@ function printBill(type) {
       } else if (b.hasWharfrent && includeWharfrent) {
         // Per-portion sub-totals (toggle-adjusted). VAT + Levy are charged ONCE
         // on the combined base in the BILL SUMMARY appended after both sections.
-        const _rp = (v) => Math.ceil(v * 100 - 0.5) / 100;
+        const _rp = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0;
         const inAdjBase = _rp(b.iBase - (cargoIncludePayables ? 0 : b.insidePaySub));
         const outAdjBase = _rp(b.oBase - (cargoIncludePayables ? 0 : b.outsidePaySub));
         const gBaseAdj = _rp(inAdjBase + outAdjBase);
