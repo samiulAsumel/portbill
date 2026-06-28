@@ -1,4 +1,4 @@
-# Port Billing System — v3.6
+# Port Billing System — v3.6.1
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles and general cargo with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -449,7 +449,7 @@ All generated bills carry the notice:
 
 ## Changelog
 
-### v3.6 — Current Release
+### v3.6 — Previous Release
 
 | # | Area | Change |
 |---|------|--------|
@@ -460,6 +460,14 @@ All generated bills carry the notice:
 | 5 | B/E Date inline hint | Bill of Entry Date fields now show green / red / grey hints like CLD and Delivery |
 | 6 | Mobile improvements | ≤480px: header/tabs tighter, rotation selects stack vertically, tables horizontal-scroll, search full-width |
 | 7 | Rotation reset | Fixed "— No. —" stale placeholder — now correctly resets to "Rotation Number" |
+
+### v3.6.1 — Patch
+
+| # | Area | Fix |
+|---|------|-----|
+| 1 | Rounding | Changed `r2()` from `Math.floor(v*100+0.5+1e-9)/100` to `Math.ceil(v*100-0.5)/100` — values exactly at the 0.5 boundary (third decimal = 5) now round **down** per port convention (e.g. 60,394.725 → 60,394.72). Applied to all 6 `r2` definitions across Car and General Cargo modules. |
+| 2 | Rotation dropdown | `populateNumberDropdown()` now sorts filtered rotations by CLD date descending (newest first), matching the Rotation Registry display order — regardless of insertion order in the data store. |
+| 3 | Rotation dropdown (hotfix) | Fixed `ReferenceError: parseDMY is not defined` — `parseDMY` is a local function inside `renderRotationTable()` and out of scope for `populateNumberDropdown()`. Replaced with an inline `dmyMs()` helper so the number select works after year selection. |
 
 ### v3.5.1 — Bug Fixes
 
