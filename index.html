@@ -8,7 +8,7 @@
     />
     <meta
       name="description"
-      content="Port Authority Billing System â Car &amp; General Cargo Wharfrent Calculator with slab-based billing, VAT, and levy computation."
+      content="Port Authority Billing System — Car &amp; General Cargo Wharfrent Calculator with slab-based billing, VAT, and levy computation."
     />
     <meta name="theme-color" content="#020202" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -71,7 +71,7 @@
           aria-label="Reset rates to defaults"
           style="display:none;"
         >
-          âº Reset Rates
+          ↺ Reset Rates
         </button>
         <button
           class="admin-btn"
@@ -157,7 +157,7 @@
             class="minput"
             type="password"
             id="mpass"
-            placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
+            placeholder="••••••••"
             autocomplete="current-password"
             onkeydown="if (event.key === 'Enter') doLogin();"
           />
@@ -177,14 +177,14 @@
       </div>
     </dialog>
 
-    <!-- ââââââââââââââââââââââââââââââââââââââââ
+    <!-- ════════════════════════════════════════
          CAR BILLING MODULE
-    ââââââââââââââââââââââââââââââââââââââââ -->
+    ════════════════════════════════════════ -->
     <div id="page-car" class="module-page active">
       <main class="wrap">
         <div class="pgtitle">CAR WHARFRENT BILL</div>
         <div class="pgsub">
-          Port Authority â CAR Wharfrent &amp; Payable Charges
+          Port Authority — CAR Wharfrent &amp; Payable Charges
         </div>
         <div class="weight-note">
           <div><strong>Hoisting Charge:</strong> When vehicle weight exceeds <strong>3 tons</strong>, hoisting charge (125% of landing) is auto-applied. &nbsp;<strong>Disclaimer:</strong> This bill is for <strong>informational purposes only</strong> and cannot be used as an official reference.</div>
@@ -326,13 +326,13 @@
                   <div class="lbl">
                     Free Time Ends <span class="lck"></span>
                   </div>
-                  <div class="date-display" id="car-freeEnd">â</div>
+                  <div class="date-display" id="car-freeEnd">—</div>
                 </div>
                 <div class="fg">
                   <div class="lbl">
                     Car Wharfrent Starts <span class="lck"></span>
                   </div>
-                  <div class="date-display" id="car-storStart">â</div>
+                  <div class="date-display" id="car-storStart">—</div>
                 </div>
               </div>
               <div class="r2">
@@ -367,14 +367,14 @@
                     oninput="onWeightChange()"
                   />
                   <div class="weight-warn" id="weightWarn">
-                    â  Hoisting charge auto-applied above 3 tons
+                    ⚠ Hoisting charge auto-applied above 3 tons
                   </div>
                 </div>
               </div>
               <div id="rbadge"></div>
             </div>
 
-            <!-- PAYABLE CHARGES â CAR -->
+            <!-- PAYABLE CHARGES — CAR -->
             <div class="card">
               <div class="ctitle">Payable Charges</div>
               <div class="pc-list">
@@ -451,7 +451,7 @@
                   <div class="pc-accent" style="background:var(--gold-hi);"></div>
                   <div class="pc-body">
                     <div class="pc-name">Hoisting Charge</div>
-                    <div class="pc-note">125% of landing charge Ã 0.50 (&gt;3t)</div>
+                    <div class="pc-note">125% of landing charge × 0.50 (&gt;3t)</div>
                   </div>
                   <div class="pc-rate-wrap">
                     <input type="number" id="rHoisting" placeholder="0" step="0.01" class="ro pc-rate-input" readonly oninput="carRefresh()" />
@@ -494,16 +494,16 @@
               </div>
             </div>
 
-            <!-- WHARFRENT RATES â CAR -->
+            <!-- WHARFRENT RATES — CAR -->
             <div class="card">
               <div class="ctitle">
-                Car Wharfrent Rates â Tk per ton per day<span class="cnote"
+                Car Wharfrent Rates — Tk per ton per day<span class="cnote"
                   ><span class="lck"></span> Admin only</span
                 >
               </div>
               <div class="rg">
                 <div>
-                  <div class="rst rn">â² New (From 23/07/2024)</div>
+                  <div class="rst rn">▲ New (From 23/07/2024)</div>
                   <table class="rt">
                     <thead>
                       <tr>
@@ -531,7 +531,7 @@
                         </td>
                       </tr>
                       <tr>
-                        <td>8thâ14th day</td>
+                        <td>8th–14th day</td>
                         <td>
                           <span class="rspan" id="dnr2">185</span
                           ><input
@@ -570,7 +570,7 @@
                   </table>
                 </div>
                 <div>
-                  <div class="rst ro2">â¼ Old (Up to 22/07/2024)</div>
+                  <div class="rst ro2">▼ Old (Up to 22/07/2024)</div>
                   <table class="rt">
                     <thead>
                       <tr>
@@ -598,7 +598,7 @@
                         </td>
                       </tr>
                       <tr>
-                        <td>8thâ14th day</td>
+                        <td>8th–14th day</td>
                         <td>
                           <span class="rspan" id="dor2">115</span
                           ><input
@@ -644,7 +644,7 @@
             <div class="sp">
               <div class="ctitle">
                 Quick Preview
-                <span class="sp-live-badge">â LIVE</span>
+                <span class="sp-live-badge">● LIVE</span>
               </div>
               <div class="sp-mod-label">Car Wharfrent Module</div>
               <div id="car-preview">
@@ -717,27 +717,27 @@
             >
               <div class="ctitle">Billing Rules</div>
               <div class="guide">
-                <div>â  Free Time = CLD + 3 days (4 days incl. CLD)</div>
-                <div>â¡ Car Wharfrent starts day after free time ends</div>
-                <div>â¢ Rate: Tk Ã ton Ã day (slab-wise)</div>
+                <div>① Free Time = CLD + 3 days (4 days incl. CLD)</div>
+                <div>② Car Wharfrent starts day after free time ends</div>
+                <div>③ Rate: Tk × ton × day (slab-wise)</div>
                 <div>
-                  â£ CLD â¤ 22/07/2024 â
+                  ④ CLD ≤ 22/07/2024 →
                   <span style="color: var(--red)">split billing</span>
                 </div>
                 <div>
-                  â¤ <span style="color: var(--blue)">Inside</span> = Car
+                  ⑤ <span style="color: var(--blue)">Inside</span> = Car
                   Wharfrent + payable + VAT + levy
                 </div>
                 <div>
-                  â¥ <span style="color: var(--purple)">Outside</span> = Â½ Car
+                  ⑥ <span style="color: var(--purple)">Outside</span> = ½ Car
                   Wharfrent + payable + VAT + levy
                 </div>
-                <div>â¦ Payable charges always apply</div>
-                <div>â§ Levy added without VAT</div>
+                <div>⑦ Payable charges always apply</div>
+                <div>⑧ Levy added without VAT</div>
                 <div>
-                  â¨ Hoisting = 125% of landing charge Ã 0.50 (auto-enabled >3t)
+                  ⑨ Hoisting = 125% of landing charge × 0.50 (auto-enabled >3t)
                 </div>
-                <div>â© <span class="lck"></span> Rates editable by Admin only</div>
+                <div>⑩ <span class="lck"></span> Rates editable by Admin only</div>
               </div>
             </div>
           </div>
@@ -785,19 +785,19 @@
       </main>
     </div>
 
-    <!-- ââââââââââââââââââââââââââââââââââââââââ
+    <!-- ════════════════════════════════════════
          GENERAL CARGO BILLING MODULE
-    ââââââââââââââââââââââââââââââââââââââââ -->
+    ════════════════════════════════════════ -->
     <div id="page-cargo" class="module-page">
       <main class="wrap">
         <div class="pgtitle" style="color: var(--cargo-accent)">
           GENERAL CARGO WHARFRENT BILL
         </div>
         <div class="pgsub" style="color: var(--m1)">
-          Port Authority â GENERAL Cargo Wharfrent &amp; Payable Charges
+          Port Authority — GENERAL Cargo Wharfrent &amp; Payable Charges
         </div>
         <div class="cargo-note">
-          <div><strong>General Cargo Module:</strong> Enter <strong>total cargo weight</strong>, then specify Inside vs Outside portions â they must equal total weight. Outside wharfrent is always <strong>Â½ of inside rate</strong>. &nbsp;<strong>Disclaimer:</strong> For <strong>informational purposes only</strong>.</div>
+          <div><strong>General Cargo Module:</strong> Enter <strong>total cargo weight</strong>, then specify Inside vs Outside portions — they must equal total weight. Outside wharfrent is always <strong>½ of inside rate</strong>. &nbsp;<strong>Disclaimer:</strong> For <strong>informational purposes only</strong>.</div>
         </div>
 
         <div class="layout" id="cargo-inputSection">
@@ -921,13 +921,13 @@
                   <div class="lbl">
                     Free Time Ends <span class="lck"></span>
                   </div>
-                  <div class="date-display" id="cargo-freeEnd">â</div>
+                  <div class="date-display" id="cargo-freeEnd">—</div>
                 </div>
                 <div class="fg">
                   <div class="lbl">
                     General Cargo Wharfrent Starts <span class="lck"></span>
                   </div>
-                  <div class="date-display" id="cargo-storStart">â</div>
+                  <div class="date-display" id="cargo-storStart">—</div>
                 </div>
               </div>
               <div class="r2">
@@ -966,7 +966,7 @@
               <div class="pb-mode-row">
                 <div class="pb-mode-text">
                   <span class="pb-mode-title">Part Billing Mode</span>
-                  <span class="pb-mode-hint">For cargo delivered in multiple stages â payable charges off by default</span>
+                  <span class="pb-mode-hint">For cargo delivered in multiple stages — payable charges off by default</span>
                 </div>
                 <label class="pb-toggle">
                   <input type="checkbox" id="c-partBilling" onchange="onPartBillingChange()">
@@ -1018,12 +1018,12 @@
                   <div class="fg">
                     <div class="lbl">Total Check</div>
                     <div id="c-totalCheck" class="io-total-badge io-ok">
-                      â 100 ton(s)
+                      ✓ 100 ton(s)
                     </div>
                   </div>
                 </div>
                 <div class="iorow-note">
-                  Outside wharfrent = Â½ Ã inside rate. Inside + Outside must
+                  Outside wharfrent = ½ × inside rate. Inside + Outside must
                   equal Total Weight.
                 </div>
               </div>
@@ -1040,7 +1040,7 @@
               </div>
               <div class="pbs-info-bar">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                Slab progression runs continuously from CLD â only weight changes per delivery stage.
+                Slab progression runs continuously from CLD — only weight changes per delivery stage.
               </div>
               <div class="pbs-timeline" id="c-pbStagesContainer"></div>
               <div class="pbs-footer">
@@ -1066,7 +1066,7 @@
                 </div>
                 <div>
                   <div class="sd-title">Self Drive</div>
-                  <div class="sd-sub">Wharfrent at Car rates Â· 50% hoisting if applicable</div>
+                  <div class="sd-sub">Wharfrent at Car rates · 50% hoisting if applicable</div>
                 </div>
               </div>
               <div class="sd-rows">
@@ -1079,14 +1079,14 @@
                     <div class="pc-accent" style="background:var(--blue);"></div>
                     <div class="pc-body">
                       <div class="pc-name"><span style="color:var(--blue)">Inside</span> Self Drive</div>
-                      <div class="pc-note" style="white-space:nowrap;">Car rates Â· old/new split</div>
+                      <div class="pc-note" style="white-space:nowrap;">Car rates · old/new split</div>
                     </div>
                     <div class="fg sd-inp-fg">
                       <label class="lbl" for="c-selfDriveTonInside">Weight (tons)</label>
                       <input type="number" id="c-selfDriveTonInside" class="sd-glow ton-inactive" placeholder="0" min="0" step="1" oninput="cargoRefresh()" />
                     </div>
                   </div>
-                  <span class="ton-err-msg sd-err" id="c-selfDriveTonInside-err">â  Enter inside self drive weight &gt; 0</span>
+                  <span class="ton-err-msg sd-err" id="c-selfDriveTonInside-err">⚠ Enter inside self drive weight &gt; 0</span>
                 </div>
                 <div>
                   <div class="pc-row" style="--pc-color:var(--purple);">
@@ -1097,14 +1097,14 @@
                     <div class="pc-accent" style="background:var(--purple);"></div>
                     <div class="pc-body">
                       <div class="pc-name"><span style="color:var(--purple)">Outside</span> Self Drive</div>
-                      <div class="pc-note" style="white-space:nowrap;">Car rates Â· old/new split</div>
+                      <div class="pc-note" style="white-space:nowrap;">Car rates · old/new split</div>
                     </div>
                     <div class="fg sd-inp-fg">
                       <label class="lbl" for="c-selfDriveTonOutside">Weight (tons)</label>
                       <input type="number" id="c-selfDriveTonOutside" class="sd-glow ton-inactive" placeholder="0" min="0" step="1" oninput="cargoRefresh()" />
                     </div>
                   </div>
-                  <span class="ton-err-msg sd-err" id="c-selfDriveTonOutside-err">â  Enter outside self drive weight &gt; 0</span>
+                  <span class="ton-err-msg sd-err" id="c-selfDriveTonOutside-err">⚠ Enter outside self drive weight &gt; 0</span>
                 </div>
               </div>
             </div>
@@ -1138,7 +1138,7 @@
                   <div class="pc-accent" style="background:var(--cargo-accent);"></div>
                   <div class="pc-body">
                     <div class="pc-name">Landing Charge</div>
-                    <div class="pc-note">â¤3t: 90 Â· &gt;3â20t: 180 Â· &gt;20t: 250 Tk/ton</div>
+                    <div class="pc-note">≤3t: 90 · &gt;3–20t: 180 · &gt;20t: 250 Tk/ton</div>
                   </div>
                   <div class="pc-rate-wrap">
                     <input type="number" id="c-rLanding" value="250" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
@@ -1155,7 +1155,7 @@
                   <div class="pc-accent" style="background:var(--purple);"></div>
                   <div class="pc-body">
                     <div class="pc-name">Removal Charge</div>
-                    <div class="pc-note">7Ã slab (landing â) Â· 8Ã slab (landing â)</div>
+                    <div class="pc-note">7× slab (landing ✓) · 8× slab (landing ✗)</div>
                   </div>
                   <div class="pc-rate-wrap">
                     <input type="number" id="c-rRemoval" value="1750" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
@@ -1216,7 +1216,7 @@
               </div>
               <div id="cargo-tier-info" class="cargo-tier-info">
                 <span style="color: var(--m2)">Landing Tier: </span
-                ><strong style="color: var(--cargo-accent)">â</strong>
+                ><strong style="color: var(--cargo-accent)">—</strong>
               </div>
               <div class="r2">
                 <div class="fg">
@@ -1232,7 +1232,7 @@
                     step="1"
                     oninput="cargoRefresh()"
                   />
-                  <span class="ton-err-msg" id="c-removalTon-err">â  Enter removal weight greater than 0</span>
+                  <span class="ton-err-msg" id="c-removalTon-err">⚠ Enter removal weight greater than 0</span>
                 </div>
                 <div class="fg">
                   <label class="lbl" for="c-weighmentTon"
@@ -1247,7 +1247,7 @@
                     step="1"
                     oninput="cargoRefresh()"
                   />
-                  <span class="ton-err-msg" id="c-weighmentTon-err">â  Enter weighment weight greater than 0</span>
+                  <span class="ton-err-msg" id="c-weighmentTon-err">⚠ Enter weighment weight greater than 0</span>
                 </div>
               </div>
               <div class="vatr">
@@ -1270,13 +1270,13 @@
             <!-- CARGO WHARFRENT RATES -->
             <div class="card">
               <div class="ctitle cargo-title">
-                General Cargo Wharfrent Rates â Tk per ton per day<span
+                General Cargo Wharfrent Rates — Tk per ton per day<span
                   class="cnote"
                   ><span class="lck"></span> Admin only</span
                 >
               </div>
               <div>
-                <div class="rst rn">â Standard Cargo Rates</div>
+                <div class="rst rn">● Standard Cargo Rates</div>
                 <table class="cargo-rate-table">
                   <thead>
                     <tr>
@@ -1304,7 +1304,7 @@
                       </td>
                     </tr>
                     <tr>
-                      <td>8thâ14th day</td>
+                      <td>8th–14th day</td>
                       <td>
                         <span class="rspan" id="c-dor2">20</span
                         ><input
@@ -1350,7 +1350,7 @@
             <div class="sp sp-cargo">
               <div class="ctitle cargo-title">
                 Quick Preview
-                <span class="sp-live-badge sp-live-cargo">â LIVE</span>
+                <span class="sp-live-badge sp-live-cargo">● LIVE</span>
               </div>
               <div class="sp-mod-label sp-mod-cargo">
                 General Cargo Wharfrent Module
@@ -1430,46 +1430,46 @@
             >
               <div class="ctitle cargo-title">Billing Rules</div>
               <div class="guide">
-                <div>â  Free Time = CLD + 3 days (4 days incl. CLD)</div>
+                <div>① Free Time = CLD + 3 days (4 days incl. CLD)</div>
                 <div>
-                  â¡ General Cargo Wharfrent starts day after free time ends
+                  ② General Cargo Wharfrent starts day after free time ends
                 </div>
-                <div>â¢ Rate: Tk Ã ton Ã day (slab-wise)</div>
-                <div>â£ River Dues = 33 Tk/ton (flat)</div>
+                <div>③ Rate: Tk × ton × day (slab-wise)</div>
+                <div>④ River Dues = 33 Tk/ton (flat)</div>
                 <div>
-                  â¤ Landing =
+                  ⑤ Landing =
                   <span style="color: var(--cargo-accent)"
-                    >â¤3tâ90 / &gt;3tââ¤20tâ180 / &gt;20tâ250</span
+                    >≤3t→90 / &gt;3t–≤20t→180 / &gt;20t→250</span
                   >
                   Tk/ton
                 </div>
                 <div>
-                  â¥ Removal =
-                  <span style="color: var(--gold)">7Ã slab</span> (landing â) or
-                  <span style="color: var(--gold)">8Ã slab</span> (landing â)
+                  ⑥ Removal =
+                  <span style="color: var(--gold)">7× slab</span> (landing ✓) or
+                  <span style="color: var(--gold)">8× slab</span> (landing ✗)
                 </div>
-                <div>â¦ Hoisting = 125% of landing slab rate Â· Self Drive = 50% of hoisting rate</div>
+                <div>⑦ Hoisting = 125% of landing slab rate · Self Drive = 50% of hoisting rate</div>
                 <div>
-                  â§ <span style="color: var(--blue)">Inside</span> = full
+                  ⑧ <span style="color: var(--blue)">Inside</span> = full
                   wharfrent (inside tons)
                 </div>
                 <div>
-                  â¨ <span style="color: var(--purple)">Outside</span> = Â½
+                  ⑨ <span style="color: var(--purple)">Outside</span> = ½
                   wharfrent (outside tons)
                 </div>
                 <div>
-                  â© Payable basis: total tons (free time) / inside-outside
+                  ⑩ Payable basis: total tons (free time) / inside-outside
                   (wharfrent)
                 </div>
-                <div>âª Levy added without VAT</div>
-                <div>â« <span class="lck"></span> Landing/Removal/Hoisting auto-computed</div>
+                <div>⑪ Levy added without VAT</div>
+                <div>⑫ <span class="lck"></span> Landing/Removal/Hoisting auto-computed</div>
                 <div style="color:var(--sky);margin-top:4px;">
-                  â¬ <strong>Part Billing:</strong> Slab progression never resets â only weight changes per stage
+                  ⑬ <strong>Part Billing:</strong> Slab progression never resets — only weight changes per stage
                 </div>
                 <div style="color:var(--gold);margin-top:4px;">
-                  â­ <strong>Self Drive</strong> (Hoisting â): SD tons billed at
+                  ⑭ <strong>Self Drive</strong> (Hoisting ✓): SD tons billed at
                   <span style="color:var(--green)">Car Billing rates</span>
-                  â old/new split applies at 23/07/2024
+                  — old/new split applies at 23/07/2024
                 </div>
               </div>
             </div>
@@ -1535,9 +1535,9 @@
       </main>
     </div>
 
-    <!-- ââââââââââââââââââââââââââââââââââââââââ
+    <!-- ════════════════════════════════════════
          ADMIN ROTATION REGISTRY
-    ââââââââââââââââââââââââââââââââââââââââ -->
+    ════════════════════════════════════════ -->
     <div id="page-rotation" class="module-page admin-only-page">
       <main class="wrap rotation-page">
         <div class="pgtitle">ROTATION REGISTRY</div>
@@ -1566,13 +1566,13 @@
       </main>
     </div>
 
-    <!-- ââââââââââââââââââââââââââââââââââââââââ
+    <!-- ════════════════════════════════════════
          SAVED BILLS MODULE
-    ââââââââââââââââââââââââââââââââââââââââ -->
+    ════════════════════════════════════════ -->
     <div id="page-saved" class="module-page admin-only-page">
       <main class="wrap rotation-page">
         <div class="pgtitle">SAVED BILLS</div>
-        <div class="pgsub">Admin-only â view, edit and delete saved Car &amp; General Cargo bills</div>
+        <div class="pgsub">Admin-only — view, edit and delete saved Car &amp; General Cargo bills</div>
 
         <!-- SUB-TABS -->
         <div class="saved-sub-tabs" role="tablist" aria-label="Saved bill type">
@@ -1589,7 +1589,7 @@
           <div class="sb-panel-head">
             <div class="rot-reg-title" id="saved-car-title">CAR SAVED BILLS</div>
             <div class="sb-search-wrap">
-              <input type="search" id="sbCarSearch" class="sb-search" placeholder="Search bill no., BL, C&amp;F, CLDâ¦" oninput="sbSearch('car',this.value)" autocomplete="off" />
+              <input type="search" id="sbCarSearch" class="sb-search" placeholder="Search bill no., BL, C&amp;F, CLD…" oninput="sbSearch('car',this.value)" autocomplete="off" />
             </div>
           </div>
           <div class="rot-reg-table-wrap">
@@ -1616,7 +1616,7 @@
           <div class="sb-panel-head">
             <div class="rot-reg-title" id="saved-cargo-title">GENERAL CARGO SAVED BILLS</div>
             <div class="sb-search-wrap">
-              <input type="search" id="sbCargoSearch" class="sb-search" placeholder="Search bill no., BL, C&amp;F, CLDâ¦" oninput="sbSearch('cargo',this.value)" autocomplete="off" />
+              <input type="search" id="sbCargoSearch" class="sb-search" placeholder="Search bill no., BL, C&amp;F, CLD…" oninput="sbSearch('cargo',this.value)" autocomplete="off" />
             </div>
           </div>
           <div class="rot-reg-table-wrap">
@@ -1649,13 +1649,13 @@
         <div class="footer-tagline">Port Authority Wharfrent Calculator</div>
         <div class="footer-copy">
           <span class="footer-ver">v3.6.1</span>
-          <span class="footer-sep" aria-hidden="true">Â·</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
           <span>&copy; <span id="year"></span> samiulAsumel</span>
         </div>
       </div>
       <div class="footer-rule" aria-hidden="true"></div>
       <div class="footer-disclaimer">
-        For <strong>informational and estimation purposes only</strong> â computations are non-binding and do not constitute an official invoice or legal document.
+        For <strong>informational and estimation purposes only</strong> — computations are non-binding and do not constitute an official invoice or legal document.
       </div>
     </footer>
 
@@ -1781,7 +1781,7 @@
         </div>
       </div>
     </noscript>
-    <!-- PWA install banner â shown by JS when beforeinstallprompt fires and app is not standalone -->
+    <!-- PWA install banner — shown by JS when beforeinstallprompt fires and app is not standalone -->
     <div id="pwaInstallBanner" class="pwa-banner" role="banner" aria-label="Install app" hidden>
       <div class="pwa-banner-icon" aria-hidden="true"></div>
       <div class="pwa-banner-text">
@@ -1789,7 +1789,7 @@
         <span>Add to home screen for offline access</span>
       </div>
       <button type="button" class="pwa-banner-install" id="pwaInstallBtn">Install</button>
-      <button type="button" class="pwa-banner-close" id="pwaInstallClose" aria-label="Dismiss">â</button>
+      <button type="button" class="pwa-banner-close" id="pwaInstallClose" aria-label="Dismiss">✕</button>
     </div>
     <script src="main.js" defer></script>
     <script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js')); }</script>
