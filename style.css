@@ -4356,3 +4356,125 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
 }
 .pwa-banner-close:hover { color: var(--tx-1); }
 @media print { .pwa-banner { display: none !important; } }
+
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE SUPPLEMENT — full-spectrum polish
+   Placed last so cascade wins over earlier breakpoints and
+   over the no-query FONT SCALE / ULTIMATE DESIGN blocks.
+════════════════════════════════════════════════════════════ */
+
+/* ── 1. Results title: allow graceful wrap on small phones ── */
+@media (max-width: 480px) {
+  .rtitle {
+    font-size: clamp(16px, 5.5vw, 20px);
+    letter-spacing: 1.5px;
+    line-height: 1.1;
+    word-break: break-word;
+  }
+}
+@media (max-width: 360px) {
+  .rtitle { font-size: 15px; letter-spacing: 1px; }
+}
+
+/* ── 2. Tables: enforce min-width + scroll on ALL phones ────── */
+/* The ≤480px block already sets these; extend upward to 767px  */
+@media (min-width: 481px) and (max-width: 767px) {
+  .rot-reg-table-wrap { -webkit-overflow-scrolling: touch; }
+  .rot-reg-table     { min-width: 560px; }
+  .saved-bills-table { min-width: 640px; }
+}
+
+/* ── 3. Header: restore compact sizes on small phones ───────── */
+/* The no-query FONT SCALE section overrides the earlier         */
+/* @media(max-width:359px) rules; put correct values back here. */
+@media (max-width: 400px) {
+  .hright    { gap: 5px; }
+  .hbadge    { font-size: 10.5px; padding: 3px 7px; }
+  .admin-btn { font-size: 11px; padding: 5px 10px; }
+}
+@media (max-width: 359px) {
+  .hbadge    { font-size: 9px !important; padding: 2px 5px; }
+  .admin-btn { font-size: 9.5px !important; padding: 4px 7px; gap: 3px; min-height: 30px; }
+}
+
+/* ── 4. Print preview: smaller iframe floor on tiny phones ───── */
+@media (max-width: 480px) {
+  .ppv-stage { padding: 0; }
+  .ppv-frame { min-height: 700px; }
+}
+
+/* ── 5. VAT rate row: remove max-width cap on mobile ─────────── */
+@media (max-width: 640px) {
+  .vatr { max-width: none; }
+}
+
+/* ── 6. Layout right panel: wider at 4K ──────────────────────── */
+@media (min-width: 2560px) {
+  .layout { grid-template-columns: 1fr 640px; }
+}
+
+/* ── 7. Results header: column layout on all small phones ─────── */
+@media (max-width: 560px) {
+  .rh {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+/* ── 8. Stats cards: single column on very tiny screens ──────── */
+/* (existing rule covers ≤380px already; reinforce at ≤360px)   */
+@media (max-width: 360px) {
+  .sr { grid-template-columns: 1fr !important; }
+}
+
+/* ── 9. Tab buttons: tighter minimum width at 320px ─────────── */
+@media (max-width: 320px) {
+  .tab-btn { min-width: 80px; }
+}
+
+/* ── 10. Grand total gbox: reduce padding on tiny phones ─────── */
+@media (max-width: 360px) {
+  .gbox { padding: 14px 12px; }
+}
+
+/* ── 11. Part billing balance grid: single col on tiny screens ── */
+@media (max-width: 360px) {
+  .pbs-balance-grid { grid-template-columns: 1fr; }
+}
+
+/* ── 12. Large-screen info bar items: 4-up layout ────────────── */
+@media (min-width: 1440px) {
+  .ii { flex: 1 0 22%; }
+}
+@media (min-width: 1920px) {
+  .ii { padding: 18px 24px; }
+}
+
+/* ── 13. Print preview dialog: fill viewport height on mobile ── */
+@media (max-width: 640px) {
+  #ppvDialog { height: 100dvh; max-height: 100dvh; }
+}
+
+/* ── 14. Rotation card selects: always wrap on small phones ───── */
+@media (max-width: 519px) {
+  .rot-card-body { flex-wrap: wrap; }
+  .rot-seg       { width: 100%; }
+}
+
+/* ── 15. Payable table: slightly reduced font on tiny screens ─── */
+@media (max-width: 360px) {
+  .ptbl { min-width: 360px; }
+  .bt   { min-width: 300px; }
+}
+
+/* ── 16. Page title: control overflow on narrow screens ──────── */
+@media (max-width: 360px) {
+  .pgtitle { font-size: clamp(26px, 8vw, 36px); letter-spacing: 2px; }
+}
+
+/* ── 17. Saved bills search bar: always full-width on phones ──── */
+@media (max-width: 767px) {
+  .sb-panel-head  { flex-direction: column; align-items: flex-start; }
+  .sb-search-wrap { max-width: 100%; width: 100%; }
+}
