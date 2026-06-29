@@ -466,7 +466,7 @@ header::before {
 .pgtitle {
   font-family: 'Bebas Neue', sans-serif;
   font-size: clamp(24px,5vw,52px);
-  color: var(--gold); letter-spacing: 3.5px;
+  color: var(--accent); letter-spacing: 3.5px;
   margin-bottom: 4px;
   animation: fadeUp 0.5s ease-out 0.3s both;
   position: relative; display: inline-block;
@@ -475,7 +475,7 @@ header::before {
   content: '';
   position: absolute; bottom: -4px; left: 0;
   width: 60px; height: 2px;
-  background: linear-gradient(90deg, var(--gold), transparent);
+  background: linear-gradient(90deg, var(--accent), transparent);
   border-radius: 2px;
 }
 .pgsub {
@@ -4478,3 +4478,47 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
   .sb-panel-head  { flex-direction: column; align-items: flex-start; }
   .sb-search-wrap { max-width: 100%; width: 100%; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   PROFESSIONAL STANDARD — utility classes (replaces all inline styles)
+══════════════════════════════════════════════════════════════ */
+
+/* Skip navigation — hidden until keyboard focus */
+.skip-nav {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  z-index: 10000;
+  background: var(--bg-card);
+  color: var(--accent);
+  padding: 10px 20px;
+  font-size: 14px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 1px;
+  border: 1px solid var(--accent-bdr);
+  border-radius: var(--rad-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--t-fast);
+}
+.skip-nav:focus { left: 16px; top: 16px; }
+
+/* Cargo module — page-level overrides (replaces inline style="" in HTML) */
+body.mode-cargo .pgsub { color: var(--m1); }
+
+/* Billing rules card — dashed outline, transparent fill */
+.card--rules {
+  border-style: dashed;
+  background: transparent;
+}
+body.mode-cargo .card--rules { border-color: rgba(14,165,233,0.20); }
+
+/* Cargo results divider */
+.hr-cargo { border-color: rgba(34,211,238,0.15); }
+
+/* Secondary label text (e.g. "(Common Landing Day)") */
+.lbl-sub { font-size: 12px; color: var(--m2); }
+
+/* Billing rules guide — coloured callout notes */
+.guide-note--sky  { color: var(--sky);  margin-top: 4px; }
+.guide-note--gold { color: var(--gold); margin-top: 4px; }

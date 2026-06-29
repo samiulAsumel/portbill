@@ -1,7 +1,7 @@
 {
-  "name": "Port Billing System",
+  "name": "PortBill — Port Authority Wharfrent Calculator",
   "short_name": "PortBill",
-  "description": "Port Authority billing calculator for Car and General Cargo wharfrent, VAT and levy computation.",
+  "description": "Professional port billing calculator for Car and General Cargo wharfrent — slab-based rating, split billing, VAT, levy, and print-ready invoice generation.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

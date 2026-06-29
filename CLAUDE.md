@@ -98,6 +98,30 @@ Seven files total — everything is self-contained vanilla JS/CSS:
 
 **Service worker versioning**: The cache name is `portbill-v3` in `sw.js`. Every production deploy that changes any cached asset must increment this string (e.g. `portbill-v4`). The `activate` handler deletes all caches whose names don't match the current version.
 
+## Professional Standard Rules
+
+**No inline `style=` attributes in HTML** — all presentational values must live in CSS.  
+Current classes that replace formerly-inline styles:
+
+| Class | Replaces | Where used |
+|---|---|---|
+| `.lbl-sub` | `style="font-size:12px;color:var(--m2)"` | CLD and Free Time label sub-text (4 places) |
+| `.card--rules` | `style="border-style:dashed;background:transparent"` | Billing rules cards (both modules) |
+| `.hr-cargo` | `style="border-color:rgba(34,211,238,0.15)"` | Cargo results divider |
+| `.guide-note--sky` | `style="color:var(--sky);margin-top:4px;"` | Part Billing note in cargo guide |
+| `.guide-note--gold` | `style="color:var(--gold);margin-top:4px;"` | Self Drive note in cargo guide |
+
+CSS rules that replace formerly-inline module-specific overrides:
+- `.pgtitle` uses `color: var(--accent)` — automatically gold in car mode, sky blue in cargo mode (body.mode-cargo overrides `--accent`)
+- `body.mode-cargo .pgsub` — sets `color: var(--m1)` for the cargo subtitle (slightly lighter than the car default `--tx-2`)
+- `body.mode-cargo .card--rules` — sets `border-color: rgba(14,165,233,0.20)` for the sky-blue dashed border on the cargo billing rules card
+
+**Skip navigation** — `<a href="#page-car" class="skip-nav">` at the top of `<body>`. Hidden off-screen by default; revealed on keyboard focus (`:focus { left: 16px; top: 16px }`). Required for keyboard/screen-reader users.
+
+**Open Graph + Twitter Card** — declared in `<head>` for proper social previews when the URL is shared. Canonical URL: `https://samiulAsumel.github.io/portbill`.
+
+**Search engine visibility** — `<meta name="robots" content="index, follow">` (was `noindex,nofollow`). This is a public portfolio project and must be discoverable.
+
 ## Rate IDs
 
 Car module uses plain IDs (`nr1`, `nr2`, `nr3` for new rates; `or1`, `or2`, `or3` for old rates; `rRiver`, `rLanding`, etc.). Cargo module mirrors with `c-` prefix (`c-or1`, `c-rRiver`, etc.). `RATE_DEFAULTS` is the authoritative source of factory defaults.
