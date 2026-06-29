@@ -620,6 +620,7 @@ function confirmModal(message) {
     const cancelBtn = document.getElementById('confirmCancelBtn');
     function finish(result) {
       dlg.classList.remove('is-open');
+      dlg.removeEventListener('cancel', onEscape);
       setTimeout(() => dlg.close(), 320);
       okBtn.removeEventListener('click', onOk);
       cancelBtn.removeEventListener('click', onCancel);
@@ -627,8 +628,10 @@ function confirmModal(message) {
     }
     function onOk() { finish(true); }
     function onCancel() { finish(false); }
+    function onEscape(e) { e.preventDefault(); finish(false); }
     okBtn.addEventListener('click', onOk);
     cancelBtn.addEventListener('click', onCancel);
+    dlg.addEventListener('cancel', onEscape);
   });
 }
 
@@ -1327,7 +1330,14 @@ function carReset() {
   lastCarBill = null;
   editingBillNumber.car = null;
   document.getElementById("weight").value = 2;
-  document.getElementById("chkHoisting").checked = false;
+  const _carCheckDefaults = {
+    chkRiver: true, chkLanding: true, chkRemoval: true,
+    chkWeighment: true, chkLevy: true, chkHoisting: false,
+  };
+  Object.entries(_carCheckDefaults).forEach(([id, def]) => {
+    const el = document.getElementById(id);
+    if (el) el.checked = def;
+  });
   document.getElementById("weightWarn").classList.remove("show");
     // Reset date fields to today's date
   const _carToday = new Date();
@@ -1342,7 +1352,8 @@ function carReset() {
   if (_delHintEl) { _delHintEl.textContent = _carTodayStr; _delHintEl.className = "field-hint hint-ok"; }
   const _carBeHint = document.getElementById("car-billEntryDate-hint");
   if (_carBeHint) { _carBeHint.textContent = "DD/MM/YYYY"; _carBeHint.className = "field-hint hint-muted"; }
-clearDraft('car');
+  clearDraft('car');
+  carRefresh();
   globalThis.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -3840,6 +3851,7 @@ function cargoReset() {
     if (el) el.value = "";
   });
   clearDraft('cargo');
+  cargoRefresh();
   globalThis.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -5615,6 +5627,10 @@ async function addRotation() {
 // Delete a rotation (admin only)
 async function deleteRotation(id) {
   if (!isAdmin) return;
+  var rot = _rotations.find(function(r) { return String(r.id) === String(id); });
+  var label = rot ? rot.year + "/" + rot.num : "this rotation";
+  var confirmed = await confirmModal("Delete rotation " + label + "? This cannot be undone.");
+  if (!confirmed) return;
   var statusEl = document.getElementById("rotRegStatus");
   var updated = _rotations.filter(function(r) { return String(r.id) !== String(id); });
   if (statusEl) { statusEl.textContent = "Deleting..."; statusEl.className = "rot-reg-status"; }
