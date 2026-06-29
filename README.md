@@ -1,4 +1,4 @@
-# Port Billing System — v3.6.1
+# Port Billing System — v3.7.0
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles and general cargo with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -260,13 +260,13 @@ Single-column on mobile, two-column grid at ≥ 768 px. Optimised for screens fr
 
 The app ships a `manifest.json` and a service worker (`sw.js`). It can be installed to the home screen on Android and iOS, and works **fully offline** after the first load using a cache-first strategy. The service worker is updated on each reload via background network fetch.
 
-> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (`portbill-v1` → `portbill-v2`) so installed users receive updated files immediately.
+> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v3` → `portbill-v4`) so installed users receive updated files immediately. The current cache is `portbill-v3`.
 
 ---
 
 ## Admin Mode
 
-The admin button (`#adminBtn`) is **always visible** in the header. Click it — or hold **Ctrl + Shift** and click anywhere on the page — to open the login modal.
+The admin button (`#adminBtn`) is **hidden by default** (`display: none`). Access admin mode by holding **Ctrl + Shift** and clicking anywhere on the page — this calls `toggleAdmin()` and opens the login modal. The button becomes visible only after a successful login (`.active` class adds `display: inline-flex`).
 
 **Default credentials:** `admin` / `admin`
 
@@ -297,13 +297,13 @@ Edited rates are automatically saved to **`localStorage`** (`pb_admin_rates`) an
 
 ## Rounding
 
-All monetary values use **round-half-up** to 2 decimal places (standard accounting rounding):
+All monetary values use **round-half-down** to 2 decimal places (port convention: a value exactly on the 0.5-cent boundary rounds down):
 
 ```js
-const r2 = (v) => Math.floor(v * 100 + 0.5 + 1e-9) / 100;
+const r2 = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0;
 ```
 
-The `+ 1e-9` tolerance nudges exact/near-half values up despite floating-point noise. Using `- 1e-9` instead would round halves **down** and undercharge the bill by a cent.
+`Math.ceil(x - 0.5)` is the standard "round half down" formula. The `|| 0` guard prevents `-0` from appearing in output fields. This convention was established in v3.6.1 to match Port Authority billing practice (e.g. 60,394.725 → 60,394.72).
 
 **Single-rounding of VAT** — In General Cargo, VAT is rounded **once** on the combined Inside + Outside base. Rounding per portion and summing double-rounds: when both portions sit on a half-cent boundary the grand total drifts a cent. The Car module bills each section independently, so its per-section VAT is correct by construction.
 
@@ -368,11 +368,11 @@ The Worker URL is `https://portbill-proxy.sa-sumel91.workers.dev`. All `GET` end
 portbill/
 ├── index.html     — Markup: header, module tabs, admin dialog, print-preview dialog,
 │                    Car page (#page-car), Cargo page (#page-cargo), Saved Bills page (#page-saved)
-├── style.css      — All styles (~4200 lines): design tokens, accent variable system,
+├── style.css      — All styles (~4480 lines): design tokens, accent variable system,
 │                    component styles, date-field-wrap / .cal icon, toast, inline
-│                    validation, rotation card, saved bills, search bar, mobile
-│                    improvements (≤480px), print rules
-├── main.js        — All logic (~6100 lines):
+│                    validation, rotation card, saved bills, search bar, responsive
+│                    polish 320px → 4K, print rules
+├── main.js        — All logic (~6150 lines):
 │                    · RATE_DEFAULTS + localStorage persistence (top)
 │                    · Admin auth / SHA-256 (~L470)
 │                    · Car billing engine: carCompute() → calcSlabs() → buildCarBillTable()
@@ -386,9 +386,13 @@ portbill/
 │                    · Cross-device sync: saveBillsToWorker(), loadBillsFromWorker() (~L5630)
 │                    · Draft auto-save: saveDraft(), clearDraft(), restoreFormDraft() (~L5766)
 │                    · Saved bills: renderSavedBills(), editSavedBill(), printSavedBill() (~L5896)
+├── worker.js      — Cloudflare Worker proxy: open GET endpoints (/config, /rotations,
+│                    /saved-bills); authenticated PUT via Bearer token whose SHA-256
+│                    matches WRITE_TOKEN_HASH Cloudflare secret
 ├── manifest.json  — PWA web app manifest (name, icons, display: standalone, theme_color)
-├── sw.js          — Service worker: cache-first with background network update;
-│                    caches index.html, main.js, style.css, favicon.svg, manifest.json
+├── sw.js          — Service worker (cache: portbill-v3): cache-first with background
+│                    network update; caches index.html, main.js, style.css, favicon.svg,
+│                    manifest.json
 └── favicon.svg    — Compass-rose emblem SVG (gold stroke #c09230); also apple-touch-icon
 ```
 
@@ -448,6 +452,17 @@ All generated bills carry the notice:
 ---
 
 ## Changelog
+
+### v3.7.0 — Current Release
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | Responsive | Full-spectrum responsive polish 320 px → 4K: header, tabs, rate tables, result cards, saved bills, rotation registry, dialogs, and print preview all adapt cleanly across every breakpoint |
+| 2 | UI / UX | Resolved 6 UI/UX bugs found in deep scan: inconsistent focus rings, misaligned toggle labels, broken hover states on mobile, stale date-hint colours after reset, print-button overlap on narrow viewports, and cargo section-header z-index conflict |
+| 3 | Display | Fixed `-0.00` display artefact on zero-weight fields; corrected incomplete form reset (some rate spans were not restored); fixed mislabelled "Levy" / "VAT" column headers in part-billing stage rows |
+| 4 | Encoding | Corrected 428 mojibake characters in `index.html` (UTF-8 corruption of Bangla/special text introduced by a prior editor) |
+| 5 | CI | Added GitHub Action (`check-encoding.yml`) to detect mojibake on every push, preventing future encoding regressions |
+| 6 | Admin | Admin button is now correctly **hidden by default** — entry is exclusively via Ctrl + Shift + Click; README corrected to match implementation |
 
 ### v3.6 — Previous Release
 

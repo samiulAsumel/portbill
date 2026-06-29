@@ -19,10 +19,10 @@ No dependencies, no package manager, no transpiler.
 
 ## Architecture
 
-Six files total — everything is self-contained vanilla JS/CSS:
+Seven files total — everything is self-contained vanilla JS/CSS:
 
 - **`index.html`** — Markup only. Three module pages (`#page-car`, `#page-cargo`, `#page-saved`) plus three `<dialog>` elements: admin login (`#overlay`), print preview (`#ppvDialog`), and reusable confirm (`#confirmDialog`). Module switching is tab-driven via `switchModule()`.
-- **`main.js`** — All logic (~6100 lines). Sections are marked with `// ════` banners. Key sections:
+- **`main.js`** — All logic (~6150 lines). Sections are marked with `// ════` banners. Key sections:
   - **Debug logger** (top): `const DEBUG = false; const dbg = { warn, error }` — silent in production, one-flag toggle for diagnostics.
   - **State / rate persistence** (top): `RATE_DEFAULTS`, `localStorage` key `pb_admin_rates`, `loadSavedRates()` / `saveRates()` / `resetRatesToDefaults()`
   - **Admin auth** (~L470): SHA-256 hash in `AP_HASH`; `doLogin()` uses `crypto.subtle`; locked after 5 attempts (sessionStorage). On success, the entered password is stored in `_sessionWriteToken` (memory only, cleared on logout) for Worker PUT auth.
@@ -34,15 +34,15 @@ Six files total — everything is self-contained vanilla JS/CSS:
   - **Cross-device sync** (~L5630): `loadBillsFromWorker()` is called at startup in `DOMContentLoaded`; cloud is source of truth — overwrites localStorage on success, falls back silently when offline. All four sync functions (`saveRotationsToWorker`, `saveBillsToWorker`, `saveConfigToWorker`, `loadConfigFromGitHub`) use the shared `PROXY_URL` constant — do not introduce local `WORKER` copies.
   - **Draft auto-save** (~L5766): `saveDraft(type)` / `clearDraft(type)` / `getDraft(type)` / `restoreFormDraft(type)`. Drafts stored in `localStorage` under `pb_draft_car` / `pb_draft_cargo` with a 24-hour TTL. `setInterval` every 10 000 ms saves both modules. Draft is restored on `DOMContentLoaded` (via `setTimeout(0)` to run after date defaults are set) only when `hasMeaningfulDraft()` returns true (BL number, C&F name, or B/E number is non-empty). Cleared in `carReset()`, `cargoReset()`, and `saveBill()`.
   - **Saved bills** (~L5896): `renderSavedBills()` calls `buildRows(bills, searchQ)` filtered by `matchesBillSearch()`. `editSavedBill(billNumber)` restores form state and re-runs calculation. `printSavedBill(billNumber)` calls `editSavedBill()` then `printBill(type)` after 80ms. `deleteSavedBill()` is async and awaits `confirmModal()`. Search state is held in module-level `_sbCarSearch` / `_sbCargoSearch` strings, updated by `sbSearch(type, q)`.
-- **`style.css`** — All styles (~4200 lines). Uses CSS custom properties for the color palette, including the `--accent` system (see below). `@media print` rules at the bottom. `.ro` class makes rate inputs read-only visually (dashed border, reduced opacity). Mobile improvements at `@media (max-width: 480px)`.
+- **`style.css`** — All styles (~4480 lines). Uses CSS custom properties for the color palette, including the `--accent` system (see below). `@media print` rules at the bottom. `.ro` class makes rate inputs read-only visually (dashed border, reduced opacity). Full responsive polish at breakpoints from 320 px to 4K; mobile improvements at `@media (max-width: 480px)`.
 - **`worker.js`** — Cloudflare Worker proxy. `GET` endpoints are open. All `PUT` endpoints require `Authorization: Bearer <token>`; the token's SHA-256 is verified against the `WRITE_TOKEN_HASH` Cloudflare secret (set via `wrangler secret put WRITE_TOKEN_HASH`). If the secret is absent, PUT returns 503.
 - **`manifest.json`** — PWA web app manifest: `name`, `short_name`, `display: standalone`, `theme_color: #020202`, `icons` pointing at `favicon.svg`.
 - **`favicon.svg`** — Compass-rose emblem SVG (gold stroke `#c09230`). Also used as `apple-touch-icon` and PWA icon.
-- **`sw.js`** — Service worker. Cache name: `portbill-v1` (increment on each deploy). Caches `./`, `index.html`, `main.js`, `style.css`, `favicon.svg`, `manifest.json`. Strategy: cache-first with background network update (stale-while-revalidate). Only intercepts same-origin GET requests. **When deploying a new version, bump the cache name to invalidate stale caches.**
+- **`sw.js`** — Service worker. Cache name: `portbill-v3` (increment on each deploy). Caches `./`, `index.html`, `main.js`, `style.css`, `favicon.svg`, `manifest.json`. Strategy: cache-first with background network update (stale-while-revalidate). Only intercepts same-origin GET requests. **When deploying a new version, bump the cache name to invalidate stale caches.**
 
 ## Key Design Patterns
 
-**Rounding**: All monetary values use round-half-**up** to 2dp via `r2 = v => Math.floor(v * 100 + 0.5 + 1e-9) / 100` (standard accounting rounding — a value exactly on a half-cent boundary, such as a VAT of `…475`, rounds up). The `+ 1e-9` nudges exact/near halves up despite floating-point noise; using `- 1e-9` instead implements round-half-down and shaves a cent off boundary VATs — do not reintroduce it.
+**Rounding**: All monetary values use round-half-**down** to 2dp via `r2 = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0` (port convention — a value exactly on the 0.5-cent boundary rounds down, e.g. 60,394.725 → 60,394.72). `Math.ceil(x - 0.5)` is the canonical "round half down" formula. The `|| 0` guard prevents `-0` from surfacing in output fields. Do not revert to `Math.floor(v*100+0.5)/100` — that formula rounds half-up and was replaced in v3.6.1 to match Port Authority convention. `r2` is defined locally inside each billing function scope (`carCompute`, `buildInvoiceHtml`, `computePartBillingWharfrent`, etc.) and named `rp2` / `_rp` in some helper contexts — all use the same formula.
 
 **VAT/Levy presentation differs by module — they are intentionally NOT the same:**
 
@@ -96,7 +96,7 @@ Six files total — everything is self-contained vanilla JS/CSS:
 
 **Draft auto-save**: `DRAFT_KEYS = { car: 'pb_draft_car', cargo: 'pb_draft_cargo' }`, TTL 24 hours. `saveDraft(type)` snapshots via `billInputSnapshot(type)` and stores `{ ts, inputs }`. `restoreFormDraft(type)` only restores when `hasMeaningfulDraft(inputs, type)` is true — checks for non-empty `blNumber`, `cnfName`, or non-default `billEntry` (`!== 'C-'`). Restore runs inside `setTimeout(0)` in `DOMContentLoaded` so it fires after the date-defaults initialisation. `clearDraft(type)` is called from `carReset()`, `cargoReset()` (the originals), and `saveBill()`. The `carReset` patch (bottom of file) also calls `clearDraft('car')`.
 
-**Service worker versioning**: The cache name is `portbill-v1` in `sw.js`. Every production deploy that changes any cached asset must increment this string (e.g. `portbill-v2`). The `activate` handler deletes all caches whose names don't match the current version.
+**Service worker versioning**: The cache name is `portbill-v3` in `sw.js`. Every production deploy that changes any cached asset must increment this string (e.g. `portbill-v4`). The `activate` handler deletes all caches whose names don't match the current version.
 
 ## Rate IDs
 
