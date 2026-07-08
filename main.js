@@ -8,6 +8,56 @@ const dbg = {
 };
 
 // ════════════════════════════════════════
+//  VAT — MPA PARITY  (shared utility)
+// ════════════════════════════════════════
+/**
+ * MPA-parity VAT calculation.
+ * Mirrors C#: Math.Round((TotalBillBDT ?? 0) * VATPercent / 100m, 2)
+ * Uses integer poysha-scale math (no float error) + Banker's Rounding
+ * (half-to-even), matching C# decimal + Math.Round default behavior.
+ * NOTE: VAT is the ONLY figure using half-to-even — all other monetary
+ * rounding in this file stays on the r2 half-down port convention.
+ *
+ * @param {number|null|undefined} totalBillBDT - bill amount in Taka (max 2dp)
+ * @param {number} vatPercent - e.g. 15 for 15%
+ * @returns {number} VAT in Taka, rounded to 2 decimals
+ */
+function calcVATmpa(totalBillBDT, vatPercent) {
+  // Rule 1: null safety (C# ?? 0)
+  const bill = Number(totalBillBDT) || 0;
+  const pct = Number(vatPercent) || 0;
+
+  // Rule 2: exact integer math.
+  // bill assumed max 2 decimals, pct assumed max 2 decimals (MPA tariff standard).
+  const billPoysha = Math.round(bill * 100); // Tk → poysha
+  const pctBasis = Math.round(pct * 100); // 15% → 1500
+
+  // bill * pct / 100 (Taka) == billPoysha * pctBasis / 10000 (poysha)
+  const numerator = billPoysha * pctBasis; // exact integer
+  const divisor = 10000;
+
+  // Rule 3: Banker's Rounding to nearest integer poysha.
+  // Math.floor floors toward −∞, so quotient/remainder stay consistent for
+  // negative bills (credit notes) and half-to-even holds there too.
+  const quotient = Math.floor(numerator / divisor);
+  const remainder = numerator - quotient * divisor;
+  const half = divisor / 2;
+
+  let vatPoysha;
+  if (remainder > half) {
+    vatPoysha = quotient + 1;
+  } else if (remainder < half) {
+    vatPoysha = quotient;
+  } else {
+    // exact midpoint → round to even
+    vatPoysha = quotient % 2 === 0 ? quotient : quotient + 1;
+  }
+
+  // Rule 4: single final round done. Poysha → Taka.
+  return vatPoysha / 100;
+}
+
+// ════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════
 const SP_CAR_IDLE =
@@ -1030,15 +1080,15 @@ function carCompute() {
   // bill — base (wharfrent + payables) + its own VAT + its own Levy. VAT and
   // Levy are shown per section, and the Car Grand Total is their sum.
   const iBase = r2(insideStor + paySub);
-  const iVat = r2(iBase * vatRate);
+  const iVat = calcVATmpa(iBase, vatRate * 100);
   const iLevy = levyAmt;
   const iTotal = r2(iBase + iVat + iLevy);
   const oBase = r2(outsideHalf + paySub);
-  const oVat = r2(oBase * vatRate);
+  const oVat = calcVATmpa(oBase, vatRate * 100);
   const oLevy = levyAmt;
   const oTotal = r2(oBase + oVat + oLevy);
   const nBase = r2(paySub);
-  const nVat = r2(nBase * vatRate);
+  const nVat = calcVATmpa(nBase, vatRate * 100);
   const nLevy = levyAmt;
   const nTotal = r2(nBase + nVat + nLevy);
   return {
@@ -3112,12 +3162,12 @@ function cargoCompute() {
   // appear a single time at the foot of the bill. A single rounding here also
   // avoids the per-portion double-rounding cent drift (history: 113441.94/.96).
   const gBase = r2(iBase + oBase);
-  const gVat = r2(gBase * vatRate);
+  const gVat = calcVATmpa(gBase, vatRate * 100);
   const gLevy = iLevy + oLevy;
   const gTotal = r2(gBase + gVat + gLevy);
   // No wharfrent (payable-only): combined base already, single VAT.
   const nBase = r2(paySub);
-  const nVat = r2(nBase * vatRate);
+  const nVat = calcVATmpa(nBase, vatRate * 100);
   const nLevy = totalLevy;
   const nTotal = r2(nBase + nVat + nLevy);
 
@@ -3503,7 +3553,7 @@ function cargoBreakdownData(b) {
   const totalVat = b.gVat;
   const totalLevy = b.gLevy;
   const grand = b.gTotal;
-  const wVat = r2(wharfrentBase * b.vatRate);
+  const wVat = calcVATmpa(wharfrentBase, b.vatRate * 100);
   const pVat = r2(totalVat - wVat);
   const wLevy = 0;
   const pLevy = totalLevy;
@@ -5085,7 +5135,7 @@ function printBill(type) {
         const _pbInBase = _rp(b.iBase - (cargoIncludePayables ? 0 : b.insidePaySub));
         const _pbOutBase = _rp(b.oBase - (cargoIncludePayables ? 0 : b.outsidePaySub));
         const _pbGBase = _rp(_pbInBase + _pbOutBase);
-        const _pbGVat = _rp(_pbGBase * b.vatRate);
+        const _pbGVat = calcVATmpa(_pbGBase, b.vatRate * 100);
         const _pbGLevy = cargoIncludePayables ? b.gLevy : 0;
         const _pbGTotal = _rp(_pbGBase + _pbGVat + _pbGLevy);
         sectionsHtml += buildCombinedSummaryPrintSection(
@@ -5104,7 +5154,7 @@ function printBill(type) {
         const inAdjBase = _rp(b.iBase - (cargoIncludePayables ? 0 : b.insidePaySub));
         const outAdjBase = _rp(b.oBase - (cargoIncludePayables ? 0 : b.outsidePaySub));
         const gBaseAdj = _rp(inAdjBase + outAdjBase);
-        const gVatAdj = _rp(gBaseAdj * b.vatRate);
+        const gVatAdj = calcVATmpa(gBaseAdj, b.vatRate * 100);
         const gLevyAdj = cargoIncludePayables ? b.gLevy : 0;
         const gTotalAdj = _rp(gBaseAdj + gVatAdj + gLevyAdj);
         ["inside", "outside"].forEach((side) => {
