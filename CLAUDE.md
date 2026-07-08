@@ -13,17 +13,21 @@ xdg-open index.html
 # Local HTTP server (required for service worker to register)
 python3 -m http.server 8080
 # then visit http://localhost:8080
+
+# VAT parity test suite (12 cases — must stay 12/12)
+node tests/vat.test.js
 ```
 
 No dependencies, no package manager, no transpiler.
 
 ## Architecture
 
-Seven files total — everything is self-contained vanilla JS/CSS:
+Seven core files plus a `tests/` folder — everything is self-contained vanilla JS/CSS:
 
 - **`index.html`** — Markup only. Three module pages (`#page-car`, `#page-cargo`, `#page-saved`) plus three `<dialog>` elements: admin login (`#overlay`), print preview (`#ppvDialog`), and reusable confirm (`#confirmDialog`). Module switching is tab-driven via `switchModule()`.
 - **`main.js`** — All logic (~6150 lines). Sections are marked with `// ════` banners. Key sections:
   - **Debug logger** (top): `const DEBUG = false; const dbg = { warn, error }` — silent in production, one-flag toggle for diagnostics.
+  - **VAT — MPA parity** (top): `calcVATmpa(totalBillBDT, vatPercent)` — the ONLY VAT rounding path. Integer poysha-scale math + half-to-even (banker's) rounding, mirroring the MPA C# engine `Math.Round((TotalBillBDT ?? 0) * VATPercent / 100m, 2)`. Callers pass the fractional rate scaled up: `calcVATmpa(base, vatRate * 100)`. See **Rounding** below.
   - **State / rate persistence** (top): `RATE_DEFAULTS`, `localStorage` key `pb_admin_rates`, `loadSavedRates()` / `saveRates()` / `resetRatesToDefaults()`
   - **Admin auth** (~L470): SHA-256 hash in `AP_HASH`; `doLogin()` uses `crypto.subtle`; locked after 5 attempts (sessionStorage). On success, the entered password is stored in `_sessionWriteToken` (memory only, cleared on logout) for Worker PUT auth.
   - **confirmModal()**: Reusable in-app confirm dialog (Promise-based). Replaces all native `confirm()` / `window.confirm()` calls. Uses the `#confirmDialog` native `<dialog>` element with `showModal()` / `close()` — same pattern as `#overlay`.
@@ -38,17 +42,20 @@ Seven files total — everything is self-contained vanilla JS/CSS:
 - **`worker.js`** — Cloudflare Worker proxy. `GET` endpoints are open. All `PUT` endpoints require `Authorization: Bearer <token>`; the token's SHA-256 is verified against the `WRITE_TOKEN_HASH` Cloudflare secret (set via `wrangler secret put WRITE_TOKEN_HASH`). If the secret is absent, PUT returns 503.
 - **`manifest.json`** — PWA web app manifest: `name`, `short_name`, `display: standalone`, `theme_color: #020202`, `icons` pointing at `favicon.svg`.
 - **`favicon.svg`** — Compass-rose emblem SVG (gold stroke `#c09230`). Also used as `apple-touch-icon` and PWA icon.
-- **`sw.js`** — Service worker. Cache name: `portbill-v3` (increment on each deploy). Caches `./`, `index.html`, `main.js`, `style.css`, `favicon.svg`, `manifest.json`. Strategy: cache-first with background network update (stale-while-revalidate). Only intercepts same-origin GET requests. **When deploying a new version, bump the cache name to invalidate stale caches.**
+- **`sw.js`** — Service worker. Cache name: `portbill-v5` (increment on each deploy). Caches `./`, `index.html`, `main.js`, `style.css`, `favicon.svg`, `manifest.json`. Strategy: cache-first with background network update (stale-while-revalidate). Only intercepts same-origin GET requests. **When deploying a new version, bump the cache name to invalidate stale caches.**
+- **`tests/vat.test.js`** — VAT MPA-parity suite (12 cases incl. half-to-even midpoints and null safety). Runs with `node tests/vat.test.js`; extracts `calcVATmpa` from `main.js` at runtime so the shipped source is tested, not a copy. Exit code 0 = all pass.
 
 ## Key Design Patterns
 
-**Rounding**: All monetary values use round-half-**down** to 2dp via `r2 = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0` (port convention — a value exactly on the 0.5-cent boundary rounds down, e.g. 60,394.725 → 60,394.72). `Math.ceil(x - 0.5)` is the canonical "round half down" formula. The `|| 0` guard prevents `-0` from surfacing in output fields. Do not revert to `Math.floor(v*100+0.5)/100` — that formula rounds half-up and was replaced in v3.6.1 to match Port Authority convention. `r2` is defined locally inside each billing function scope (`carCompute`, `buildInvoiceHtml`, `computePartBillingWharfrent`, etc.) and named `rp2` / `_rp` in some helper contexts — all use the same formula.
+**Rounding**: All monetary values **except VAT** use round-half-**down** to 2dp via `r2 = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0` (port convention — a value exactly on the 0.5-cent boundary rounds down, e.g. 60,394.725 → 60,394.72). `Math.ceil(x - 0.5)` is the canonical "round half down" formula. The `|| 0` guard prevents `-0` from surfacing in output fields. Do not revert to `Math.floor(v*100+0.5)/100` — that formula rounds half-up and was replaced in v3.6.1 to match Port Authority convention. `r2` is defined locally inside each billing function scope (`carCompute`, `buildInvoiceHtml`, `computePartBillingWharfrent`, etc.) and named `rp2` / `_rp` in some helper contexts — all use the same formula.
+
+**Rounding exception — VAT (v3.7.1)**: Every VAT amount is computed by the shared `calcVATmpa(base, vatRate * 100)` (top of `main.js`), which uses integer poysha-scale math (no float64 drift) and **half-to-even (banker's) rounding** — exact parity with the MPA C# billing engine (`Math.Round` defaults to `MidpointRounding.ToEven`). The two conventions differ only at exact `.xx5` midpoints with an odd poysha quotient (e.g. 15.70 × 15% = 2.355 → `r2` gives 2.35, MPA/`calcVATmpa` gives 2.36) — this was the source of 1-poysha VAT mismatches against printed MPA bills. Never use `r2` for a VAT amount, and never use `calcVATmpa` for anything other than VAT. Any change to `calcVATmpa` must keep `node tests/vat.test.js` at 12/12.
 
 **VAT/Levy presentation differs by module — they are intentionally NOT the same:**
 
-- **General Cargo** — VAT and Levy are charged **ONCE on the COMBINED inside+outside base**, shown a single time at the foot of the bill. `cargoCompute` exposes per-portion sub-totals `iBase`/`oBase` (= wharfrent + payables, the VAT base) plus the combined `gBase = r2(iBase + oBase)`, `gVat = r2(gBase × vatRate)`, `gLevy = iLevy + oLevy`, `gTotal = r2(gBase + gVat + gLevy)`. The inside/outside sections show only their `*Base` sub-total; a single "BILL SUMMARY" block (`buildCombinedSummaryTable` on screen, `buildCombinedSummaryPrintSection` in print) renders `gBase → gVat → gLevy → gTotal`. This is a display choice (VAT shown once) **and** a correctness one: per-portion VAT that is summed double-rounds and drifts a cent when both portions hit a half-cent boundary (symptom: cargo grand total `…441.94`/`.96` instead of `.95`). The cargo print/part-billing builders recompute toggle-adjusted `gBase/gVat/gLevy/gTotal` when the payable/wharfrent toggles exclude charges.
+- **General Cargo** — VAT and Levy are charged **ONCE on the COMBINED inside+outside base**, shown a single time at the foot of the bill. `cargoCompute` exposes per-portion sub-totals `iBase`/`oBase` (= wharfrent + payables, the VAT base) plus the combined `gBase = r2(iBase + oBase)`, `gVat = calcVATmpa(gBase, vatRate × 100)`, `gLevy = iLevy + oLevy`, `gTotal = r2(gBase + gVat + gLevy)`. The inside/outside sections show only their `*Base` sub-total; a single "BILL SUMMARY" block (`buildCombinedSummaryTable` on screen, `buildCombinedSummaryPrintSection` in print) renders `gBase → gVat → gLevy → gTotal`. This is a display choice (VAT shown once) **and** a correctness one: per-portion VAT that is summed double-rounds and drifts a cent when both portions hit a half-cent boundary (symptom: cargo grand total `…441.94`/`.96` instead of `.95`). The cargo print/part-billing builders recompute toggle-adjusted `gBase/gVat/gLevy/gTotal` when the payable/wharfrent toggles exclude charges.
 
-- **Car** — Inside (full rate) and Outside (½ rate) are each a **COMPLETE bill**: `iBase + iVat + iLevy = iTotal` and `oBase + oVat + oLevy = oTotal`, with VAT/Levy shown **per section**. The Car Grand Total is `iTotal + oTotal`. `carCompute` returns `iVat`/`iTotal`/`oVat`/`oTotal` (no `g*` fields). Do not apply the cargo combined-VAT model to the car module.
+- **Car** — Inside (full rate) and Outside (½ rate) are each a **COMPLETE bill**: `iBase + iVat + iLevy = iTotal` and `oBase + oVat + oLevy = oTotal`, with VAT/Levy shown **per section** (`iVat`/`oVat` each via `calcVATmpa`). The Car Grand Total is `iTotal + oTotal`. `carCompute` returns `iVat`/`iTotal`/`oVat`/`oTotal` (no `g*` fields). Do not apply the cargo combined-VAT model to the car module, and do not switch cargo to per-row VAT — combined-base single VAT is the confirmed billing structure.
 
 **Split billing** (23/07/2024 rate cut): When CLD ≤ 22/07/2024 and delivery ≥ 23/07/2024, `calcSlabs()` splits the period and applies old/new rates independently. Self-drive tons in Cargo also go through the same split logic via `calcCarBillingSdSlabs()`.
 
@@ -96,7 +103,7 @@ Seven files total — everything is self-contained vanilla JS/CSS:
 
 **Draft auto-save**: `DRAFT_KEYS = { car: 'pb_draft_car', cargo: 'pb_draft_cargo' }`, TTL 24 hours. `saveDraft(type)` snapshots via `billInputSnapshot(type)` and stores `{ ts, inputs }`. `restoreFormDraft(type)` only restores when `hasMeaningfulDraft(inputs, type)` is true — checks for non-empty `blNumber`, `cnfName`, or non-default `billEntry` (`!== 'C-'`). Restore runs inside `setTimeout(0)` in `DOMContentLoaded` so it fires after the date-defaults initialisation. `clearDraft(type)` is called from `carReset()`, `cargoReset()` (the originals), and `saveBill()`. The `carReset` patch (bottom of file) also calls `clearDraft('car')`.
 
-**Service worker versioning**: The cache name is `portbill-v3` in `sw.js`. Every production deploy that changes any cached asset must increment this string (e.g. `portbill-v4`). The `activate` handler deletes all caches whose names don't match the current version.
+**Service worker versioning**: The cache name is `portbill-v5` in `sw.js`. Every production deploy that changes any cached asset must increment this string (e.g. `portbill-v6`). The `activate` handler deletes all caches whose names don't match the current version.
 
 ## Professional Standard Rules
 

@@ -1,4 +1,4 @@
-# Port Billing System — v3.7.0
+# Port Billing System — v3.7.1
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles and general cargo with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -260,7 +260,7 @@ Single-column on mobile, two-column grid at ≥ 768 px. Optimised for screens fr
 
 The app ships a `manifest.json` and a service worker (`sw.js`). It can be installed to the home screen on Android and iOS, and works **fully offline** after the first load using a cache-first strategy. The service worker is updated on each reload via background network fetch.
 
-> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v3` → `portbill-v4`) so installed users receive updated files immediately. The current cache is `portbill-v3`.
+> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v5` → `portbill-v6`) so installed users receive updated files immediately. The current cache is `portbill-v5`.
 
 ---
 
@@ -297,13 +297,21 @@ Edited rates are automatically saved to **`localStorage`** (`pb_admin_rates`) an
 
 ## Rounding
 
-All monetary values use **round-half-down** to 2 decimal places (port convention: a value exactly on the 0.5-cent boundary rounds down):
+All monetary values **except VAT** use **round-half-down** to 2 decimal places (port convention: a value exactly on the 0.5-cent boundary rounds down):
 
 ```js
 const r2 = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0;
 ```
 
 `Math.ceil(x - 0.5)` is the standard "round half down" formula. The `|| 0` guard prevents `-0` from appearing in output fields. This convention was established in v3.6.1 to match Port Authority billing practice (e.g. 60,394.725 → 60,394.72).
+
+**VAT — banker's rounding (v3.7.1)** — VAT amounts are computed by a dedicated shared function, `calcVATmpa()`, for **exact parity with the Port Authority's C# billing engine**, whose VAT line is:
+
+```csharp
+Row.TotalVATBDT = Math.Round((Row.TotalBillBDT ?? 0) * Tariff.VATPercent / 100m, 2);
+```
+
+C# `Math.Round` defaults to **half-to-even (banker's) rounding**, so `calcVATmpa()` replicates that: the bill is converted to integer poysha (no float64 drift), multiplied exactly, and rounded half-to-even in a single final step (e.g. 15.70 × 15% = 2.355 → **2.36**; 117.50 × 15% = 17.625 → **17.62**). This eliminated the occasional 1-poysha VAT differences against printed Port Authority bills. A 12-case parity suite lives in `tests/vat.test.js` (`node tests/vat.test.js`).
 
 **Single-rounding of VAT** — In General Cargo, VAT is rounded **once** on the combined Inside + Outside base. Rounding per portion and summing double-rounds: when both portions sit on a half-cent boundary the grand total drifts a cent. The Car module bills each section independently, so its per-section VAT is correct by construction.
 
@@ -390,10 +398,13 @@ portbill/
 │                    /saved-bills); authenticated PUT via Bearer token whose SHA-256
 │                    matches WRITE_TOKEN_HASH Cloudflare secret
 ├── manifest.json  — PWA web app manifest (name, icons, display: standalone, theme_color)
-├── sw.js          — Service worker (cache: portbill-v3): cache-first with background
+├── sw.js          — Service worker (cache: portbill-v5): cache-first with background
 │                    network update; caches index.html, main.js, style.css, favicon.svg,
 │                    manifest.json
-└── favicon.svg    — Compass-rose emblem SVG (gold stroke #c09230); also apple-touch-icon
+├── favicon.svg    — Compass-rose emblem SVG (gold stroke #c09230); also apple-touch-icon
+└── tests/
+    └── vat.test.js — VAT MPA-parity suite (12 cases, banker's-rounding midpoints,
+                      null safety); run with `node tests/vat.test.js`
 ```
 
 ---
@@ -453,7 +464,14 @@ All generated bills carry the notice:
 
 ## Changelog
 
-### v3.7.0 — Current Release
+### v3.7.1 — Current Release
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | VAT | **MPA exact parity**: new shared `calcVATmpa()` — integer poysha-scale math + half-to-even (banker's) rounding, mirroring the Port Authority C# engine `Math.Round((TotalBillBDT ?? 0) * VATPercent / 100m, 2)`. Replaced the half-down `r2` at all 8 VAT sites (Car per-section, Cargo combined-base, breakdown attribution, print builders). Fixes occasional 1-poysha VAT mismatches against printed MPA bills. All non-VAT rounding keeps the half-down port convention |
+| 2 | Tests | Added `tests/vat.test.js` — 12-case parity suite (midpoint, null/undefined safety, real bill totals) that extracts `calcVATmpa` from `main.js` at runtime so the shipped code is what's tested |
+
+### v3.7.0 — Previous Release
 
 | # | Area | Change |
 |---|------|--------|
@@ -464,7 +482,7 @@ All generated bills carry the notice:
 | 5 | CI | Added GitHub Action (`check-encoding.yml`) to detect mojibake on every push, preventing future encoding regressions |
 | 6 | Admin | Admin button is now correctly **hidden by default** — entry is exclusively via Ctrl + Shift + Click; README corrected to match implementation |
 
-### v3.6 — Previous Release
+### v3.6
 
 | # | Area | Change |
 |---|------|--------|
