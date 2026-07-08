@@ -1,9 +1,10 @@
 // Cloudflare Worker for portbill-proxy
 // Routes: GET/PUT /rotations, GET/PUT /saved-bills, GET/PUT /config
+//         POST /track, GET /stats  (usage analytics — requires D1 binding `DB`)
 
 const CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, PUT, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, PUT, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
@@ -18,6 +19,76 @@ function jsonResp(body, status = 200) {
 async function sha256hex(text) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
     return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ── Usage analytics (D1) ────────────────────────────────────────
+// Table: visits (day TEXT, device TEXT, opens INTEGER DEFAULT 1, PRIMARY KEY (day, device))
+// Day boundaries are Asia/Dhaka (UTC+6, no DST).
+
+function dhakaDay(offsetDays = 0) {
+    return new Date(Date.now() + (6 * 3600 + offsetDays * 86400) * 1000)
+        .toISOString()
+        .slice(0, 10);
+}
+
+// POST /track — open endpoint; one row upsert per (day, device)
+async function handleTrack(request, env) {
+    if (!env.DB) return jsonResp({ error: "stats not configured" }, 503);
+    let id = "";
+    try {
+        const body = await request.json();
+        id = String(body.id || "");
+    } catch {
+        return jsonResp({ error: "Invalid JSON body" }, 400);
+    }
+    if (!/^[A-Za-z0-9-]{8,64}$/.test(id)) {
+        return jsonResp({ error: "Invalid device id" }, 400);
+    }
+    await env.DB.prepare(
+        "INSERT INTO visits (day, device) VALUES (?1, ?2) " +
+        "ON CONFLICT(day, device) DO UPDATE SET opens = opens + 1"
+    ).bind(dhakaDay(), id).run();
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
+// GET /stats — bucket totals (exact uniques via COUNT DISTINCT) + daily series.
+// Guarded by the same Bearer / WRITE_TOKEN_HASH check as PUT routes.
+async function handleStats(request, env, url) {
+    if (!env.DB) return jsonResp({ error: "stats not configured" }, 503);
+
+    const tokenHash = env.WRITE_TOKEN_HASH;
+    if (tokenHash) {
+        const authHeader = request.headers.get("Authorization") || "";
+        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+        const submittedHash = token ? await sha256hex(token) : "";
+        if (submittedHash !== tokenHash) {
+            return jsonResp({ error: "Unauthorized" }, 401);
+        }
+    }
+
+    const days = Math.min(366, Math.max(1, Number(url.searchParams.get("days")) || 30));
+    const bucket =
+        "SELECT COUNT(DISTINCT device) AS uniques, COALESCE(SUM(opens), 0) AS opens " +
+        "FROM visits WHERE day >= ?1";
+    const [today, last7, last30, allTime, series] = await env.DB.batch([
+        env.DB.prepare(bucket).bind(dhakaDay()),
+        env.DB.prepare(bucket).bind(dhakaDay(-6)),
+        env.DB.prepare(bucket).bind(dhakaDay(-29)),
+        env.DB.prepare(
+            "SELECT COUNT(DISTINCT device) AS uniques, COALESCE(SUM(opens), 0) AS opens FROM visits"
+        ),
+        env.DB.prepare(
+            "SELECT day, COUNT(*) AS uniques, SUM(opens) AS opens " +
+            "FROM visits WHERE day >= ?1 GROUP BY day ORDER BY day"
+        ).bind(dhakaDay(-(days - 1))),
+    ]);
+    return jsonResp({
+        today: today.results[0],
+        last7: last7.results[0],
+        last30: last30.results[0],
+        allTime: allTime.results[0],
+        days: series.results,
+    });
 }
 
 const PATH_TO_FILE = {
@@ -46,6 +117,14 @@ export default {
       // Handle CORS preflight — always return CORS headers
       if (method === "OPTIONS") {
               return new Response(null, { status: 204, headers: CORS_HEADERS });
+      }
+
+      // Usage analytics routes (D1-backed, independent of the GitHub proxy)
+      if (path === "/track" && method === "POST") {
+              return handleTrack(request, env);
+      }
+      if (path === "/stats" && method === "GET") {
+              return handleStats(request, env, url);
       }
 
       const filename = PATH_TO_FILE[path];

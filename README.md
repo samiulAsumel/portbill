@@ -1,4 +1,4 @@
-# Port Billing System — v3.7.1
+# Port Billing System — v3.8.0
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles and general cargo with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -260,7 +260,7 @@ Single-column on mobile, two-column grid at ≥ 768 px. Optimised for screens fr
 
 The app ships a `manifest.json` and a service worker (`sw.js`). It can be installed to the home screen on Android and iOS, and works **fully offline** after the first load using a cache-first strategy. The service worker is updated on each reload via background network fetch.
 
-> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v5` → `portbill-v6`) so installed users receive updated files immediately. The current cache is `portbill-v5`.
+> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v6` → `portbill-v7`) so installed users receive updated files immediately. The current cache is `portbill-v6`.
 
 ---
 
@@ -370,12 +370,49 @@ The Worker URL is `https://portbill-proxy.sa-sumel91.workers.dev`. All `GET` end
 
 ---
 
+## Usage Analytics (Admin)
+
+An admin-only **Analytics** module counts how many devices open the app per day, week, and month. It is deliberately privacy-first:
+
+- Each browser stores one random UUID (`localStorage.pb_device_id`) — **no names, no IPs, no cookies, no personal data**.
+- One "open" = one browser session (`sessionStorage` guard, so reloads don't inflate counts).
+- One device ≠ one person: the same user on phone and PC counts twice.
+- Counting fails silently offline — the app never blocks on it.
+
+The client sends `POST /track` on startup; the admin panel reads `GET /stats` (guarded by the same `WRITE_TOKEN_HASH` bearer check as writes). Both routes are served by the Worker from a **Cloudflare D1** database — atomic SQL upserts, exact `COUNT(DISTINCT device)` per bucket. Day boundaries are Asia/Dhaka (UTC+6).
+
+**One-time D1 setup:**
+
+```bash
+# 1. Create the database
+wrangler d1 create portbill-stats
+
+# 2. Create the visits table
+wrangler d1 execute portbill-stats --remote --command \
+  "CREATE TABLE IF NOT EXISTS visits (
+     day TEXT NOT NULL, device TEXT NOT NULL,
+     opens INTEGER NOT NULL DEFAULT 1,
+     PRIMARY KEY (day, device));
+   CREATE INDEX IF NOT EXISTS idx_visits_day ON visits(day);"
+
+# 3. Bind it to the Worker as `DB` (dashboard → Worker → Settings → Bindings,
+#    or add a [[d1_databases]] block with binding = "DB" to wrangler.toml)
+
+# 4. Redeploy the Worker
+wrangler deploy worker.js
+```
+
+Until the binding exists both routes return 503 and the app is unaffected — pings fail silently and the Analytics panel shows a "not configured" notice.
+
+---
+
 ## File Structure
 
 ```
 portbill/
 ├── index.html     — Markup: header, module tabs, admin dialog, print-preview dialog,
-│                    Car page (#page-car), Cargo page (#page-cargo), Saved Bills page (#page-saved)
+│                    Car page (#page-car), Cargo page (#page-cargo), Rotation page
+│                    (#page-rotation), Saved Bills page (#page-saved), Analytics page (#page-stats)
 ├── style.css      — All styles (~4480 lines): design tokens, accent variable system,
 │                    component styles, date-field-wrap / .cal icon, toast, inline
 │                    validation, rotation card, saved bills, search bar, responsive
@@ -394,11 +431,13 @@ portbill/
 │                    · Cross-device sync: saveBillsToWorker(), loadBillsFromWorker() (~L5630)
 │                    · Draft auto-save: saveDraft(), clearDraft(), restoreFormDraft() (~L5766)
 │                    · Saved bills: renderSavedBills(), editSavedBill(), printSavedBill() (~L5896)
+│                    · Usage analytics: getDeviceId(), trackVisit(), loadStats(), renderStats() (~L5900)
 ├── worker.js      — Cloudflare Worker proxy: open GET endpoints (/config, /rotations,
 │                    /saved-bills); authenticated PUT via Bearer token whose SHA-256
-│                    matches WRITE_TOKEN_HASH Cloudflare secret
+│                    matches WRITE_TOKEN_HASH Cloudflare secret; D1-backed usage
+│                    analytics (POST /track open, GET /stats bearer-guarded)
 ├── manifest.json  — PWA web app manifest (name, icons, display: standalone, theme_color)
-├── sw.js          — Service worker (cache: portbill-v5): cache-first with background
+├── sw.js          — Service worker (cache: portbill-v6): cache-first with background
 │                    network update; caches index.html, main.js, style.css, favicon.svg,
 │                    manifest.json
 ├── favicon.svg    — Compass-rose emblem SVG (gold stroke #c09230); also apple-touch-icon
@@ -464,14 +503,21 @@ All generated bills carry the notice:
 
 ## Changelog
 
-### v3.7.1 — Current Release
+### v3.8.0 — Current Release
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | Analytics | New admin-only **Analytics** module: daily/weekly/monthly unique users and opens, with stat cards and a 30-day SVG bar chart. Anonymous device UUIDs, one count per browser session, Asia/Dhaka day boundaries |
+| 2 | Worker | `POST /track` (open, validated upsert) and `GET /stats` (bearer-guarded, exact `COUNT(DISTINCT device)` buckets) backed by Cloudflare D1; both return 503 and degrade silently until the `DB` binding is configured |
+
+### v3.7.1 — Previous Release
 
 | # | Area | Change |
 |---|------|--------|
 | 1 | VAT | **MPA exact parity**: new shared `calcVATmpa()` — integer poysha-scale math + half-to-even (banker's) rounding, mirroring the Port Authority C# engine `Math.Round((TotalBillBDT ?? 0) * VATPercent / 100m, 2)`. Replaced the half-down `r2` at all 8 VAT sites (Car per-section, Cargo combined-base, breakdown attribution, print builders). Fixes occasional 1-poysha VAT mismatches against printed MPA bills. All non-VAT rounding keeps the half-down port convention |
 | 2 | Tests | Added `tests/vat.test.js` — 12-case parity suite (midpoint, null/undefined safety, real bill totals) that extracts `calcVATmpa` from `main.js` at runtime so the shipped code is what's tested |
 
-### v3.7.0 — Previous Release
+### v3.7.0
 
 | # | Area | Change |
 |---|------|--------|

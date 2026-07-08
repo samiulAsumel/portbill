@@ -329,7 +329,7 @@ if (document.readyState === "loading") {
 //  MODULE SWITCH
 // ════════════════════════════════════════
 function switchModule(mod) {
-  if ((mod === "rotation" || mod === "saved") && !isAdmin) {
+  if ((mod === "rotation" || mod === "saved" || mod === "stats") && !isAdmin) {
     showToast("Admin login required for this module", "warning");
     mod = "car";
   }
@@ -350,7 +350,9 @@ function switchModule(mod) {
   document.body.classList.toggle("mode-cargo", mod === "cargo");
   document.body.classList.toggle("mode-rotation", mod === "rotation");
   document.body.classList.toggle("mode-saved", mod === "saved");
+  document.body.classList.toggle("mode-stats", mod === "stats");
   if (mod === "saved") renderSavedBills();
+  if (mod === "stats") loadStats();
   globalThis.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -359,6 +361,8 @@ function updateAdminNavigation() {
   const rotPage = document.getElementById("page-rotation");
   const savedTab = document.getElementById("tab-saved");
   const savedPage = document.getElementById("page-saved");
+  const statsTab = document.getElementById("tab-stats");
+  const statsPage = document.getElementById("page-stats");
   if (rotTab) {
     rotTab.hidden = !isAdmin;
     rotTab.tabIndex = isAdmin ? 0 : -1;
@@ -369,11 +373,18 @@ function updateAdminNavigation() {
     savedTab.tabIndex = isAdmin ? 0 : -1;
     savedTab.setAttribute("aria-hidden", isAdmin ? "false" : "true");
   }
+  if (statsTab) {
+    statsTab.hidden = !isAdmin;
+    statsTab.tabIndex = isAdmin ? 0 : -1;
+    statsTab.setAttribute("aria-hidden", isAdmin ? "false" : "true");
+  }
   if (!isAdmin) {
     closeAdminPasswordPanel();
     if (rotPage) rotPage.classList.remove("active");
     if (savedPage) savedPage.classList.remove("active");
-    if (currentModule === "rotation" || currentModule === "saved") switchModule("car");
+    if (statsPage) statsPage.classList.remove("active");
+    if (currentModule === "rotation" || currentModule === "saved" || currentModule === "stats")
+      switchModule("car");
   }
 }
 
@@ -5838,6 +5849,126 @@ async function loadBillsFromWorker() {
   }
 }
 
+// ════════════════════════════════════════
+//  USAGE ANALYTICS  (admin-only module)
+// ════════════════════════════════════════
+// Anonymous per-device counting: a random UUID in localStorage identifies the
+// browser (no PII, no cookies). One "open" = one browser session (sessionStorage
+// guard, so reloads don't inflate counts). Pings fail silently offline — same
+// graceful degradation as the bill sync functions.
+const DEVICE_ID_KEY = "pb_device_id";
+const TRACKED_FLAG_KEY = "pb_tracked";
+
+function getDeviceId() {
+  let id = null;
+  try {
+    id = localStorage.getItem(DEVICE_ID_KEY);
+  } catch (_) { /* storage unavailable */ }
+  if (!id) {
+    id = crypto.randomUUID
+      ? crypto.randomUUID()
+      : Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
+    try {
+      localStorage.setItem(DEVICE_ID_KEY, id);
+    } catch (_) { /* storage unavailable */ }
+  }
+  return id;
+}
+
+async function trackVisit() {
+  try {
+    if (sessionStorage.getItem(TRACKED_FLAG_KEY)) return;
+    const r = await fetch(PROXY_URL + "/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: getDeviceId() }),
+    });
+    if (r.ok) sessionStorage.setItem(TRACKED_FLAG_KEY, "1");
+  } catch (e) {
+    dbg.warn("trackVisit failed:", e.message);
+  }
+}
+
+// Same-day key computation as the Worker: Asia/Dhaka (UTC+6, no DST)
+function statsDayKey(offsetDays) {
+  return new Date(Date.now() + (6 * 3600 + offsetDays * 86400) * 1000)
+    .toISOString()
+    .slice(0, 10);
+}
+
+async function loadStats() {
+  const msg = document.getElementById("statsMsg");
+  if (!msg) return;
+  msg.hidden = false;
+  msg.textContent = "Loading usage data…";
+  try {
+    const headers = {};
+    if (_sessionWriteToken) headers["Authorization"] = "Bearer " + _sessionWriteToken;
+    const r = await fetch(PROXY_URL + "/stats?days=30", { headers });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    renderStats(await r.json());
+    msg.hidden = true;
+  } catch (e) {
+    dbg.warn("loadStats failed:", e.message);
+    msg.textContent =
+      "Analytics unavailable — you are offline, or the Worker stats database is not configured yet.";
+  }
+}
+
+function renderStats(s) {
+  const setNum = (id, v) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = Number(v || 0).toLocaleString("en-US");
+  };
+  setNum("stTodayU", s.today?.uniques);
+  setNum("stTodayO", s.today?.opens);
+  setNum("stWeekU", s.last7?.uniques);
+  setNum("stWeekO", s.last7?.opens);
+  setNum("stMonthU", s.last30?.uniques);
+  setNum("stMonthO", s.last30?.opens);
+  setNum("stAllU", s.allTime?.uniques);
+  setNum("stAllO", s.allTime?.opens);
+
+  const chart = document.getElementById("statsChart");
+  if (!chart) return;
+  const byDay = {};
+  (s.days || []).forEach((d) => {
+    byDay[d.day] = d;
+  });
+  // Fill the last 30 days (zero for days with no visits) so the axis is continuous
+  const days = [];
+  for (let i = 29; i >= 0; i--) {
+    const key = statsDayKey(-i);
+    days.push({ key, uniques: byDay[key] ? Number(byDay[key].uniques) || 0 : 0 });
+  }
+  const max = Math.max(1, ...days.map((d) => d.uniques));
+  const W = 600;
+  const H = 150;
+  const PAD = 4;
+  const LBL = 14;
+  const bw = (W - PAD * 2) / days.length;
+  let bars = "";
+  days.forEach((d, i) => {
+    const h = Math.max(d.uniques > 0 ? 2 : 0, Math.round(((H - LBL - 8) * d.uniques) / max));
+    const x = (PAD + i * bw).toFixed(1);
+    const label = escHtml(d.key.slice(8) + "/" + d.key.slice(5, 7));
+    bars +=
+      `<rect x="${x}" y="${H - LBL - h}" width="${(bw * 0.68).toFixed(1)}" height="${h}" rx="1.5" class="sbar">` +
+      `<title>${escHtml(d.key)} — ${d.uniques} unique user(s)</title></rect>`;
+    if (i % 5 === 0 || i === days.length - 1) {
+      // Anchor edge labels inward so they don't clip outside the viewBox
+      const anchor = i === 0 ? "start" : i === days.length - 1 ? "end" : "middle";
+      const tx = i === 0 ? PAD : i === days.length - 1 ? W - PAD : PAD + i * bw + bw * 0.34;
+      bars += `<text x="${tx.toFixed(1)}" y="${H - 2}" class="sbar-x" text-anchor="${anchor}">${label}</text>`;
+    }
+  });
+  chart.innerHTML =
+    `<svg viewBox="0 0 ${W} ${H}" width="100%" role="presentation" focusable="false">` +
+    `<line x1="${PAD}" y1="${H - LBL - 0.5}" x2="${W - PAD}" y2="${H - LBL - 0.5}" class="sbar-axis"/>` +
+    bars +
+    `</svg>`;
+}
+
 // ─── STARTUP ────────────────────────────────────────────────────
 
 function applyRotationAccessState() {
@@ -5986,6 +6117,7 @@ document.addEventListener("DOMContentLoaded", function() {
   updateAdminNavigation();
   applyRotationAccessState();
   loadRotations();
+  trackVisit();
   // Pull saved bills from cloud — cloud is source of truth for cross-device sync.
   // Falls back silently to existing localStorage data when offline or on 404.
   loadBillsFromWorker().then(function(bills) {

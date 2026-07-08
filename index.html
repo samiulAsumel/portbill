@@ -144,6 +144,17 @@
       >
         Saved Bills
       </button>
+      <button
+        class="tab-btn stats"
+        id="tab-stats"
+        role="tab"
+        aria-selected="false"
+        aria-controls="page-stats"
+        onclick="switchModule('stats')"
+        hidden
+      >
+        Analytics
+      </button>
     </div>
 
     <!-- ADMIN MODAL -->
@@ -1641,6 +1652,60 @@
       </main>
     </div>
 
+    <!-- ════════════════════════════════════════
+         USAGE ANALYTICS MODULE
+    ════════════════════════════════════════ -->
+    <div id="page-stats" class="module-page admin-only-page">
+      <main class="wrap rotation-page">
+        <div class="pgtitle">USAGE ANALYTICS</div>
+        <div class="pgsub">
+          Admin-only — anonymous device counts per day, week and month
+        </div>
+
+        <section class="card rot-registry stats-panel" aria-labelledby="stats-panel-title">
+          <div class="sb-panel-head">
+            <div class="rot-reg-title" id="stats-panel-title">APP USAGE</div>
+            <button type="button" class="rot-reg-add-btn stats-refresh-btn" onclick="loadStats()">
+              &#8635; Refresh
+            </button>
+          </div>
+          <div class="stats-msg" id="statsMsg" hidden></div>
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+              <div class="stat-lbl">Today</div>
+              <div class="stat-num" id="stTodayU">&mdash;</div>
+              <div class="stat-sub"><span id="stTodayO">&mdash;</span> opens</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-lbl">Last 7 Days</div>
+              <div class="stat-num" id="stWeekU">&mdash;</div>
+              <div class="stat-sub"><span id="stWeekO">&mdash;</span> opens</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-lbl">Last 30 Days</div>
+              <div class="stat-num" id="stMonthU">&mdash;</div>
+              <div class="stat-sub"><span id="stMonthO">&mdash;</span> opens</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-lbl">All Time</div>
+              <div class="stat-num" id="stAllU">&mdash;</div>
+              <div class="stat-sub"><span id="stAllO">&mdash;</span> opens</div>
+            </div>
+          </div>
+          <div class="stats-legend">Unique devices — an "open" is one browser session</div>
+          <div class="stats-chart-wrap">
+            <div class="stats-chart-title">Daily unique users &mdash; last 30 days</div>
+            <div class="stats-chart" id="statsChart" role="img" aria-label="Bar chart of daily unique users for the last 30 days"></div>
+          </div>
+          <div class="stats-privacy">
+            Counting is anonymous: each browser stores a random device ID &mdash; no
+            names, no IPs, no personal data. One device &ne; one person (phone and PC
+            count separately).
+          </div>
+        </section>
+      </main>
+    </div>
+
     <footer class="copyright-footer">
       <div class="footer-top">
         <div class="footer-brand">
@@ -1649,7 +1714,7 @@
         </div>
         <div class="footer-tagline">Port Authority Wharfrent Calculator</div>
         <div class="footer-copy">
-          <span class="footer-ver">v3.7.1</span>
+          <span class="footer-ver">v3.8.0</span>
           <span class="footer-sep" aria-hidden="true">·</span>
           <span>&copy; <span id="year"></span> samiulAsumel</span>
         </div>
