@@ -1,4 +1,4 @@
-# Port Billing System — v3.8.0
+# Port Billing System — v3.8.1
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles and general cargo with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -368,6 +368,8 @@ wrangler deploy worker.js
 
 The Worker URL is `https://portbill-proxy.sa-sumel91.workers.dev`. All `GET` endpoints (`/config`, `/rotations`, `/saved-bills`) remain unauthenticated.
 
+`wrangler.toml` in the repo root pins `name`, `main`, and the D1 `[[d1_databases]]` binding, so `wrangler deploy` (after a one-time `wrangler login`) redeploys the Worker with the correct bindings every time — no dashboard clicks required. Secrets (`GH_TOKEN`, `WRITE_TOKEN_HASH`) are set once via `wrangler secret put` and persist across redeploys.
+
 ---
 
 ## Usage Analytics (Admin)
@@ -381,13 +383,15 @@ An admin-only **Analytics** module counts how many devices open the app per day,
 
 The client sends `POST /track` on startup; the admin panel reads `GET /stats` (guarded by the same `WRITE_TOKEN_HASH` bearer check as writes). Both routes are served by the Worker from a **Cloudflare D1** database — atomic SQL upserts, exact `COUNT(DISTINCT device)` per bucket. Day boundaries are Asia/Dhaka (UTC+6).
 
-**One-time D1 setup:**
+**Status: live in production.** The `portbill-stats` D1 database is created, the `visits` table + `idx_visits_day` index exist, and `wrangler.toml` (checked into the repo) pins the `DB` binding to it — `wrangler deploy` picks up the binding automatically, no manual dashboard step needed.
+
+**Reproducing this setup from scratch** (new fork, new Cloudflare account, etc.):
 
 ```bash
 # 1. Create the database
 wrangler d1 create portbill-stats
 
-# 2. Create the visits table
+# 2. Create the visits table + index
 wrangler d1 execute portbill-stats --remote --command \
   "CREATE TABLE IF NOT EXISTS visits (
      day TEXT NOT NULL, device TEXT NOT NULL,
@@ -395,11 +399,12 @@ wrangler d1 execute portbill-stats --remote --command \
      PRIMARY KEY (day, device));
    CREATE INDEX IF NOT EXISTS idx_visits_day ON visits(day);"
 
-# 3. Bind it to the Worker as `DB` (dashboard → Worker → Settings → Bindings,
-#    or add a [[d1_databases]] block with binding = "DB" to wrangler.toml)
+# 3. Copy the database_id from step 1's output into wrangler.toml's
+#    [[d1_databases]] block (binding = "DB")
 
-# 4. Redeploy the Worker
-wrangler deploy worker.js
+# 4. Deploy the Worker
+wrangler login   # one-time Cloudflare OAuth
+wrangler deploy
 ```
 
 Until the binding exists both routes return 503 and the app is unaffected — pings fail silently and the Analytics panel shows a "not configured" notice.
@@ -441,6 +446,8 @@ portbill/
 │                    network update; caches index.html, main.js, style.css, favicon.svg,
 │                    manifest.json
 ├── favicon.svg    — Compass-rose emblem SVG (gold stroke #c09230); also apple-touch-icon
+├── wrangler.toml  — Worker deploy config: pins `name`, `main`, and the D1 `[[d1_databases]]`
+│                    binding (`DB` → `portbill-stats`) so `wrangler deploy` is reproducible
 └── tests/
     └── vat.test.js — VAT MPA-parity suite (12 cases, banker's-rounding midpoints,
                       null safety); run with `node tests/vat.test.js`
@@ -503,7 +510,14 @@ All generated bills carry the notice:
 
 ## Changelog
 
-### v3.8.0 — Current Release
+### v3.8.1 — Current Release
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | Analytics | Analytics module is now **live in production**: `portbill-stats` D1 database and `visits` table (+ `idx_visits_day` index) provisioned, `wrangler.toml` added to pin the `DB` binding, and the Worker redeployed. `/track` and `/stats` verified against the live endpoint |
+| 2 | Deploy | Added `wrangler.toml` and `.gitignore` (excludes local `.wrangler/` cache) so `wrangler deploy` is a single reproducible command instead of manual dashboard bindings |
+
+### v3.8.0
 
 | # | Area | Change |
 |---|------|--------|
