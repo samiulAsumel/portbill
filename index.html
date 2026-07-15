@@ -123,6 +123,16 @@
         General Cargo Billing
       </button>
       <button
+        class="tab-btn reexport"
+        id="tab-reexport"
+        role="tab"
+        aria-selected="false"
+        aria-controls="page-reexport"
+        onclick="switchModule('reexport')"
+      >
+        Re-Export Bill
+      </button>
+      <button
         class="tab-btn rotation"
         id="tab-rotation"
         role="tab"
@@ -441,9 +451,10 @@
                   <div class="pc-accent" style="background:var(--purple);"></div>
                   <div class="pc-body">
                     <div class="pc-name">Removal Charge</div>
+                    <div class="pc-note">2× landing charge</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="rRemoval" value="350" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <input type="number" id="rRemoval" placeholder="0" class="ro pc-rate-input" readonly oninput="carRefresh()" />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-yes">VAT</div>
@@ -1548,6 +1559,448 @@
     </div>
 
     <!-- ════════════════════════════════════════
+         RE-EXPORT BILL MODULE
+    ════════════════════════════════════════ -->
+    <div id="page-reexport" class="module-page">
+      <main class="wrap">
+        <div class="pgtitle">RE-EXPORT BILL</div>
+        <div class="pgsub">
+          Port Authority — Transhipment / Re-Shipment &amp; Payable Charges
+        </div>
+        <div class="weight-note">
+          <div><strong>Hoisting Charge:</strong> 125% of the Landing Rate slab — auto-applied unless the vessel uses its own crane. &nbsp;<strong>Disclaimer:</strong> This bill is for <strong>informational purposes only</strong> and cannot be used as an official reference.</div>
+        </div>
+
+        <div class="layout" id="reexport-inputSection">
+          <!-- LEFT -->
+          <div>
+            <div class="card">
+              <div class="ctitle">
+                Re-Export Details<span class="cnote"
+                  ><span class="lck"></span> Rate &amp; free-time editable</span
+                >
+              </div>
+              <div class="r2 bill-meta-row">
+                <div class="fg">
+                  <label class="lbl" for="reexport-cnfName">C&amp;F Agent / Consignee Name</label>
+                  <input
+                    type="text"
+                    id="reexport-cnfName"
+                    class="cyan-glow"
+                    placeholder="Clearing &amp; Forwarding Agent"
+                    oninput="reexportRefresh()"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="fg">
+                  <label class="lbl" for="reexport-blNumber">BL Number</label>
+                  <input
+                    type="text"
+                    id="reexport-blNumber"
+                    class="cyan-glow"
+                    placeholder="e.g. COSU1234567890"
+                    oninput="reexportRefresh()"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                </div>
+              </div>
+              <div class="r2">
+                <div class="fg">
+                  <label class="lbl" for="reexport-reexportDate"
+                    >Re-Export Date
+                    <span class="lbl-sub">(calculation anchor)</span></label
+                  >
+                  <div class="date-field-wrap">
+                    <input
+                      type="text"
+                      id="reexport-reexportDate"
+                      class="cyan-glow"
+                      placeholder="DD/MM/YYYY"
+                      maxlength="10"
+                      oninput="formatDate(this); reexportRefresh();"
+                      autocomplete="off"
+                    />
+                    <span class="cal" aria-hidden="true"></span>
+                  </div>
+                  <div class="field-hint hint-muted" id="reexport-reexportDate-hint">DD/MM/YYYY</div>
+                </div>
+                <div class="fg" id="reexport-freeTimeFg">
+                  <label class="lbl" for="reexport-freeDays"
+                    >Free Time
+                    <span class="lbl-sub">(days incl. CLD)</span>
+                    <span class="lck"></span></label
+                  >
+                  <input
+                    type="number"
+                    id="reexport-freeDays"
+                    value="20"
+                    min="0"
+                    class="ro"
+                    readonly
+                    oninput="if(+this.value<0)this.value=0;reexportRefresh()"
+                  />
+                </div>
+              </div>
+              <div class="r2" id="reexport-typeRow">
+                <div class="fg">
+                  <label class="lbl">Re-Export Type</label>
+                  <div class="seg" id="reexportTypeSeg" role="group" aria-label="Re-Export Type">
+                    <button type="button" class="seg-btn active" data-value="portside" aria-pressed="true" onclick="setReexportType('portside')">Port Side</button>
+                    <button type="button" class="seg-btn" data-value="overside" aria-pressed="false" onclick="setReexportType('overside')">Overside</button>
+                  </div>
+                  <input type="hidden" id="reexport-type" value="portside">
+                </div>
+                <div class="fg">
+                  <label class="lbl">Wharf Type</label>
+                  <div class="seg" id="reexportWharfSeg" role="group" aria-label="Wharf Type">
+                    <button type="button" class="seg-btn" data-value="same" aria-pressed="false" onclick="setReexportWharfType('same')">Same Wharf (150%)</button>
+                    <button type="button" class="seg-btn active" data-value="diff" aria-pressed="true" onclick="setReexportWharfType('diff')">Different Wharf (200%)</button>
+                  </div>
+                  <input type="hidden" id="reexport-wharfType" value="diff">
+                </div>
+              </div>
+            </div>
+
+            <!-- BILL OF ENTRIES CARD -->
+            <div class="card" id="reexport-beCard">
+              <div class="pbs-card-header">
+                <div class="pbs-card-title">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  Bill of Entries
+                </div>
+                <span class="pbs-count-badge" id="reexport-beCount"></span>
+              </div>
+              <div class="pbs-info-bar">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Landing Rate slab is based on each Bill of Entry's total CLD tonnage. Add a CLD row per landing lot within a Bill of Entry.
+              </div>
+              <div class="pbs-timeline" id="reexport-beContainer"></div>
+              <div class="pbs-footer">
+                <button type="button" class="pbs-add-btn" onclick="addBillOfEntry()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Add Bill of Entry
+                </button>
+              </div>
+            </div>
+
+            <!-- PAYABLE CHARGES — RE-EXPORT -->
+            <div class="card">
+              <div class="ctitle">Payable Charges</div>
+              <div class="pc-list">
+
+                <div class="pc-row" style="--pc-color:var(--gold-hi);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="reexport-chkHoisting" checked oninput="reexportRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--gold-hi);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">Hoisting Charge</div>
+                    <div class="pc-note">125% of landing rate — uncheck if vessel uses own crane</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="re-hoistPct" value="1.25" step="0.01" class="ro pc-rate-input" readonly oninput="reexportRefresh()" />
+                    <span class="pc-unit">× landing</span>
+                  </div>
+                  <div class="pc-vat pc-vat-yes">VAT</div>
+                </div>
+
+                <div class="pc-row" style="--pc-color:var(--green);">
+                  <label class="pc-toggle">
+                    <input type="checkbox" id="reexport-chkLevy" oninput="reexportRefresh()" />
+                    <span class="pc-slider"></span>
+                  </label>
+                  <div class="pc-accent" style="background:var(--green);"></div>
+                  <div class="pc-body">
+                    <div class="pc-name">Levy Charge</div>
+                    <div class="pc-note">Optional — enable if Levy is applicable for this shipment</div>
+                  </div>
+                  <div class="pc-rate-wrap">
+                    <input type="number" id="re-rLevy" value="1.5" step="0.5" class="ro pc-rate-input" readonly oninput="reexportRefresh()" />
+                    <span class="pc-unit">Tk/ton</span>
+                  </div>
+                  <div class="pc-vat pc-vat-no">No VAT</div>
+                </div>
+
+              </div>
+              <div class="vatr">
+                <label class="lbl" for="reexport-vatRate"
+                  >VAT Rate (%) <span class="lck"></span></label
+                ><input
+                  type="number"
+                  id="reexport-vatRate"
+                  value="15"
+                  min="0"
+                  max="100"
+                  step="0.5"
+                  class="ro"
+                  readonly
+                  oninput="reexportRefresh()"
+                />
+              </div>
+            </div>
+
+            <!-- RE-EXPORT RATES — MPA TARIFF -->
+            <div class="card">
+              <div class="ctitle">
+                Re-Export Rates — MPA Tariff<span class="cnote"
+                  ><span class="lck"></span> Admin only</span
+                >
+              </div>
+              <div class="rg">
+                <div>
+                  <div class="rst rn">Structural Rates</div>
+                  <table class="rt rt-grouped">
+                    <thead>
+                      <tr>
+                        <th>Charge</th>
+                        <th>Rate</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="rt-gh">
+                        <td colspan="2">
+                          <svg class="rt-gh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.5h5M9.5 13.5h5"/></svg>
+                          River Dues
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Re-export (flat)</td>
+                        <td>
+                          <span class="rspan" id="dre-rRiver">33</span
+                          ><input type="number" id="re-rRiver" value="33" style="display:none" class="ro" readonly oninput="syncSpan('re-rRiver','dre-rRiver'); reexportRefresh();" />
+                        </td>
+                      </tr>
+
+                      <tr class="rt-gh">
+                        <td colspan="2">
+                          <svg class="rt-gh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                          Wharf Rent — Tiered by Day
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Days 1–20</td>
+                        <td>
+                          <span class="rspan" id="dre-wharfLow">5</span
+                          ><input type="number" id="re-wharfLow" value="5" style="display:none" class="ro" readonly oninput="syncSpan('re-wharfLow','dre-wharfLow'); reexportRefresh();" />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Days 21+</td>
+                        <td>
+                          <span class="rspan" id="dre-wharfHigh">15</span
+                          ><input type="number" id="re-wharfHigh" value="15" style="display:none" class="ro" readonly oninput="syncSpan('re-wharfHigh','dre-wharfHigh'); reexportRefresh();" />
+                        </td>
+                      </tr>
+
+                      <tr class="rt-gh">
+                        <td colspan="2">
+                          <svg class="rt-gh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10 3 14l4 4"/><path d="M3 14h13"/><path d="M17 6l4 4-4 4"/><path d="M21 10H8"/></svg>
+                          Re-Shipment — by Wharf Type
+                          <span class="rt-live-tag">● LIVE</span>
+                        </td>
+                      </tr>
+                      <tr id="re-reship-same-row" class="rt-choice">
+                        <td>Same Wharf (150%) <span class="rt-active-badge" id="re-reship-same-badge">✓ Applicable</span></td>
+                        <td>
+                          <span class="rspan" id="dre-reshipSame">1.5</span
+                          ><input type="number" id="re-reshipSame" value="1.5" step="0.01" style="display:none" class="ro" readonly oninput="syncSpan('re-reshipSame','dre-reshipSame'); reexportRefresh();" />
+                        </td>
+                      </tr>
+                      <tr id="re-reship-diff-row" class="rt-choice">
+                        <td>Different Wharf (200%) <span class="rt-active-badge" id="re-reship-diff-badge">✓ Applicable</span></td>
+                        <td>
+                          <span class="rspan" id="dre-reshipDiff">2</span
+                          ><input type="number" id="re-reshipDiff" value="2" step="0.01" style="display:none" class="ro" readonly oninput="syncSpan('re-reshipDiff','dre-reshipDiff'); reexportRefresh();" />
+                        </td>
+                      </tr>
+
+                      <tr class="rt-gh">
+                        <td colspan="2">
+                          <svg class="rt-gh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="7" width="13" height="9" rx="1"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="5.5" cy="18.5" r="1.8"/><circle cx="17.5" cy="18.5" r="1.8"/></svg>
+                          Removal Charge
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Multiplier</td>
+                        <td>
+                          <span class="rspan" id="dre-removalMult">7</span
+                          ><input type="number" id="re-removalMult" value="7" style="display:none" class="ro" readonly oninput="syncSpan('re-removalMult','dre-removalMult'); reexportRefresh();" />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div>
+                  <div class="rst rsl">Landing Rate Slabs (Tk/ton)</div>
+                  <table class="rt">
+                    <thead>
+                      <tr>
+                        <th>Total Bill of Entry Weight</th>
+                        <th>Rate (Tk)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>≤ 3,000 Kg</td>
+                        <td>
+                          <span class="rspan" id="dre-land1">90</span
+                          ><input type="number" id="re-land1" value="90" style="display:none" class="ro" readonly oninput="syncSpan('re-land1','dre-land1'); reexportRefresh();" />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>3,001–20,000 Kg</td>
+                        <td>
+                          <span class="rspan" id="dre-land2">180</span
+                          ><input type="number" id="re-land2" value="180" style="display:none" class="ro" readonly oninput="syncSpan('re-land2','dre-land2'); reexportRefresh();" />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>&gt; 20,000 Kg</td>
+                        <td>
+                          <span class="rspan" id="dre-land3">250</span
+                          ><input type="number" id="re-land3" value="250" style="display:none" class="ro" readonly oninput="syncSpan('re-land3','dre-land3'); reexportRefresh();" />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- RIGHT -->
+          <div>
+            <div class="sp">
+              <div class="ctitle">
+                Quick Preview
+                <span class="sp-live-badge">● LIVE</span>
+              </div>
+              <div class="sp-mod-label">Re-Export Bill Module</div>
+              <div id="reexport-preview">
+                <div class="sp-idle">
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <path d="M8 21h8M12 17v4" />
+                  </svg>
+                  <span
+                    >Fill in Bill of Entry details<br />to see live cost
+                    preview</span
+                  >
+                </div>
+              </div>
+              <div class="sp-actions sp-actions-car">
+                <button type="button" class="car-gen-btn" onclick="reexportCalculate()" aria-label="Generate re-export bill">
+                  <span class="cgb-icon" aria-hidden="true">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      stroke="none"
+                    >
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                  </span>
+                  <span class="cgb-text">GENERATE BILL</span>
+                  <svg
+                    class="cgb-arrow"
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <button type="button" class="car-reset-btn" onclick="reexportReset()">
+                  <svg
+                    class="crb-icon"
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                    />
+                    <path d="M3 3v5h5" />
+                  </svg>
+                  Reset
+                </button>
+              </div>
+            </div>
+            <div class="card card--rules">
+              <div class="ctitle">Billing Rules</div>
+              <div class="guide">
+                <div>① Port Side: Re-export date ≤ CLD date → validation error</div>
+                <div>② Port Side: Re-export date within 20-day free period → Wharf Rent = 0</div>
+                <div>③ Port Side: Removal ton = 0 → Removal row skipped</div>
+                <div>④ <span style="color: var(--sky)">Overside</span> → CLD not required, no Wharf Rent, no Removal, Hoisting off by default</div>
+                <div>⑤ Hoisting unchecked → Hoisting row skipped (both types)</div>
+                <div>⑥ Port Side: multiple CLD dates per Bill of Entry → each Wharf Rent calculated separately; slab uses SUM of all CLD tons</div>
+                <div>⑦ Same vs Different Wharf → affects Re-Shipment % only; Removal stays 7× (Port Side)</div>
+                <div>⑧ VAT always applies — excludes Levy</div>
+                <div>⑨ Levy unchecked (default) → Levy row skipped</div>
+                <div>⑩ <span class="lck"></span> Levy checked adds Tk 1.50/ton after VAT — rates editable by Admin only</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RE-EXPORT RESULTS -->
+        <div id="reexport-results">
+          <hr />
+          <div class="rh">
+            <div class="rtitle reexport">RE-EXPORT BILL STATEMENT</div>
+            <div class="bill-action-group">
+              <button type="button" class="save-btn" onclick="saveBill('reexport')" aria-label="Save re-export bill">Save Bill</button>
+            <button type="button" class="print-btn" onclick="printBill('reexport')" aria-label="Print re-export bill">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <polyline points="6 9 6 2 18 2 18 9" />
+                <path
+                  d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+                />
+                <rect x="6" y="14" width="12" height="8" />
+              </svg>
+              Print Bill
+            </button>
+            </div>
+          </div>
+          <div id="reexport-ibar"></div>
+          <div class="sr" id="reexport-srow"></div>
+          <div id="reexport-beSec"></div>
+          <div id="reexport-grandSec">
+            <div class="bill-empty-state" id="reexport-empty">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <div class="bes-title">No bill generated yet</div>
+              <div class="bes-sub">Add at least one Bill of Entry with a CLD lot above</div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ════════════════════════════════════════
          ADMIN ROTATION REGISTRY
     ════════════════════════════════════════ -->
     <div id="page-rotation" class="module-page admin-only-page">
@@ -1593,6 +2046,9 @@
           </button>
           <button class="saved-sub-tab" id="saved-sub-cargo" role="tab" aria-selected="false" aria-controls="saved-cargo-panel" onclick="switchSavedTab('cargo')">
             General Cargo Bills
+          </button>
+          <button class="saved-sub-tab" id="saved-sub-reexport" role="tab" aria-selected="false" aria-controls="saved-reexport-panel" onclick="switchSavedTab('reexport')">
+            Re-Export Bills
           </button>
         </div>
 
@@ -1646,6 +2102,33 @@
                 </tr>
               </thead>
               <tbody id="savedCargoTbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- RE-EXPORT BILLS PANEL -->
+        <section id="saved-reexport-panel" class="card rot-registry" style="display:none;" aria-labelledby="saved-reexport-title">
+          <div class="sb-panel-head">
+            <div class="rot-reg-title" id="saved-reexport-title">RE-EXPORT SAVED BILLS</div>
+            <div class="sb-search-wrap">
+              <input type="search" id="sbReexportSearch" class="sb-search" placeholder="Search bill no., BL, C&amp;F, CLD…" oninput="sbSearch('reexport',this.value)" autocomplete="off" />
+            </div>
+          </div>
+          <div class="rot-reg-table-wrap">
+            <table class="rot-reg-table saved-bills-table" id="savedReexportTable">
+              <thead>
+                <tr>
+                  <th>Sl.</th>
+                  <th>Bill Number</th>
+                  <th>CLD</th>
+                  <th>Delivery</th>
+                  <th>CNF / BL No</th>
+                  <th>Total (Tk)</th>
+                  <th>Saved On</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="savedReexportTbody"></tbody>
             </table>
           </div>
         </section>
@@ -1714,7 +2197,7 @@
         </div>
         <div class="footer-tagline">Port Authority Wharfrent Calculator</div>
         <div class="footer-copy">
-          <span class="footer-ver">v3.8.1</span>
+          <span class="footer-ver">v3.10.1</span>
           <span class="footer-sep" aria-hidden="true">·</span>
           <span>&copy; <span id="year"></span> samiulAsumel</span>
         </div>

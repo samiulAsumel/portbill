@@ -41,6 +41,15 @@
   --sky-bdr:   rgba(14,165,233,0.22);
   --sky-ring:  rgba(14,165,233,0.30);
 
+  /* Teal — re-export module */
+  --teal:      #10b981;
+  --teal-hi:   #34d399;
+  --teal-lo:   #059669;
+  --teal-bg:   rgba(16,185,129,0.08);
+  --teal-bdr:  rgba(16,185,129,0.22);
+  --teal-ring: rgba(16,185,129,0.30);
+  --teal-rgb:  16,185,129;
+
   /* Semantic */
   --blue:   #3b82f6;
   --purple: #a855f7;
@@ -972,6 +981,10 @@ input.rate-input, input[type='number'].rate-field { text-align: right; }
   background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.18);
   color: var(--red);
 }
+.rsl {
+  background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.18);
+  color: var(--teal);
+}
 .rt {
   width: 100%; border-collapse: collapse;
   font-family: 'DM Mono', monospace;
@@ -1254,6 +1267,7 @@ input.rate-input, input[type='number'].rate-field { text-align: right; }
 .v-purple { color: var(--purple); }
 .v-green  { color: var(--green); }
 .v-cyan   { color: var(--sky); }
+.v-teal   { color: var(--teal); }
 
 /* Grand total preview row */
 .pvr.pvr-grand {
@@ -1329,6 +1343,8 @@ hr {
 }
 .rtitle.cargo { color: var(--sky); }
 .rtitle.cargo::after { background: linear-gradient(90deg, var(--sky), transparent); }
+.rtitle.reexport { color: var(--teal); }
+.rtitle.reexport::after { background: linear-gradient(90deg, var(--teal), transparent); }
 
 /* Split billing warning */
 .warn {
@@ -2222,6 +2238,12 @@ header::before {
 }
 .rtitle.cargo {
   background: linear-gradient(130deg, var(--sky-hi) 0%, var(--sky) 55%, var(--sky-lo) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.rtitle.reexport {
+  background: linear-gradient(130deg, var(--teal-hi) 0%, var(--teal) 55%, var(--teal-lo) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -3200,6 +3222,17 @@ body.mode-cargo {
   --accent-rgb:  14,165,233;
 }
 
+/* ── Re-Export module: override accent to teal ── */
+body.mode-reexport {
+  --accent:      var(--teal);
+  --accent-hi:   var(--teal-hi);
+  --accent-lo:   var(--teal-lo);
+  --accent-bg:   var(--teal-bg);
+  --accent-bdr:  var(--teal-bdr);
+  --accent-ring: var(--teal-ring);
+  --accent-rgb:  16,185,129;
+}
+
 /* ── Tabular / lining numerals for all financial data ── */
 .bt td, .bt th,
 .ptbl td, .ptbl th,
@@ -3255,6 +3288,12 @@ button:focus-visible,
   background: rgba(14,165,233,0.07);
   border-color: rgba(14,165,233,0.22);
   color: var(--sky);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 2px 10px rgba(0,0,0,0.22);
+}
+.tab-btn.reexport.active {
+  background: rgba(16,185,129,0.07);
+  border-color: rgba(16,185,129,0.22);
+  color: var(--teal);
   box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 2px 10px rgba(0,0,0,0.22);
 }
 .tab-btn.rotation.active {
@@ -4505,6 +4544,7 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
 
 /* Cargo module — page-level overrides (replaces inline style="" in HTML) */
 body.mode-cargo .pgsub { color: var(--m1); }
+body.mode-reexport .pgsub { color: var(--m1); }
 
 /* Billing rules card — dashed outline, transparent fill */
 .card--rules {
@@ -4512,6 +4552,200 @@ body.mode-cargo .pgsub { color: var(--m1); }
   background: transparent;
 }
 body.mode-cargo .card--rules { border-color: rgba(14,165,233,0.20); }
+body.mode-reexport .card--rules { border-color: rgba(16,185,129,0.20); }
+
+/* Re-Export: Bill of Entry timeline — teal tint on the shared .pbs-* pattern */
+#reexport-beCard .pbs-card-title,
+#reexport-beCard .pbs-add-btn,
+#reexport-beContainer .pbs-title { color: var(--teal); }
+#reexport-beCard .pbs-count-badge {
+  color: var(--teal);
+  background: rgba(16,185,129,0.1);
+  border-color: rgba(16,185,129,0.25);
+}
+#reexport-beCard .pbs-info-bar {
+  background: rgba(16,185,129,0.04);
+  border-color: rgba(16,185,129,0.12);
+}
+#reexport-beContainer .pbs-dot {
+  background: rgba(16,185,129,0.12);
+  border-color: rgba(16,185,129,0.35);
+}
+#reexport-beContainer .pbs-dot span { color: var(--teal); }
+#reexport-beContainer .pbs-line {
+  background: linear-gradient(to bottom, rgba(16,185,129,0.30), rgba(16,185,129,0.08));
+}
+#reexport-beContainer .pbs-body {
+  background: rgba(16,185,129,0.04);
+  border-color: rgba(16,185,129,0.13);
+}
+/* Bill of Entry fields: equal-width columns (Cargo's Part Billing keeps its own
+   1fr/1.4fr split for the wider balance-grid, so this override is scoped here) */
+#reexport-beContainer .pbs-fields { grid-template-columns: 1fr 1fr; }
+#reexport-beContainer .pbs-fields.pbs-fields-3col { grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 580px) {
+  #reexport-beContainer .pbs-fields,
+  #reexport-beContainer .pbs-fields.pbs-fields-3col { grid-template-columns: 1fr; }
+}
+#reexport-beCard .pbs-add-btn {
+  background: rgba(16,185,129,0.10);
+  border-color: rgba(16,185,129,0.28);
+}
+#reexport-beCard .pbs-add-btn:hover {
+  background: rgba(16,185,129,0.18);
+  border-color: rgba(16,185,129,0.40);
+}
+#reexport-beCard .pbs-footer { border-top-color: rgba(16,185,129,0.12); }
+
+/* Re-Export: nested CLD rows inside a Bill of Entry */
+.re-cld-list { display: flex; flex-direction: column; }
+.re-cld-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.re-cld-row .r2 { flex: 1; margin-bottom: 0; }
+.re-cld-del-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 38px;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.20);
+  color: var(--red); border-radius: 6px;
+  cursor: pointer; transition: var(--t-fast);
+  flex-shrink: 0;
+  font-size: 12px; line-height: 1;
+}
+.re-cld-del-btn:hover {
+  background: rgba(239,68,68,0.18);
+  border-color: rgba(239,68,68,0.38);
+}
+.re-cld-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--bdr-1);
+}
+.re-add-cld-btn { align-self: flex-start; padding: 6px 14px; font-size: 11px; }
+.re-cld-actions .fg { max-width: 220px; }
+
+/* Reusable inline unit-suffix adornment for tonnage inputs */
+.in-unit-wrap { position: relative; display: block; }
+.in-unit-wrap > input { padding-right: 38px !important; }
+.in-unit {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.3px;
+  color: var(--tx-2); pointer-events: none; user-select: none;
+}
+#reexport-beContainer .in-unit { color: rgba(16,185,129,0.55); }
+#reexport-beContainer .lbl svg { opacity: 0.55; flex-shrink: 0; }
+
+/* ── Segmented control: binary-choice pill toggle (generic, accent-aware) ── */
+.seg {
+  display: flex;
+  border: 1px solid var(--bdr-2);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--bg-input);
+}
+.seg-btn {
+  flex: 1;
+  padding: 9px 8px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--bdr-2);
+  color: var(--tx-2);
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+  text-align: center;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.seg-btn:last-child { border-right: none; }
+.seg-btn:hover { color: var(--tx-0); background: var(--bg-hover); }
+.seg-btn.active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent-bdr);
+}
+.seg-btn:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: -2px; }
+
+/* Re-Export: when Free Time is hidden (Overside), let Re-Export Date expand */
+.r2.single-col { grid-template-columns: 1fr; }
+
+/* Re-Export: Generate/Reset action buttons — teal branding (id-scoped beats
+   the plain .car-gen-btn/.car-reset-btn gold rules by specificity) */
+#page-reexport .car-gen-btn {
+  background: linear-gradient(135deg, var(--teal-hi) 0%, var(--teal) 50%, var(--teal-lo) 100%);
+  box-shadow: 0 2px 12px rgba(16,185,129,0.25), 0 1px 3px rgba(0,0,0,0.3);
+}
+#page-reexport .car-gen-btn:hover {
+  box-shadow: 0 6px 24px rgba(16,185,129,0.35), 0 2px 8px rgba(0,0,0,0.3);
+}
+#page-reexport .car-reset-btn:hover {
+  border-color: var(--teal-bdr);
+  color: var(--teal);
+  background: var(--teal-bg);
+}
+
+/* Re-Export: Rates table — grouped sections with icon headers */
+.rt-grouped .rt-gh td {
+  padding: 10px 4px 5px;
+  border-bottom: none;
+  color: var(--teal);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rt-grouped tr.rt-gh:first-child td { padding-top: 2px; }
+.rt-gh-icon { flex-shrink: 0; opacity: 0.85; }
+.rt-live-tag {
+  margin-left: auto;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--teal);
+  background: rgba(16,185,129,0.12);
+  border: 1px solid rgba(16,185,129,0.28);
+  border-radius: 20px;
+  padding: 1px 7px;
+}
+
+/* Re-Export: live-highlighted Re-Shipment rate row (matches Wharf Type selection) */
+.rt-choice td:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rt-active-badge {
+  display: none;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--teal);
+  background: rgba(16,185,129,0.14);
+  border: 1px solid rgba(16,185,129,0.32);
+  border-radius: 20px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+.rt-choice.active {
+  background: var(--teal-bg);
+  box-shadow: inset 3px 0 0 var(--teal);
+}
+.rt-choice.active td { color: var(--tx-0); }
+.rt-choice.active .rspan { color: var(--teal); font-weight: 700; }
+.rt-choice.active .rt-active-badge { display: inline-flex; }
 
 /* Cargo results divider */
 .hr-cargo { border-color: rgba(34,211,238,0.15); }

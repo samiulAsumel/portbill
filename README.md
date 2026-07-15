@@ -1,6 +1,6 @@
-# Port Billing System — v3.8.1
+# Port Billing System — v3.10.1
 
-A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles and general cargo with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
+A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles, general cargo, and re-export (transhipment/re-shipment) bills with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
 **Live:** [samiulAsumel.github.io/portbill](https://samiulAsumel.github.io/portbill)
 
@@ -8,10 +8,11 @@ A zero-dependency, browser-native billing calculator for **Port Authority wharfr
 
 ## Modules
 
-| Module                    | Scope                                 | Weight range             | Split billing                          |
-| ------------------------- | ------------------------------------- | ------------------------ | -------------------------------------- |
-| **Car Billing**           | Vehicles (passenger cars, SUVs, etc.) | Any weight (default 2 t) | Yes — rate cut 23 Jul 2024             |
-| **General Cargo Billing** | Bulk / general cargo                  | Unlimited                | Self-drive tons — rate cut 23 Jul 2024 |
+| Module                    | Scope                                                     | Weight range                 | Split billing                          |
+| ------------------------- | ---------------------------------------------------------- | ----------------------------- | -------------------------------------- |
+| **Car Billing**           | Vehicles (passenger cars, SUVs, etc.)                     | Any weight (default 2 t)     | Yes — rate cut 23 Jul 2024             |
+| **General Cargo Billing** | Bulk / general cargo                                      | Unlimited                     | Self-drive tons — rate cut 23 Jul 2024 |
+| **Re-Export Bill**        | Transhipment / re-shipment cargo (Port Side or Overside) | Unlimited, per Bill of Entry | No — single continuous tariff          |
 
 ---
 
@@ -54,12 +55,12 @@ Each section carries its **own** sub-total, VAT, and Levy (`base + VAT + Levy = 
 | ---------------- | ---------------------------------- | -------------- | -------------------------------------------- |
 | River Dues       | 33 Tk / ton                        | 15%            | Applied to full vehicle weight               |
 | Landing Charge   | 175 Tk / ton                       | 15%            | Applied to full vehicle weight               |
-| Removal Charge   | 350 Tk / ton                       | 15%            | Applied to full vehicle weight               |
+| Removal Charge   | `rLanding × 2` Tk / ton           | 15%            | Formula-derived (MPA Tariff §8.3, manual removal) — always 2× Landing, read-only |
 | Weighment Charge | 2.5 Tk / ton                       | 15%            | Applied to full vehicle weight               |
 | Hoisting Charge  | `rLanding × 1.25 × 0.50` Tk / ton | 15%            | Displayed as `(rLanding × 1.25) × 0.50/ton` |
 | Levy Charge      | 1.5 Tk / ton                       | **VAT-exempt** | Added after VAT calculation                  |
 
-Each charge has a checkbox — uncheck to exclude it from the bill. All rates are **locked in user mode** and can only be edited by Admin. Hoisting Charge rate is computed from Landing Charge as `rLanding × 1.25 × 0.50` and displayed with the `× 0.50` multiplier explicit.
+Each charge has a checkbox — uncheck to exclude it from the bill. All rates are **locked in user mode** and can only be edited by Admin, except Removal and Hoisting, which are **formula-derived and read-only even for Admin** since they track Landing Charge automatically. Hoisting Charge rate is computed from Landing Charge as `rLanding × 1.25 × 0.50`, and Removal Charge as `rLanding × 2` — both displayed on the bill line item with the formula explicit (e.g. `175.00 × 2`). Saved/draft bills snapshot the rate at save time, so historical bills keep their original figure even if Landing Charge is changed later.
 
 ### Bill Calculation Formula
 
@@ -152,6 +153,82 @@ When Hoisting is checked and Self Drive is active, SD tons are charged at **half
 
 ---
 
+## Re-Export Bill
+
+Bills transhipment / re-shipment cargo under the Port Authority's separate transhipment tariff — a distinct rate table and free-time rule from Car/Cargo, with support for multiple **Bills of Entry (BE)** per document and multiple landing lots per BE.
+
+### Re-Export Type: Port Side vs. Overside
+
+| Type          | Meaning                                                    | Wharf Rent | CLD required | Removal | Hoisting default |
+| ------------- | ----------------------------------------------------------- | ---------- | ------------- | ------- | ----------------- |
+| **Port Side** | Cargo lands and is stored at the port before re-export     | Yes        | Yes           | Yes (optional ton) | On                 |
+| **Overside**  | Direct ship-to-ship transfer — no port storage at all      | No         | No (optional) | No      | Off                |
+
+Selecting **Overside** collapses each Bill of Entry to a flat BE Number / BE Date / Ton row (no nested landing lots, no wharf rent, no removal) since there's nothing stored at the port to charge rent on.
+
+### Bill of Entries (Port Side)
+
+Each Re-Export document can hold **multiple Bills of Entry**, and each BE can hold **multiple CLD (landing) lots** — a cargo lot arriving and being billed separately within the same BE. The Landing Rate tier for a BE is picked from the **sum of all its CLD tonnage**; wharf rent is calculated **per CLD lot** (each lot has its own free-time window and chargeable-days count) and summed into the BE's total.
+
+### Free Time & Wharf Rent Tiers
+
+| Parameter        | Default                                     |
+| ----------------- | -------------------------------------------- |
+| Free Time         | **20 days** from CLD (admin-configurable)   |
+| Days 1–20 (after free time) | 5 Tk / ton / day                  |
+| Days 21+           | 15 Tk / ton / day                          |
+
+Wharf rent starts the day after free time ends and is **0** if the Re-Export Date falls within the free-time window. Each CLD lot shows its own "Free Time Ends" / "Wharf Rent Starts" dates and a per-tier day/rate/amount breakdown on the bill — the same level of detail as the General Cargo bill statement.
+
+### Landing Rate Tiers
+
+Same boundaries as General Cargo, applied per-BE to the summed CLD tonnage:
+
+| Total BE tonnage        | Landing rate |
+| ------------------------ | ------------- |
+| ≤ 3 tons                | 90 Tk / ton  |
+| > 3 tons and ≤ 20 tons  | 180 Tk / ton |
+| > 20 tons                | 250 Tk / ton |
+
+### Payable Charges
+
+| Charge                            | Rate formula                                  | VAT            | Applies to          |
+| ----------------------------------- | ----------------------------------------------- | -------------- | -------------------- |
+| River Dues                        | 33 Tk / ton                                    | 15%            | Port Side only       |
+| Hoisting Charge                   | `Landing Rate × 1.25`                         | 15%            | Both types (default off for Overside) |
+| Re-Shipment (Same Wharf)          | `Landing Rate × 150%`                         | 15%            | Both types            |
+| Re-Shipment (Different Wharf)     | `Landing Rate × 200%`                         | 15%            | Both types            |
+| Removal Charge                    | `Landing Rate × 7`                            | 15%            | Port Side, optional Removal Ton input |
+| Levy Charge                       | 1.5 Tk / ton                                   | **VAT-exempt** | Both types            |
+
+The **Wharf Type** toggle (Same / Different) picks which Re-Shipment multiplier applies — 150% when re-exporting from the same wharf it landed on, 200% from a different wharf. Removal Charge's `× 7` multiplier is a documented port-practice figure distinct from the MPA tariff's general `× 8` manual-removal rate (see Car/Cargo Removal Charge above) — a deliberate Re-Export-specific deviation, not a bug.
+
+### Bill Calculation Formula
+
+Re-Export follows the same **combined-base, single-VAT** model as General Cargo, generalized across N Bills of Entry:
+
+```
+Per BE:  vatBase = Wharf Rent (Σ CLD lots) + River Dues + Hoisting + Re-Shipment + Removal   (Levy excluded)
+
+vatBaseTotal = Σ (per-BE vatBase)
+VAT          = vatBaseTotal × vatRate        (computed once, calcVATmpa)
+levyTotal    = Σ (per-BE Levy)
+Grand Total  = vatBaseTotal + VAT + levyTotal
+```
+
+Each BE's result section on screen/print shows only its `vatBase` sub-total; a single closing **Bill Summary** block renders `vatBaseTotal → VAT → Levy → Grand Total` — identical reasoning to Cargo's single-VAT model (per-portion rounding can drift a cent at half-cent boundaries).
+
+### Billing Rules
+
+1. **Port Side**: Re-export date must be strictly after every CLD it bills — an earlier or equal date is a validation error.
+2. **Port Side**: if the Re-export date falls within the 20-day free period, Wharf Rent = 0 for that lot.
+3. **Port Side**: Removal Ton = 0 (or left blank) skips the Removal row entirely.
+4. **Overside**: no CLD requirement, no Wharf Rent, no Removal — Hoisting defaults **off** (still toggleable on).
+5. Unchecking Hoisting skips its row for either type.
+6. **Port Side**: multiple CLD dates per BE each get their own Wharf Rent calculation; the Landing Rate slab uses the **sum** of all CLD tons in that BE.
+
+---
+
 ## Features
 
 ### Live Quick Preview
@@ -164,20 +241,20 @@ All date fields auto-insert slashes as you type — enter `26062024` and the fie
 
 ### Inline Date Validation
 
-Date fields show a `DD/MM/YYYY` hint below the input. The hint turns **red** for invalid dates and **green** for valid ones — updated on every keystroke. This applies to CLD, Delivery, and the optional **Bill of Entry Date** field in both modules.
+Date fields show a `DD/MM/YYYY` hint below the input. The hint turns **red** for invalid dates and **green** for valid ones — updated on every keystroke. This applies to CLD, Delivery, and the optional **Bill of Entry Date** field across all three modules (per-BE for Re-Export).
 
 The validator (`isValidDateStr`) uses a **calendar rollover guard**: after constructing the `Date` object it re-checks that `getFullYear`, `getMonth`, and `getDate` match the parsed parts. This prevents impossible dates such as `31/02/2024` from silently rolling over to March 2 and producing wrong billing periods.
 
 **Cross-field date-order checks** run once both fields hold a well-formed date:
 
-- **Delivery vs. CLD** (both modules): the delivery date may not fall before the CLD. On conflict the delivery field is flagged red with *"Delivery date is before CLD"*.
+- **Delivery vs. CLD** (Car/Cargo) / **Re-export Date vs. CLD** (Re-Export): the delivery (or re-export) date may not fall before — or for Re-Export Port Side, on or before — the CLD it bills. On conflict the field is flagged red with an inline error message.
 - **Part-billing stage dates** (Cargo): each stage's delivery is checked against the running timeline — the offending stage shows the earliest allowed date inline.
 
 Printing is blocked while any date-order conflict exists.
 
 ### Bill of Entry Date
 
-Both modules have an optional **Bill of Entry Date** field alongside the Bill of Entry Number. The date validates the same way as CLD/delivery (green / red / muted hint) and is included in the printed invoice header when filled.
+Car and Cargo have an optional **Bill of Entry Date** field alongside the Bill of Entry Number; Re-Export has the same field per-BE (**BE Date**). The date validates the same way as CLD/delivery (green / red / muted hint) and is included in the printed invoice when filled.
 
 ### Print Preview & Invoice
 
@@ -185,13 +262,13 @@ Clicking **Print Bill** opens a full-screen print preview dialog. Click **Print*
 
 **Invoice color palette (module-aware):**
 
-| Element                        | Car invoice         | Cargo invoice      |
-| ------------------------------ | ------------------- | ------------------ |
-| Letterhead / primary borders   | Deep navy `#0b1d3c` | Same               |
-| Accent rule, title, grand bar  | Warm gold `#c09230` | Sky blue `#0ea5e9` |
-| Inside Port section            | Royal blue `#1050a8`| Same               |
-| Outside Port section           | Indigo `#5020b0`    | Same               |
-| Payable Charges section        | Forest green `#0a5c3c`| Same             |
+| Element                        | Car invoice         | Cargo invoice      | Re-Export invoice  |
+| ------------------------------ | ------------------- | ------------------ | ------------------- |
+| Letterhead / primary borders   | Deep navy `#0b1d3c` | Same               | Same                |
+| Accent rule, title, grand bar  | Warm gold `#c09230` | Sky blue `#0ea5e9` | Teal `#10b981`      |
+| Inside Port section            | Royal blue `#1050a8`| Same               | —                    |
+| Outside Port section           | Indigo `#5020b0`    | Same               | —                    |
+| Payable Charges section        | Forest green `#0a5c3c`| Same             | Same                |
 
 **Invoice contents:**
 
@@ -200,7 +277,7 @@ Clicking **Print Bill** opens a full-screen print preview dialog. Click **Print*
 - Itemised wharfrent slab table with calculation sub-rows
 - Payable charges table with calc sub-rows
 - **Car:** each Inside / Outside section closes with its own `Sub-Total → VAT → Levy → SECTION TOTAL`, then the Car Grand Total sums the two
-- **General Cargo:** single closing **Bill Summary** block: `Total Base → VAT → Levy → GRAND TOTAL`
+- **General Cargo / Re-Export:** single closing **Bill Summary** block: `Total Base → VAT → Levy → GRAND TOTAL` (Re-Export: per-BE sub-totals combined into one `vatBaseTotal`)
 - Three-column authorisation signature block
 - `NOT AN OFFICIAL DOCUMENT` footer disclaimer
 
@@ -220,7 +297,7 @@ Bill numbers are date-prefixed and auto-sequenced per day (e.g. `CA-20240626-001
 
 ### Draft Auto-Save
 
-Every **10 seconds**, the current form state is automatically saved to `localStorage` as a draft for both modules. On next page load, if the draft contains meaningful user input (BL number, C&F agent, or Bill of Entry number is non-empty), the form is silently restored and a toast notification confirms the restore.
+Every **10 seconds**, the current form state is automatically saved to `localStorage` as a draft for all three modules (Re-Export's draft also snapshots its nested Bills of Entry / CLD lot state). On next page load, if the draft contains meaningful user input (BL number, C&F agent, or Bill of Entry number is non-empty), the form is silently restored and a toast notification confirms the restore.
 
 Drafts are cleared when the user explicitly resets the form or saves a bill.
 
@@ -260,7 +337,7 @@ Single-column on mobile, two-column grid at ≥ 768 px. Optimised for screens fr
 
 The app ships a `manifest.json` and a service worker (`sw.js`). It can be installed to the home screen on Android and iOS, and works **fully offline** after the first load using a cache-first strategy. The service worker is updated on each reload via background network fetch.
 
-> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v6` → `portbill-v7`) so installed users receive updated files immediately. The current cache is `portbill-v6`.
+> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v11` → `portbill-v12`) so installed users receive updated files immediately. The current cache is `portbill-v11`.
 
 ---
 
@@ -272,18 +349,20 @@ The admin button (`#adminBtn`) is **hidden by default** (`display: none`). Acces
 
 Admin mode removes the `.ro` class from all rate inputs, enabling editing of:
 
-| Field                 | Car module    | Cargo module                   |
-| --------------------- | ------------- | ------------------------------ |
-| Free-time days        | ✓             | ✓                              |
-| VAT rate              | ✓             | ✓                              |
-| Wharfrent slabs (new) | nr1, nr2, nr3 | — (uses Car rates for SD tons) |
-| Wharfrent slabs (old) | or1, or2, or3 | c-or1, c-or2, c-or3            |
-| River Dues            | rRiver        | c-rRiver                       |
-| Landing Charge        | rLanding      | read-only (formula-derived)    |
-| Removal Charge        | rRemoval      | read-only (formula-derived)    |
-| Weighment Charge      | rWeighment    | c-rWeighment                   |
-| Hoisting Charge       | rHoisting     | read-only (formula-derived)    |
-| Levy Charge           | rLevy         | c-rLevy                        |
+| Field                 | Car module    | Cargo module                   | Re-Export module                |
+| --------------------- | ------------- | ------------------------------ | -------------------------------- |
+| Free-time days        | ✓             | ✓                              | ✓ (`reexport-freeDays`)          |
+| VAT rate              | ✓             | ✓                              | ✓ (`reexport-vatRate`)           |
+| Wharfrent slabs (new) | nr1, nr2, nr3 | — (uses Car rates for SD tons) | — (wharf rent uses `re-wharfLow`/`re-wharfHigh` instead) |
+| Wharfrent slabs (old) | or1, or2, or3 | c-or1, c-or2, c-or3            | —                                 |
+| River Dues            | rRiver        | c-rRiver                       | re-rRiver                        |
+| Landing Charge        | rLanding      | read-only (formula-derived)    | re-land1, re-land2, re-land3 (slab tiers) |
+| Removal Charge        | read-only (formula-derived) | read-only (formula-derived) | re-removalMult (multiplier, default 7×) |
+| Weighment Charge      | rWeighment    | c-rWeighment                   | —                                 |
+| Hoisting Charge       | rHoisting (read-only, formula-derived) | read-only (formula-derived) | re-hoistPct (multiplier, default 1.25×) |
+| Levy Charge           | rLevy         | c-rLevy                        | re-rLevy                         |
+| Wharf Rent tiers      | —             | —                               | re-wharfLow (Days 1–20), re-wharfHigh (Days 21+) |
+| Re-Shipment           | —             | —                               | re-reshipSame (150%), re-reshipDiff (200%) |
 
 The password is **SHA-256 hashed** in `main.js` (`AP_HASH`) — never stored in plain text. Login is locked after **5 failed attempts** (counter in `sessionStorage`; resets on page refresh).
 
@@ -313,7 +392,7 @@ Row.TotalVATBDT = Math.Round((Row.TotalBillBDT ?? 0) * Tariff.VATPercent / 100m,
 
 C# `Math.Round` defaults to **half-to-even (banker's) rounding**, so `calcVATmpa()` replicates that: the bill is converted to integer poysha (no float64 drift), multiplied exactly, and rounded half-to-even in a single final step (e.g. 15.70 × 15% = 2.355 → **2.36**; 117.50 × 15% = 17.625 → **17.62**). This eliminated the occasional 1-poysha VAT differences against printed Port Authority bills. A 12-case parity suite lives in `tests/vat.test.js` (`node tests/vat.test.js`).
 
-**Single-rounding of VAT** — In General Cargo, VAT is rounded **once** on the combined Inside + Outside base. Rounding per portion and summing double-rounds: when both portions sit on a half-cent boundary the grand total drifts a cent. The Car module bills each section independently, so its per-section VAT is correct by construction.
+**Single-rounding of VAT** — In General Cargo, VAT is rounded **once** on the combined Inside + Outside base; Re-Export applies the same rule across N Bills of Entry, rounding once on the combined `vatBaseTotal`. Rounding per portion/BE and summing double-rounds: when multiple pieces sit on a half-cent boundary the grand total drifts a cent. The Car module bills each section independently, so its per-section VAT is correct by construction.
 
 ---
 
@@ -416,13 +495,15 @@ Until the binding exists both routes return 503 and the app is unaffected — pi
 ```
 portbill/
 ├── index.html     — Markup: header, module tabs, admin dialog, print-preview dialog,
-│                    Car page (#page-car), Cargo page (#page-cargo), Rotation page
-│                    (#page-rotation), Saved Bills page (#page-saved), Analytics page (#page-stats)
-├── style.css      — All styles (~4480 lines): design tokens, accent variable system,
-│                    component styles, date-field-wrap / .cal icon, toast, inline
-│                    validation, rotation card, saved bills, search bar, responsive
-│                    polish 320px → 4K, print rules
-├── main.js        — All logic (~6150 lines):
+│                    Car page (#page-car), Cargo page (#page-cargo), Re-Export page
+│                    (#page-reexport), Rotation page (#page-rotation), Saved Bills page
+│                    (#page-saved), Analytics page (#page-stats)
+├── style.css      — All styles (~4840 lines): design tokens, accent variable system
+│                    (gold/sky/teal), component styles, date-field-wrap / .cal icon,
+│                    in-unit-wrap / .in-unit tonnage-suffix, segmented pill controls
+│                    (.seg/.seg-btn), toast, inline validation, rotation card, saved
+│                    bills, search bar, responsive polish 320px → 4K, print rules
+├── main.js        — All logic (~7150 lines):
 │                    · RATE_DEFAULTS + localStorage persistence (top)
 │                    · Admin auth / SHA-256 (~L470)
 │                    · Car billing engine: carCompute() → calcSlabs() → buildCarBillTable()
@@ -431,6 +512,8 @@ portbill/
 │                    · Cargo billing engine: cargoCompute() → calcCarBillingSdSlabs()
 │                      → buildCargoBillTable() (~L2340)
 │                    · Part billing: renderPartBillingStages(), computePartBillingWharfrent() (~L1452)
+│                    · Re-Export billing engine: reexportCompute() → calcReexportWharfRent()
+│                      → renderBillOfEntries() → reexportCalculate()
 │                    · Invoice / print: buildInvoiceHtml(), openPrintPreview(), printBill() (~L3510)
 │                    · Rotation registry: loadRotations(), renderRotationTable() (~L5380)
 │                    · Cross-device sync: saveBillsToWorker(), loadBillsFromWorker() (~L5630)
@@ -442,7 +525,7 @@ portbill/
 │                    matches WRITE_TOKEN_HASH Cloudflare secret; D1-backed usage
 │                    analytics (POST /track open, GET /stats bearer-guarded)
 ├── manifest.json  — PWA web app manifest (name, icons, display: standalone, theme_color)
-├── sw.js          — Service worker (cache: portbill-v6): cache-first with background
+├── sw.js          — Service worker (cache: portbill-v11): cache-first with background
 │                    network update; caches index.html, main.js, style.css, favicon.svg,
 │                    manifest.json
 ├── favicon.svg    — Compass-rose emblem SVG (gold stroke #c09230); also apple-touch-icon
@@ -476,7 +559,7 @@ el.dispatchEvent(new Event("change", { bubbles: true }));
 
 ### Module-Aware Accent System
 
-`style.css` defines `--accent` (and `--accent-hi/lo/bg/bdr/ring/rgb`) defaulting to gold (Car module). `switchModule()` adds `body.mode-cargo` which overrides every `--accent-*` variable to sky blue. All UI elements derive their color from `var(--accent)` without duplicate rules. The printed invoice inlines literal hex values since the `<iframe>` has no access to parent CSS variables.
+`style.css` defines `--accent` (and `--accent-hi/lo/bg/bdr/ring/rgb`) defaulting to gold (Car module). `switchModule()` adds `body.mode-cargo` (sky blue) or `body.mode-reexport` (teal) which override every `--accent-*` variable. All UI elements derive their color from `var(--accent)` without duplicate rules. The printed invoice inlines literal hex values per module (`"car"`/`"cargo"`/`"reexport"`) since the `<iframe>` has no access to parent CSS variables.
 
 ### Lock Icon (`.lck`)
 
@@ -484,7 +567,7 @@ All lock icons use `<span class="lck"></span>` — never emoji. The `.lck` CSS c
 
 ### HTML Escaping (XSS Guard)
 
-User-supplied free text is escaped with `escHtml()` before being interpolated into any HTML string. Coverage: BL Number, C&F Agent Name, bill entry fields, part-billing stage dates, rotation registry rows. Any new user-facing text field must go through `escHtml()` before `innerHTML` interpolation.
+User-supplied free text is escaped with `escHtml()` before being interpolated into any HTML string. Coverage: BL Number, C&F Agent Name, bill entry fields, part-billing stage dates, rotation registry rows, Re-Export BE Number / BE Date / CLD dates. Any new user-facing text field must go through `escHtml()` before `innerHTML` interpolation.
 
 ### Grand Total Pulse Animation
 
@@ -510,7 +593,32 @@ All generated bills carry the notice:
 
 ## Changelog
 
-### v3.8.1 — Current Release
+### v3.10.1 — Current Release
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | Car | Removal Charge is now **formula-derived**: `rLanding × 2` (MPA Tariff §8.3, manual removal) instead of a static `350`, following the same read-only pattern already used for Hoisting Charge. Bill line item shows the formula (`175.00 × 2`), and rate is snapshotted at save time so historical bills keep their original figure even if Landing Charge changes later |
+| 2 | Re-Export UI | Bill of Entries input fields polished: tonnage inputs get an inline `ton` unit suffix, field labels carry small inline icons, CLD delete buttons align with input height, and the "+ Add CLD" / Removal Ton row is visually separated by a divider with a width-capped Removal Ton field |
+
+### v3.10.0
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | Re-Export | **Terminology correction**: renamed "River Side" → **Overside** (direct ship-to-ship transfer, no port storage) and the former "Overside" → **Port Side** (cargo lands and is stored before re-export) — matching real MPA/shipping usage. Overside no longer requires a CLD, drops the Vessel Name / Port of Re-Export / top-level Reference-Bill-Date fields (superseded by per-BE fields), simplifies Bill of Entries to a flat BE Number/Date/Ton row, and defaults Hoisting **off** |
+| 2 | Re-Export | Segmented pill controls (`.seg`/`.seg-btn`) replace `<select>` dropdowns for Re-Export Type and Wharf Type — reusable binary-choice component |
+| 3 | Re-Export | RE-EXPORT BILL STATEMENT now matches the General Cargo bill statement's depth: per-tier (not lumped) wharf-rent day/rate breakdown, explicit "Free Time Ends" / "Wharf Rent Starts" per CLD lot, and River Dues / Landing Rate / Total Wharf Rent Days info-grid fields |
+| 4 | Rates | Verified all live rates against the Port Authority's master tariff comparison document — no discrepancies found; Re-Export's `× 7` Removal multiplier is a confirmed, deliberate port-practice deviation from the tariff's general `× 8` |
+
+### v3.9.0
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | Re-Export | New **Re-Export Bill** module (3rd public tab): transhipment/re-shipment billing under a separate 20-day-free-time, 5/15-Tk-tiered wharf-rent tariff, distinct from the Car/Cargo slab system |
+| 2 | Re-Export | Multiple **Bills of Entry** per document, each with multiple CLD landing lots; Landing Rate slab picked from each BE's summed CLD tonnage (90/180/250 Tk, same tiers as Cargo) |
+| 3 | Re-Export | Payable charges: River Dues, Hoisting (125%), Re-Shipment (150% same wharf / 200% different wharf), Removal (7×), Levy — combined-base single-VAT model generalized across N BEs (same reasoning as Cargo's combined-VAT model) |
+| 4 | Print | Teal accent theme (`--teal: #10b981`) for the Re-Export module and its printed invoice, alongside gold (Car) and sky blue (Cargo) |
+
+### v3.8.1
 
 | # | Area | Change |
 |---|------|--------|
