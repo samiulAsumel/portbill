@@ -534,6 +534,12 @@ header::before {
   gap: clamp(12px,2vw,20px);
   align-items: start;
 }
+/* Grid items default to min-width:auto (content-based floor), which lets a
+   single wide descendant force the 1fr track — and the whole page — wider
+   than the viewport. min-width:0 lets the track (and its content) shrink to
+   the space actually available; wrapping rules on the descendants themselves
+   keep it readable once compressed. */
+.layout > div { min-width: 0; }
 @media (min-width: 768px) {
   .layout { grid-template-columns: 1fr 290px; gap: clamp(14px,2vw,20px); }
 }
@@ -822,8 +828,9 @@ input.rate-input, input[type='number'].rate-field { text-align: right; }
 }
 .pc-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 11px;
+  gap: 8px 11px;
   padding: 9px 13px;
   border-radius: 8px;
   border: 1px solid var(--bdr-0);
@@ -831,6 +838,9 @@ input.rate-input, input[type='number'].rate-field { text-align: right; }
   transition: opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   position: relative;
 }
+/* When the row wraps (narrow columns), rate + VAT badge drop to their own
+   line and align right under the label instead of forcing horizontal scroll. */
+.pc-rate-wrap { margin-left: auto; }
 .pc-row:has(input[type=checkbox]:checked) {
   border-color: var(--bdr-1);
   background: rgba(255,255,255,0.018);
@@ -900,7 +910,7 @@ input.rate-input, input[type='number'].rate-field { text-align: right; }
   font-weight: 600;
   color: var(--tx-0);
   letter-spacing: 0.1px;
-  white-space: nowrap;
+  white-space: normal;
 }
 .pc-note {
   font-size: 10px;
@@ -1247,11 +1257,11 @@ input.rate-input, input[type='number'].rate-field { text-align: right; }
    PREVIEW ROWS
 ════════════════════════════ */
 .pvr {
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
   padding: 8px 10px;
   font-family: 'DM Mono', monospace;
   font-size: clamp(11px,1.8vw,12.5px);
-  gap: 10px;
+  gap: 4px 10px;
   border-radius: var(--r-xs);
   border-bottom: 1px solid var(--bdr-0);
   transition: background var(--t-fast);
@@ -1259,7 +1269,7 @@ input.rate-input, input[type='number'].rate-field { text-align: right; }
 .pvr:last-child { border-bottom: none; }
 .pvr:hover { background: rgba(255,255,255,0.02); }
 .pvr-lbl { color: var(--tx-2); font-size: 11px; letter-spacing: 0.3px; }
-.pvr-val { font-weight: 700; font-size: 13px; text-align: right; white-space: nowrap; letter-spacing: 0.5px; }
+.pvr-val { font-weight: 700; font-size: 13px; text-align: right; white-space: nowrap; letter-spacing: 0.5px; margin-left: auto; }
 
 /* Color utilities */
 .v-gold   { color: var(--gold); }
@@ -4445,6 +4455,17 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
 /* ── 5. VAT rate row: remove max-width cap on mobile ─────────── */
 @media (max-width: 640px) {
   .vatr { max-width: none; }
+}
+
+/* ── 5b. Payable charge rows: shrink fixed-width chrome on phones
+   so the charge label keeps enough room to stay legible instead of
+   wrapping every word ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .pc-row { gap: 6px 8px; padding: 8px 10px; }
+  .pc-rate-wrap { gap: 4px; }
+  .pc-rate-input { width: 70px !important; padding: 5px 6px !important; font-size: 11.5px !important; }
+  .pc-unit { font-size: 8.5px; }
+  .pc-vat { padding: 3px 6px; font-size: 8.5px; }
 }
 
 /* ── 6. Layout right panel: wider at 4K ──────────────────────── */

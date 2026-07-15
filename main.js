@@ -1256,7 +1256,7 @@ function carRefreshNow() {
                 (d) =>
                   `<span style="background:rgba(212,175,55,0.13);border:1px solid rgba(212,175,55,0.20);color:var(--gold);border-radius:4px;padding:1px 7px;margin:0 2px;">${d}</span>`,
               )
-              .join("") +
+              .join(" ") +
             `<span style="color:var(--m2)"> → Car Wharfrent starts </span><span style="color:var(--green);font-weight:600;">${storStartDate.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}</span>`;
       strip.style.display = "block";
     }
@@ -3420,7 +3420,7 @@ function cargoRefreshNow() {
                 (d) =>
                   `<span style="background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.2);color:var(--cargo-accent);border-radius:4px;padding:1px 7px;margin:0 2px;">${d}</span>`,
               )
-              .join("") +
+              .join(" ") +
             `<span style="color:var(--m2)"> → Wharfrent starts </span><span style="color:var(--green);font-weight:600;">${storStartDate.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}</span>`;
       strip.style.display = "block";
     }
@@ -6302,7 +6302,7 @@ function populateYearDropdown() {
   const yearSel = document.getElementById("rotYear");
   if (!yearSel) return;
   const years = [...new Set(_rotations.map(r => r.year))].sort((a, b) => b - a);
-  yearSel.innerHTML = '<option value="">Rotation Year</option>';
+  yearSel.innerHTML = '<option value="">Year</option>';
   years.forEach(function(y) {
     var opt = document.createElement("option");
     opt.value = y;
@@ -6324,7 +6324,7 @@ function populateNumberDropdown(year) {
   if (!numSel) return;
   var filtered = _rotations.filter(function(r) { return String(r.year) === String(year); });
   filtered = filtered.slice().sort(function(a, b) { function dmyMs(s) { if (!s) return 0; var p = s.split("/"); return new Date(+p[2], +p[1]-1, +p[0]).getTime(); } return dmyMs(b.cld) - dmyMs(a.cld); });
-  numSel.innerHTML = '<option value="">Rotation Number</option>';
+  numSel.innerHTML = '<option value="">Number</option>';
   numSel.disabled = filtered.length === 0;
   filtered.forEach(function(r) {
     var opt = document.createElement("option");

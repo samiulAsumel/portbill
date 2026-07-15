@@ -1,4 +1,4 @@
-# Port Billing System — v3.10.1
+# Port Billing System — v3.10.2
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles, general cargo, and re-export (transhipment/re-shipment) bills with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -337,7 +337,7 @@ Single-column on mobile, two-column grid at ≥ 768 px. Optimised for screens fr
 
 The app ships a `manifest.json` and a service worker (`sw.js`). It can be installed to the home screen on Android and iOS, and works **fully offline** after the first load using a cache-first strategy. The service worker is updated on each reload via background network fetch.
 
-> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v11` → `portbill-v12`) so installed users receive updated files immediately. The current cache is `portbill-v11`.
+> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v12` → `portbill-v13`) so installed users receive updated files immediately. The current cache is `portbill-v12`.
 
 ---
 
@@ -525,7 +525,7 @@ portbill/
 │                    matches WRITE_TOKEN_HASH Cloudflare secret; D1-backed usage
 │                    analytics (POST /track open, GET /stats bearer-guarded)
 ├── manifest.json  — PWA web app manifest (name, icons, display: standalone, theme_color)
-├── sw.js          — Service worker (cache: portbill-v11): cache-first with background
+├── sw.js          — Service worker (cache: portbill-v12): cache-first with background
 │                    network update; caches index.html, main.js, style.css, favicon.svg,
 │                    manifest.json
 ├── favicon.svg    — Compass-rose emblem SVG (gold stroke #c09230); also apple-touch-icon
@@ -593,7 +593,17 @@ All generated bills carry the notice:
 
 ## Changelog
 
-### v3.10.1 — Current Release
+### v3.10.2 — Current Release
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | Responsive | Fixed a CSS Grid intrinsic-sizing bug where the two-column `.layout` grid's `1fr` track could be forced wider than the viewport by a single wide descendant, causing horizontal scroll on phones (measured overflow at every width from 300px–767px before the fix, worst around 375–428px). Root-caused via systematic width sweeps (260px–1920px) across all three modules; fixed with `min-width: 0` on the grid items — the standard fix for this well-known Grid/Flexbox gotcha |
+| 2 | Responsive | Payable-charge rows (`.pc-row`, shared by Car/Cargo) now wrap onto a second line instead of being forced onto one unbreakable row — rate input, unit, and VAT badge drop below the label and right-align at narrow widths; fixed-width chrome (rate input, badge padding) shrinks further under 480px so labels don't wrap on every word |
+| 3 | Responsive | Quick Preview rows (`.pvr`) now wrap instead of overflowing when a status value (e.g. "Within Free Time ✓") is too long to sit beside its label on very narrow screens |
+| 4 | Responsive | Free-time date chips (Car + Cargo) were joined with no whitespace between `<span>` tags, leaving the browser no line-break opportunity — the whole chip strip became one unbreakable run that could force the page wider on mobile. Chips now join with a space |
+| 5 | Rotation No. | Shortened dropdown placeholders "Rotation Year" / "Rotation Number" → "Year" / "Number" (redundant next to the "Rotation No." card title) — frees up label width on the smallest supported phones (~320px) |
+
+### v3.10.1
 
 | # | Area | Change |
 |---|------|--------|
