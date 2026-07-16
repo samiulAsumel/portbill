@@ -337,7 +337,7 @@ Single-column on mobile, two-column grid at ≥ 768 px. Optimised for screens fr
 
 The app ships a `manifest.json` and a service worker (`sw.js`). It can be installed to the home screen on Android and iOS, and works **fully offline** after the first load using a cache-first strategy. The service worker is updated on each reload via background network fetch.
 
-> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v12` → `portbill-v13`) so installed users receive updated files immediately. The current cache is `portbill-v12`.
+> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v13` → `portbill-v14`) so installed users receive updated files immediately. The current cache is `portbill-v13`.
 
 ---
 
@@ -514,12 +514,12 @@ portbill/
 │                    Car page (#page-car), Cargo page (#page-cargo), Re-Export page
 │                    (#page-reexport), Rotation page (#page-rotation), Saved Bills page
 │                    (#page-saved), Analytics page (#page-stats)
-├── style.css      — All styles (~4840 lines): design tokens, accent variable system
+├── style.css      — All styles (~4870 lines): design tokens, accent variable system
 │                    (gold/sky/teal), component styles, date-field-wrap / .cal icon,
 │                    in-unit-wrap / .in-unit tonnage-suffix, segmented pill controls
 │                    (.seg/.seg-btn), toast, inline validation, rotation card, saved
 │                    bills, search bar, responsive polish 320px → 4K, print rules
-├── src/            — All logic (~7150 lines total), split into six classic <script defer>
+├── src/            — All logic (~7030 lines total), split into six classic <script defer>
 │                    files sharing one global scope (no bundler; core.js loads first,
 │                    platform.js loads last):
 │   ├── core.js     — Shared kernel: calcVATmpa(), ceilTon(), RATE_DEFAULTS + rate
