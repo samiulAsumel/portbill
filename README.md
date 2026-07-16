@@ -1,4 +1,4 @@
-# Port Billing System — v3.10.2
+# Port Billing System — v3.11.0
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles, general cargo, and re-export (transhipment/re-shipment) bills with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -337,7 +337,7 @@ Single-column on mobile, two-column grid at ≥ 768 px. Optimised for screens fr
 
 The app ships a `manifest.json` and a service worker (`sw.js`). It can be installed to the home screen on Android and iOS, and works **fully offline** after the first load using a cache-first strategy. The service worker is updated on each reload via background network fetch.
 
-> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v12` → `portbill-v13`) so installed users receive updated files immediately. The current cache is `portbill-v12`.
+> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v13` → `portbill-v14`) so installed users receive updated files immediately. The current cache is `portbill-v13`.
 
 ---
 
@@ -364,7 +364,7 @@ Admin mode removes the `.ro` class from all rate inputs, enabling editing of:
 | Wharf Rent tiers      | —             | —                               | re-wharfLow (Days 1–20), re-wharfHigh (Days 21+) |
 | Re-Shipment           | —             | —                               | re-reshipSame (150%), re-reshipDiff (200%) |
 
-The password is **SHA-256 hashed** in `main.js` (`AP_HASH`) — never stored in plain text. Login is locked after **5 failed attempts** (counter in `sessionStorage`; resets on page refresh).
+The password is **SHA-256 hashed** in `src/core.js` (`AP_HASH`) — never stored in plain text. Login is locked after **5 failed attempts** (counter in `sessionStorage`; resets on page refresh).
 
 To change the password: log in, open the Admin Password panel via the mode badge, enter the new password, and click **UPDATE**. The new hash is stored in `localStorage` and synced to the Cloudflare Worker (`/config`). Remember to also update `WRITE_TOKEN_HASH` in your Cloudflare Worker secrets to match the new password.
 
@@ -394,6 +394,17 @@ C# `Math.Round` defaults to **half-to-even (banker's) rounding**, so `calcVATmpa
 
 **Single-rounding of VAT** — In General Cargo, VAT is rounded **once** on the combined Inside + Outside base; Re-Export applies the same rule across N Bills of Entry, rounding once on the combined `vatBaseTotal`. Rounding per portion/BE and summing double-rounds: when multiple pieces sit on a half-cent boundary the grand total drifts a cent. The Car module bills each section independently, so its per-section VAT is correct by construction.
 
+**Tonnage — whole numbers, rounded up (v3.11.0)** — Every weight/tonnage value (Car vehicle weight, Cargo total/inside/outside/removal/weighment/self-drive tons, Re-Export BE/CLD/removal tons) is a **whole number**, via a shared `ceilTon()` helper in `src/core.js`:
+
+```js
+function ceilTon(v) {
+  const n = Number.parseFloat(v);
+  return Number.isFinite(n) ? Math.max(0, Math.ceil(n)) : 0;
+}
+```
+
+Fractional tonnage is always rounded **up** to the next integer (e.g. 4.2 t → 5 t), never down or to nearest. Before v3.11.0, Car/Cargo weights rounded to nearest and Re-Export tonnage wasn't rounded at all — this was the one deliberate behavior change in that release.
+
 ---
 
 ## Deployment
@@ -415,7 +426,12 @@ python3 -m http.server 8080
 ```
 index.html
 style.css
-main.js
+src/core.js
+src/admin.js
+src/car.js
+src/cargo.js
+src/reexport.js
+src/platform.js
 favicon.svg
 manifest.json
 sw.js
@@ -498,36 +514,41 @@ portbill/
 │                    Car page (#page-car), Cargo page (#page-cargo), Re-Export page
 │                    (#page-reexport), Rotation page (#page-rotation), Saved Bills page
 │                    (#page-saved), Analytics page (#page-stats)
-├── style.css      — All styles (~4840 lines): design tokens, accent variable system
+├── style.css      — All styles (~4870 lines): design tokens, accent variable system
 │                    (gold/sky/teal), component styles, date-field-wrap / .cal icon,
 │                    in-unit-wrap / .in-unit tonnage-suffix, segmented pill controls
 │                    (.seg/.seg-btn), toast, inline validation, rotation card, saved
 │                    bills, search bar, responsive polish 320px → 4K, print rules
-├── main.js        — All logic (~7150 lines):
-│                    · RATE_DEFAULTS + localStorage persistence (top)
-│                    · Admin auth / SHA-256 (~L470)
-│                    · Car billing engine: carCompute() → calcSlabs() → buildCarBillTable()
-│                      → carCalculate() (~L630)
-│                    · Pre-calculate guards: collectCarErrors(), collectCargoErrors() (~L1262)
-│                    · Cargo billing engine: cargoCompute() → calcCarBillingSdSlabs()
-│                      → buildCargoBillTable() (~L2340)
-│                    · Part billing: renderPartBillingStages(), computePartBillingWharfrent() (~L1452)
-│                    · Re-Export billing engine: reexportCompute() → calcReexportWharfRent()
-│                      → renderBillOfEntries() → reexportCalculate()
-│                    · Invoice / print: buildInvoiceHtml(), openPrintPreview(), printBill() (~L3510)
-│                    · Rotation registry: loadRotations(), renderRotationTable() (~L5380)
-│                    · Cross-device sync: saveBillsToWorker(), loadBillsFromWorker() (~L5630)
-│                    · Draft auto-save: saveDraft(), clearDraft(), restoreFormDraft() (~L5766)
-│                    · Saved bills: renderSavedBills(), editSavedBill(), printSavedBill() (~L5896)
-│                    · Usage analytics: getDeviceId(), trackVisit(), loadStats(), renderStats() (~L5900)
+├── src/            — All logic (~7030 lines total), split into six classic <script defer>
+│                    files sharing one global scope (no bundler; core.js loads first,
+│                    platform.js loads last):
+│   ├── core.js     — Shared kernel: calcVATmpa(), ceilTon(), RATE_DEFAULTS + rate
+│   │                 persistence, toast, field validation, admin session state +
+│   │                 SHA-256 crypto (AP_HASH), shared cross-module state, escHtml/
+│   │                 date/number utils, calcSlabs(), pre-calculate error collectors
+│   ├── admin.js    — switchModule(), admin auth (doLogin(), changeAdminPassword()),
+│   │                 cloud rate-config restore
+│   ├── car.js      — Car billing: carCompute() → calcSlabs() → buildCarBillTable()
+│   │                 → carCalculate(); plus the Rotation Number registry UI
+│   ├── cargo.js    — Cargo billing: cargoCompute() → calcCarBillingSdSlabs() →
+│   │                 buildCargoBillTable(); Part Billing (computePartBillingWharfrent())
+│   ├── reexport.js — Re-Export billing: reexportCompute() → calcReexportWharfRent()
+│   │                 → renderBillOfEntries() → reexportCalculate()
+│   └── platform.js — Cross-cutting services + app bootstrap (loads last): invoice/
+│                     print (buildInvoiceHtml(), openPrintPreview(), printBill()),
+│                     cloud sync (saveBillsToWorker(), loadBillsFromWorker()), draft
+│                     auto-save (saveDraft(), clearDraft(), restoreFormDraft()), usage
+│                     analytics (getDeviceId(), trackVisit(), loadStats()), saved
+│                     bills (renderSavedBills(), editSavedBill(), printSavedBill()),
+│                     rotation worker I/O, and the INIT block
 ├── worker.js      — Cloudflare Worker proxy: open GET endpoints (/config, /rotations,
 │                    /saved-bills); authenticated PUT via Bearer token whose SHA-256
 │                    matches WRITE_TOKEN_HASH Cloudflare secret; D1-backed usage
 │                    analytics (POST /track open, GET /stats bearer-guarded)
 ├── manifest.json  — PWA web app manifest (name, icons, display: standalone, theme_color)
-├── sw.js          — Service worker (cache: portbill-v12): cache-first with background
-│                    network update; caches index.html, main.js, style.css, favicon.svg,
-│                    manifest.json
+├── sw.js          — Service worker (cache: portbill-v13): cache-first with background
+│                    network update; caches index.html, the six src/*.js files,
+│                    style.css, favicon.svg, manifest.json
 ├── favicon.svg    — Compass-rose emblem SVG (gold stroke #c09230); also apple-touch-icon
 ├── wrangler.toml  — Worker deploy config: pins `name`, `main`, and the D1 `[[d1_databases]]`
 │                    binding (`DB` → `portbill-stats`) so `wrangler deploy` is reproducible
@@ -593,7 +614,15 @@ All generated bills carry the notice:
 
 ## Changelog
 
-### v3.10.2 — Current Release
+### v3.11.0 — Current Release
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | Architecture | Split the single ~7,150-line `main.js` into six single-responsibility classic-script files under `src/` (`core.js`, `admin.js`, `car.js`, `cargo.js`, `reexport.js`, `platform.js`) sharing one global scope, no bundler, no build step — pure refactor, verified with an identical function/const inventory and full browser regression pass, zero behavior change |
+| 2 | Billing rule | **Whole-number tonnage**: all weight/tonnage values (Car weight; Cargo total/inside/outside/removal/weighment/self-drive tons; Re-Export BE/CLD/removal tons) are now rounded **up** to the nearest whole number via a shared `ceilTon()` helper. Before this release, Car/Cargo weights rounded to nearest and Re-Export tonnage wasn't rounded at all — this is the one deliberate behavior change in this release; see **Rounding** below |
+| 3 | CI | Fixed the UTF-8 encoding-check workflow, which had gone blind to all JS after the `main.js` split (still hardcoded the old filename); now globs every file under `src/` |
+
+### v3.10.2
 
 | # | Area | Change |
 |---|------|--------|
@@ -647,7 +676,7 @@ All generated bills carry the notice:
 | # | Area | Change |
 |---|------|--------|
 | 1 | VAT | **MPA exact parity**: new shared `calcVATmpa()` — integer poysha-scale math + half-to-even (banker's) rounding, mirroring the Port Authority C# engine `Math.Round((TotalBillBDT ?? 0) * VATPercent / 100m, 2)`. Replaced the half-down `r2` at all 8 VAT sites (Car per-section, Cargo combined-base, breakdown attribution, print builders). Fixes occasional 1-poysha VAT mismatches against printed MPA bills. All non-VAT rounding keeps the half-down port convention |
-| 2 | Tests | Added `tests/vat.test.js` — 12-case parity suite (midpoint, null/undefined safety, real bill totals) that extracts `calcVATmpa` from `main.js` at runtime so the shipped code is what's tested |
+| 2 | Tests | Added `tests/vat.test.js` — 12-case parity suite (midpoint, null/undefined safety, real bill totals) that extracts `calcVATmpa` from `src/core.js` at runtime so the shipped code is what's tested |
 
 ### v3.7.0
 

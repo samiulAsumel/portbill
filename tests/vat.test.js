@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // VAT MPA-parity test suite — run with: node tests/vat.test.js
-// Extracts calcVATmpa from main.js so the SHIPPED code is tested, not a copy.
+// Extracts calcVATmpa from src/core.js so the SHIPPED code is tested, not a copy.
 // Exit code 0 = all pass, 1 = failure.
 
 'use strict';
@@ -8,7 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const mainSrc = fs.readFileSync(path.join(__dirname, '..', 'main.js'), 'utf8');
+const mainSrc = fs.readFileSync(path.join(__dirname, '..', 'src', 'core.js'), 'utf8');
 const match = mainSrc.match(/function calcVATmpa\([\s\S]*?\n}/);
 if (!match) {
   console.error('FATAL: calcVATmpa not found in main.js');

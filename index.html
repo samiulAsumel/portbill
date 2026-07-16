@@ -2197,7 +2197,7 @@
         </div>
         <div class="footer-tagline">Port Authority Wharfrent Calculator</div>
         <div class="footer-copy">
-          <span class="footer-ver">v3.10.2</span>
+          <span class="footer-ver">v3.11.0</span>
           <span class="footer-sep" aria-hidden="true">·</span>
           <span>&copy; <span id="year"></span> samiulAsumel</span>
         </div>
@@ -2340,7 +2340,15 @@
       <button type="button" class="pwa-banner-install" id="pwaInstallBtn">Install</button>
       <button type="button" class="pwa-banner-close" id="pwaInstallClose" aria-label="Dismiss">✕</button>
     </div>
-    <script src="main.js" defer></script>
+    <!-- Modular app scripts — classic scripts (no bundler), share one global
+         scope, load in dependency order. core.js MUST load first (shared
+         state + utilities); platform.js MUST load last (app bootstrap). -->
+    <script src="src/core.js" defer></script>
+    <script src="src/admin.js" defer></script>
+    <script src="src/car.js" defer></script>
+    <script src="src/cargo.js" defer></script>
+    <script src="src/reexport.js" defer></script>
+    <script src="src/platform.js" defer></script>
     <script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js')); }</script>
   </body>
 </html>
