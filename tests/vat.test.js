@@ -2,6 +2,8 @@
 // VAT MPA-parity test suite — run with: node tests/vat.test.js
 // Extracts calcVATmpa from src/core.js so the SHIPPED code is tested, not a copy.
 // Exit code 0 = all pass, 1 = failure.
+/* eslint-disable sonarjs/code-eval -- new Function() intentionally extracts calcVATmpa
+   from the shipped src/core.js so the deployed code is what's tested, not a copy */
 
 'use strict';
 
@@ -14,7 +16,6 @@ if (!match) {
   console.error('FATAL: calcVATmpa not found in main.js');
   process.exit(1);
 }
-// eslint-disable-next-line no-new-func
 const calcVATmpa = new Function(`${match[0]}; return calcVATmpa;`)();
 
 const tests = [

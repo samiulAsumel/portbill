@@ -21,6 +21,17 @@ async function sha256hex(text) {
     return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Shared by handleStats/handleGithubPut — verifies the Bearer token against
+// WRITE_TOKEN_HASH. If the secret isn't set, writes are open (personal-use default).
+async function isWriteAuthorized(request, env) {
+    const tokenHash = env.WRITE_TOKEN_HASH;
+    if (!tokenHash) return true;
+    const authHeader = request.headers.get("Authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    const submittedHash = token ? await sha256hex(token) : "";
+    return submittedHash === tokenHash;
+}
+
 // ── Usage analytics (D1) ────────────────────────────────────────
 // Table: visits (day TEXT, device TEXT, opens INTEGER DEFAULT 1, PRIMARY KEY (day, device))
 // Day boundaries are Asia/Dhaka (UTC+6, no DST).
@@ -55,15 +66,8 @@ async function handleTrack(request, env) {
 // Guarded by the same Bearer / WRITE_TOKEN_HASH check as PUT routes.
 async function handleStats(request, env, url) {
     if (!env.DB) return jsonResp({ error: "stats not configured" }, 503);
-
-    const tokenHash = env.WRITE_TOKEN_HASH;
-    if (tokenHash) {
-        const authHeader = request.headers.get("Authorization") || "";
-        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-        const submittedHash = token ? await sha256hex(token) : "";
-        if (submittedHash !== tokenHash) {
-            return jsonResp({ error: "Unauthorized" }, 401);
-        }
+    if (!(await isWriteAuthorized(request, env))) {
+        return jsonResp({ error: "Unauthorized" }, 401);
     }
 
     const days = Math.min(366, Math.max(1, Number(url.searchParams.get("days")) || 30));
@@ -103,120 +107,118 @@ const COMMIT_MESSAGES = {
     "config.json": "chore(config): update config",
 };
 
+// GET a proxied file straight from GitHub Contents API.
+async function handleGithubGet(apiBase, ghHeaders, branch) {
+    const ghResp = await fetch(`${apiBase}?ref=${branch}`, { headers: ghHeaders });
+    if (!ghResp.ok) {
+        const body = await ghResp.text();
+        return jsonResp({ error: "GitHub error", detail: body }, ghResp.status);
+    }
+    const data = await ghResp.json();
+    const content = atob(data.content.replace(/\n/g, ""));
+    return new Response(content, {
+        status: 200,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    });
+}
+
+// PUT a proxied file to GitHub Contents API (create-or-update via current SHA).
+async function handleGithubPut(request, env, apiBase, ghHeaders, branch, filename) {
+    // Optional write-token hardening: if WRITE_TOKEN_HASH is set, verify the Bearer
+    // token. If not set, writes are open (personal use).
+    if (!(await isWriteAuthorized(request, env))) {
+        return jsonResp({ error: "Unauthorized" }, 401);
+    }
+
+    const body = await request.text();
+    try { JSON.parse(body); } catch {
+        return jsonResp({ error: "Invalid JSON body" }, 400);
+    }
+
+    // Get current SHA for update
+    const shaResp = await fetch(`${apiBase}?ref=${branch}`, { headers: ghHeaders });
+    let sha = null;
+    if (shaResp.ok) {
+        const shaData = await shaResp.json();
+        sha = shaData.sha;
+    } else if (shaResp.status !== 404) {
+        const errBody = await shaResp.text();
+        return jsonResp({ error: "GitHub SHA error", detail: errBody }, shaResp.status);
+    }
+
+    const encoded = btoa(unescape(encodeURIComponent(body)));
+    const putPayload = {
+        message: COMMIT_MESSAGES[filename] || `update ${filename}`,
+        content: encoded,
+        branch,
+        ...(sha ? { sha } : {}),
+    };
+
+    const putResp = await fetch(apiBase, {
+        method: "PUT",
+        headers: { ...ghHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify(putPayload),
+    });
+    if (!putResp.ok) {
+        const errBody = await putResp.text();
+        return jsonResp({ error: "GitHub write error", detail: errBody }, putResp.status);
+    }
+
+    const putData = await putResp.json();
+    return jsonResp({
+        ok: true,
+        sha: putData.content?.sha,
+        commit: putData.commit?.sha,
+    });
+}
+
 export default {
     async fetch(request, env) {
-          const TOKEN = env.GH_TOKEN || env.GITHUB_TOKEN;
-          const OWNER = env.REPO_OWNER || "samiulAsumel";
-          const REPO = env.REPO_NAME || "portbill-data";
-          const BRANCH = env.BRANCH || "main";
+        const url = new URL(request.url);
+        const path = url.pathname;
+        const method = request.method;
 
-      const url = new URL(request.url);
-          const path = url.pathname;
-          const method = request.method;
+        // Handle CORS preflight — always return CORS headers
+        if (method === "OPTIONS") {
+            return new Response(null, { status: 204, headers: CORS_HEADERS });
+        }
 
-      // Handle CORS preflight — always return CORS headers
-      if (method === "OPTIONS") {
-              return new Response(null, { status: 204, headers: CORS_HEADERS });
-      }
+        // Usage analytics routes (D1-backed, independent of the GitHub proxy)
+        if (path === "/track" && method === "POST") {
+            return handleTrack(request, env);
+        }
+        if (path === "/stats" && method === "GET") {
+            return handleStats(request, env, url);
+        }
 
-      // Usage analytics routes (D1-backed, independent of the GitHub proxy)
-      if (path === "/track" && method === "POST") {
-              return handleTrack(request, env);
-      }
-      if (path === "/stats" && method === "GET") {
-              return handleStats(request, env, url);
-      }
+        const filename = PATH_TO_FILE[path];
+        if (!filename) {
+            return jsonResp({ error: "Not found" }, 404);
+        }
 
-      const filename = PATH_TO_FILE[path];
-          if (!filename) {
-                  return jsonResp({ error: "Not found" }, 404);
-          }
+        const TOKEN = env.GH_TOKEN || env.GITHUB_TOKEN;
+        if (!TOKEN) {
+            return jsonResp({ error: "GitHub token not configured" }, 503);
+        }
 
-      if (!TOKEN) {
-              return jsonResp({ error: "GitHub token not configured" }, 503);
-      }
+        const OWNER = env.REPO_OWNER || "samiulAsumel";
+        const REPO = env.REPO_NAME || "portbill-data";
+        const BRANCH = env.BRANCH || "main";
+        const ghHeaders = {
+            Authorization: `Bearer ${TOKEN}`,
+            Accept: "application/vnd.github+json",
+            "User-Agent": "portbill-proxy-worker/1.0",
+            "X-GitHub-Api-Version": "2022-11-28",
+        };
+        const apiBase = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filename}`;
 
-      const ghHeaders = {
-              Authorization: `Bearer ${TOKEN}`,
-              Accept: "application/vnd.github+json",
-              "User-Agent": "portbill-proxy-worker/1.0",
-              "X-GitHub-Api-Version": "2022-11-28",
-      };
+        if (method === "GET") {
+            return handleGithubGet(apiBase, ghHeaders, BRANCH);
+        }
+        if (method === "PUT") {
+            return handleGithubPut(request, env, apiBase, ghHeaders, BRANCH, filename);
+        }
 
-      const apiBase = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filename}`;
-
-      if (method === "GET") {
-              const ghResp = await fetch(`${apiBase}?ref=${BRANCH}`, { headers: ghHeaders });
-
-            if (!ghResp.ok) {
-                      const body = await ghResp.text();
-                      return jsonResp({ error: "GitHub error", detail: body }, ghResp.status);
-            }
-
-            const data = await ghResp.json();
-              const content = atob(data.content.replace(/\n/g, ""));
-              return new Response(content, {
-                        status: 200,
-                        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-              });
-      }
-
-      if (method === "PUT") {
-              // Optional write-token hardening: if WRITE_TOKEN_HASH is set,
-            // verify the Bearer token. If not set, writes are open (personal use).
-            const tokenHash = env.WRITE_TOKEN_HASH;
-              if (tokenHash) {
-                        const authHeader = request.headers.get("Authorization") || "";
-                        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-                        const submittedHash = token ? await sha256hex(token) : "";
-                        if (submittedHash !== tokenHash) {
-                                    return jsonResp({ error: "Unauthorized" }, 401);
-                        }
-              }
-
-            const body = await request.text();
-              try { JSON.parse(body); } catch {
-                        return jsonResp({ error: "Invalid JSON body" }, 400);
-              }
-
-            // Get current SHA for update
-            const shaResp = await fetch(`${apiBase}?ref=${BRANCH}`, { headers: ghHeaders });
-              let sha = null;
-              if (shaResp.ok) {
-                        const shaData = await shaResp.json();
-                        sha = shaData.sha;
-              } else if (shaResp.status !== 404) {
-                        const errBody = await shaResp.text();
-                        return jsonResp({ error: "GitHub SHA error", detail: errBody }, shaResp.status);
-              }
-
-            const encoded = btoa(unescape(encodeURIComponent(body)));
-              const putPayload = {
-                        message: COMMIT_MESSAGES[filename] || `update ${filename}`,
-                        content: encoded,
-                        branch: BRANCH,
-                        ...(sha ? { sha } : {}),
-              };
-
-            const putResp = await fetch(apiBase, {
-                      method: "PUT",
-                      headers: { ...ghHeaders, "Content-Type": "application/json" },
-                      body: JSON.stringify(putPayload),
-            });
-
-            if (!putResp.ok) {
-                      const errBody = await putResp.text();
-                      return jsonResp({ error: "GitHub write error", detail: errBody }, putResp.status);
-            }
-
-            const putData = await putResp.json();
-              return jsonResp({
-                        ok: true,
-                        sha: putData.content?.sha,
-                        commit: putData.commit?.sha,
-              });
-      }
-
-      return jsonResp({ error: "Method not allowed" }, 405);
+        return jsonResp({ error: "Method not allowed" }, 405);
     },
 };

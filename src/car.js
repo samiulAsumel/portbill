@@ -21,6 +21,10 @@ function onWeightChange() {
   carRefresh();
 }
 
+// Core billing math (split-rate slabs, hoisting/removal, free-time); branching mirrors the
+// MPA tariff rules and is covered by tests/vat.test.js indirectly via calcVATmpa —
+// decomposing risks silently changing bill totals.
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function carCompute() {
   const meta = readMeta("car");
   const cld = pd(document.getElementById("cld").value);
@@ -50,7 +54,6 @@ function carCompute() {
   if (hasWharfrent) {
     totalDays = diffD(freeEnd, delivery);
     if (!cldBeforeCut) {
-      rateMode = "new";
       slabs = calcSlabs(
         totalDays,
         nr1,
@@ -77,7 +80,6 @@ function carCompute() {
       const oldDays = diffD(freeEnd, CUT_OLD);
       if (oldDays <= 0) {
         // freeEnd is on or after the rate cutoff — wharfrent starts entirely within new rates
-        rateMode = "new";
         slabs = calcSlabs(
           totalDays,
           nr1,
@@ -207,6 +209,9 @@ function carCompute() {
   };
 }
 
+// Live-preview renderer mirrors carCalculate's branching (wharfrent vs free-time); splitting
+// it risks the preview and the final bill silently drifting apart.
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function carRefreshNow() {
   try {
     validateDateField("cld", "cld-hint", "CLD");
@@ -270,12 +275,12 @@ function carRefreshNow() {
     if (rRemovalEl) rRemovalEl.value = (rLanding * 2).toFixed(2);
     const b = carCompute();
     if (!b) return;
-    const rateBadgeHtml =
-      b.rateMode === "split"
-        ? '<div class="rbadge rb-split">⚡ SPLIT BILLING — Old + New rates</div>'
-        : b.rateMode === "old"
-          ? '<div class="rbadge rb-old">● OLD RATES (Up to 22/07/2024)</div>'
-          : '<div class="rbadge rb-new">● NEW RATES (From 23/07/2024)</div>';
+    const RATE_BADGE_HTML = {
+      split: '<div class="rbadge rb-split">⚡ SPLIT BILLING — Old + New rates</div>',
+      old: '<div class="rbadge rb-old">● OLD RATES (Up to 22/07/2024)</div>',
+      new: '<div class="rbadge rb-new">● NEW RATES (From 23/07/2024)</div>',
+    };
+    const rateBadgeHtml = RATE_BADGE_HTML[b.rateMode] ?? RATE_BADGE_HTML.new;
     document.getElementById("rbadge").innerHTML = rateBadgeHtml;
     const pv = document.getElementById("car-preview");
     if (b.hasWharfrent) {
@@ -291,7 +296,8 @@ function carRefreshNow() {
         `<div class="pvr pvr-grand"><span class="pvr-lbl">Car Grand Total</span><span class="pvr-val v-gold">${fmt(b.nTotal)}</span></div>`;
     }
     if (isAdmin && !isInitialLoad) saveRates();
-  } catch (_) {
+  } catch (e) {
+    dbg.warn("carRefreshNow failed:", e);
     document.getElementById("car-preview").innerHTML = SP_CAR_IDLE;
   }
 }
@@ -305,7 +311,6 @@ function carRefresh() {
   });
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
 // Combined VAT / Levy / Grand-Total summary rows. VAT and Levy are charged ONCE
 // on the combined inside+outside base (b.gBase) and shown a single time at the
 // foot of the bill — not per section. Shared by both modules, screen + print.
@@ -322,6 +327,10 @@ function buildCombinedSummaryTable(b) {
   return `<div class="btw"><table class="bt"><tbody>${buildCombinedSummaryRows(b)}</tbody></table></div>`;
 }
 
+// Renders the split-billing (old/new rate) bill table for inside/outside/self-drive; each
+// branch maps 1:1 to a billing rule and must stay readable next to the numbers it renders,
+// not hidden behind extra indirection.
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function buildCarBillTable(b, side) {
   //NOSONAR
   let rows = "";
@@ -390,7 +399,8 @@ function carCalculate() {
   let b;
   try {
     b = carCompute();
-  } catch (_) {
+  } catch (e) {
+    dbg.warn("carCompute failed:", e);
     showToast("Billing calculation failed — please check inputs and try again.", "error");
     return;
   }
@@ -402,20 +412,27 @@ function carCalculate() {
     const wharfrentDaysText = b.hasWharfrent
       ? `${b.totalDays} days`
       : "In free time";
-    const rateModeColor =
-      b.rateMode === "split"
-        ? "var(--gold)"
-        : b.rateMode === "old"
-          ? "var(--red)"
-          : "var(--green)";
-    const rateModeText =
-      b.rateMode === "split"
-        ? "Split"
-        : b.rateMode === "old"
-          ? "Old Rates"
-          : "New Rates";
+    const RATE_MODE_COLOR = { split: "var(--gold)", old: "var(--red)", new: "var(--green)" };
+    const RATE_MODE_TEXT = { split: "Split", old: "Old Rates", new: "New Rates" };
+    const rateModeColor = RATE_MODE_COLOR[b.rateMode] ?? RATE_MODE_COLOR.new;
+    const rateModeText = RATE_MODE_TEXT[b.rateMode] ?? RATE_MODE_TEXT.new;
+    const billNoHtml = b.billNumber
+      ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>`
+      : "";
+    const cnfHtml = b.cnfName
+      ? `<div class="ii"><div class="il">C&amp;F Agent</div><div class="iv">${b.cnfName}</div></div>`
+      : "";
+    const blHtml = b.blNumber
+      ? `<div class="ii"><div class="il">BL Number</div><div class="iv">${b.blNumber}</div></div>`
+      : "";
+    const beNoHtml = b.billEntryNumber
+      ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>`
+      : "";
+    const beDateHtml = b.billEntryDate
+      ? `<div class="ii"><div class="il">B/E Date</div><div class="iv">${b.billEntryDate}</div></div>`
+      : "";
     document.getElementById("car-ibar").innerHTML =
-      `<div class="ibar"><div>${b.billNumber ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&amp;F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv">${b.blNumber}</div></div>` : ""}${b.billEntryNumber ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>` : ""}${b.billEntryDate ? `<div class="ii"><div class="il">B/E Date</div><div class="iv">${b.billEntryDate}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Car Wharfrent Starts</div><div class="iv">${wharfrentStarts}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Weight</div><div class="iv">${b.weight} ton(s)</div></div><div class="ii"><div class="il">Car Wharfrent Days</div><div class="iv" style="color:var(--gold)">${wharfrentDaysText}</div></div><div class="ii"><div class="il">Rate Mode</div><div class="iv" style="color:${rateModeColor}">${rateModeText}</div></div></div></div>`;
+      `<div class="ibar"><div>${billNoHtml}${cnfHtml}${blHtml}${beNoHtml}${beDateHtml}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Car Wharfrent Starts</div><div class="iv">${wharfrentStarts}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Weight</div><div class="iv">${b.weight} ton(s)</div></div><div class="ii"><div class="il">Car Wharfrent Days</div><div class="iv" style="color:var(--gold)">${wharfrentDaysText}</div></div><div class="ii"><div class="il">Rate Mode</div><div class="iv" style="color:${rateModeColor}">${rateModeText}</div></div></div></div>`;
     if (b.hasWharfrent) {
       document.getElementById("car-srow").innerHTML =
         `<div class="sc cg"><div class="sl">Car Grand Total</div><div class="sv">${fmtN(b.iTotal + b.oTotal)}</div><div class="ss">Inside + Outside · incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Total (Full Rate)</div><div class="sv">${fmtN(b.iTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div><div class="sc cp"><div class="sl">Outside Total (½ Rate)</div><div class="sv">${fmtN(b.oTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div>`;
@@ -438,6 +455,7 @@ function carCalculate() {
     const carEmpty = document.getElementById("car-empty");
     if (carEmpty) carEmpty.style.display = "none";
     const carGbox = document.querySelector("#car-grandSec .gbox");
+    // eslint-disable-next-line sonarjs/void-use -- void forces the offsetWidth read (reflow) that restarts the gboxPulse CSS animation
     if (carGbox) { carGbox.classList.remove("just-calculated"); void carGbox.offsetWidth; carGbox.classList.add("just-calculated"); }
     if (!isInitialLoad) {
       setTimeout(
@@ -448,7 +466,8 @@ function carCalculate() {
         80,
       );
     }
-  } catch (_) {
+  } catch (e) {
+    dbg.warn("carCalculate render failed:", e);
     showToast("Display error — bill may not render correctly.", "warning");
   }
 }
@@ -536,7 +555,7 @@ function populateNumberDropdown(year) {
   var numSel = document.getElementById("rotNum");
   if (!numSel) return;
   var filtered = _rotations.filter(function(r) { return String(r.year) === String(year); });
-  filtered = filtered.slice().sort(function(a, b) { function dmyMs(s) { if (!s) return 0; var p = s.split("/"); return new Date(+p[2], +p[1]-1, +p[0]).getTime(); } return dmyMs(b.cld) - dmyMs(a.cld); });
+  filtered = filtered.slice().sort(function(a, b) { function dmyMs(s) { if (!s) { return 0; } var p = s.split("/"); return new Date(+p[2], +p[1]-1, +p[0]).getTime(); } return dmyMs(b.cld) - dmyMs(a.cld); });
   numSel.innerHTML = '<option value="">Number</option>';
   numSel.disabled = filtered.length === 0;
   filtered.forEach(function(r) {
@@ -567,9 +586,9 @@ function onRotNumChange() {
   var id = numSel.value;
   if (!id) {
     _selectedRotation = null;
-    var badge = document.getElementById("rotBadge");
+    let badge = document.getElementById("rotBadge");
     if (badge) badge.textContent = "";
-    var cldEl = document.getElementById("cld");
+    let cldEl = document.getElementById("cld");
     if (cldEl && !isAdmin) { cldEl.value = ""; carRefresh(); }
     return;
   }
@@ -587,12 +606,6 @@ function onRotNumChange() {
   }
   // Show rotation No in bill if already generated
   refreshRotationInBill();
-}
-
-// Get selected rotation display string
-function getSelectedRotationStr() {
-  if (!_selectedRotation) return "";
-  return _selectedRotation.year + "/" + _selectedRotation.num;
 }
 
 // Show rotation No in bill statement info bar
@@ -629,6 +642,23 @@ function toggleRotationRegistry() {
   }
 }
 
+// Shared by addRotation/deleteRotation — sets the rotation-registry status line if present.
+function setRotStatus(el, msg, cls) {
+  if (!el) return;
+  el.textContent = msg;
+  el.className = cls ? `rot-reg-status ${cls}` : "rot-reg-status";
+}
+
+// Pure validation for addRotation — returns an error message string, or "" if valid.
+function validateNewRotation(year, num, cld) {
+  if (!year || !num || !cld) return "Please fill all fields";
+  if (!/^\d{4}$/.test(year)) return "Year must be 4 digits (e.g. 2026)";
+  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(cld)) return "CLD must be DD/MM/YYYY";
+  var isDup = _rotations.some(function(r) { return String(r.year) === year && String(r.num) === num; });
+  if (isDup) return "Rotation " + year + "/" + num + " already exists";
+  return "";
+}
+
 // Add a new rotation (admin only)
 async function addRotation() {
   if (!isAdmin) return;
@@ -641,42 +671,27 @@ async function addRotation() {
   var num = numEl ? numEl.value.trim() : "";
   var cld = cldEl ? cldEl.value.trim() : "";
 
-  if (!year || !num || !cld) {
-    if (statusEl) { statusEl.textContent = "Please fill all fields"; statusEl.className = "rot-reg-status err"; }
-    return;
-  }
-  // Validate year
-  if (!/^[0-9]{4}$/.test(year)) {
-    if (statusEl) { statusEl.textContent = "Year must be 4 digits (e.g. 2026)"; statusEl.className = "rot-reg-status err"; }
-    return;
-  }
-  // Validate CLD date format
-  if (!/^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/.test(cld)) {
-    if (statusEl) { statusEl.textContent = "CLD must be DD/MM/YYYY"; statusEl.className = "rot-reg-status err"; }
-    return;
-  }
-  // Check for duplicate
-  var isDup = _rotations.some(function(r) { return String(r.year) === year && String(r.num) === num; });
-  if (isDup) {
-    if (statusEl) { statusEl.textContent = "Rotation " + year + "/" + num + " already exists"; statusEl.className = "rot-reg-status err"; }
+  var validationError = validateNewRotation(year, num, cld);
+  if (validationError) {
+    setRotStatus(statusEl, validationError, "err");
     return;
   }
 
   var newRot = { id: Date.now().toString(), year: parseInt(year, 10), num: num, cld: cld };
   var updated = _rotations.concat([newRot]);
 
-  if (statusEl) { statusEl.textContent = "Saving..."; statusEl.className = "rot-reg-status"; }
+  setRotStatus(statusEl, "Saving...");
   var ok = await saveRotationsToWorker(updated);
   if (ok) {
     _rotations = updated;
     if (yearEl) yearEl.value = "";
     if (numEl) numEl.value = "";
     if (cldEl) cldEl.value = "";
-    if (statusEl) { statusEl.textContent = "Rotation " + year + "/" + num + " added"; statusEl.className = "rot-reg-status ok"; }
+    setRotStatus(statusEl, "Rotation " + year + "/" + num + " added", "ok");
     renderRotationTable();
     populateYearDropdown();
   } else {
-    if (statusEl) { statusEl.textContent = "Save failed — check console"; statusEl.className = "rot-reg-status err"; }
+    setRotStatus(statusEl, "Save failed — check console", "err");
   }
 }
 
@@ -689,7 +704,7 @@ async function deleteRotation(id) {
   if (!confirmed) return;
   var statusEl = document.getElementById("rotRegStatus");
   var updated = _rotations.filter(function(r) { return String(r.id) !== String(id); });
-  if (statusEl) { statusEl.textContent = "Deleting..."; statusEl.className = "rot-reg-status"; }
+  setRotStatus(statusEl, "Deleting...");
   var ok = await saveRotationsToWorker(updated);
   if (ok) {
     _rotations = updated;
@@ -700,11 +715,11 @@ async function deleteRotation(id) {
       var cldField = document.getElementById("cld");
       if (cldField) { cldField.value = ""; carRefresh(); }
     }
-    if (statusEl) { statusEl.textContent = "Rotation deleted"; statusEl.className = "rot-reg-status ok"; }
+    setRotStatus(statusEl, "Rotation deleted", "ok");
     renderRotationTable();
     populateYearDropdown();
   } else {
-    if (statusEl) { statusEl.textContent = "Delete failed — check console"; statusEl.className = "rot-reg-status err"; }
+    setRotStatus(statusEl, "Delete failed — check console", "err");
   }
 }
 

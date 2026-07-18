@@ -810,16 +810,18 @@ function printTotRow(desc, amt, cls) {
   return `<tr class="${cls || "tot"}"><td colspan="5">${desc}</td><td>${amt}</td></tr>`;
 }
 
+const SEC_HEAD_CLASS_BY_PATTERN = [
+  [/inside/i, " inside-head"],
+  [/outside/i, " outside-head"],
+  [/payable/i, " payable-head"],
+];
+function secHeadClass(label) {
+  const match = SEC_HEAD_CLASS_BY_PATTERN.find(([pattern]) => pattern.test(label));
+  return match ? match[1] : "";
+}
 function secHead(label, badge) {
   const badgeHtml = badge ? `<span class="sh-accent">${badge}</span>` : "";
-  const cls = /inside/i.test(label)
-    ? " inside-head"
-    : /outside/i.test(label)
-      ? " outside-head"
-      : /payable/i.test(label)
-        ? " payable-head"
-        : "";
-  return `<div class="section-head${cls}"><span>${label}</span>${badgeHtml}</div>`;
+  return `<div class="section-head${secHeadClass(label)}"><span>${label}</span>${badgeHtml}</div>`;
 }
 
 // Combined VAT / Levy / Grand-Total summary section for the printed invoice.
@@ -940,8 +942,9 @@ function openPrintPreview(html, title, billRef, moduleFlag) {
   const printBtn = document.getElementById("ppvPrintBtn");
   const closeBtn = document.getElementById("ppvCloseBtn");
 
-  const accentColor =
-    moduleFlag === "reexport" ? "var(--teal)" : moduleFlag ? "var(--sky)" : "var(--gold)";
+  let accentColor = "var(--gold)";
+  if (moduleFlag === "reexport") accentColor = "var(--teal)";
+  else if (moduleFlag) accentColor = "var(--sky)";
   const btnTextColor = "#fff";
   bar.style.borderTopColor = accentColor;
   bar.querySelector(".ppv-logo-mark").style.color = accentColor;
@@ -956,7 +959,9 @@ function openPrintPreview(html, title, billRef, moduleFlag) {
     try {
       const h = frame.contentDocument.documentElement.scrollHeight;
       if (h > 200) frame.style.height = h + 40 + "px";
-    } catch (e) {}
+    } catch (e) {
+      dbg.warn("print preview auto-height failed:", e);
+    }
   };
   frame.srcdoc = html;
 
@@ -983,17 +988,22 @@ function openPrintPreview(html, title, billRef, moduleFlag) {
   dialog.showModal();
 }
 
+// Builds the printed invoice HTML for whichever of Car/Cargo/Re-Export was passed in.
+// The three module branches share no meaningful structure (different tariff rules,
+// different section layouts per CLAUDE.md's VAT/Levy presentation docs), so this is
+// intentionally one big per-module switch rather than three half-shared helpers —
+// splitting it risks the printed invoice silently drifting from the on-screen bill.
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function printBill(type) {
   // NOSONAR
-  const b = type === "car" ? lastCarBill : type === "reexport" ? lastReexportBill : lastCargoBill;
+  const b = (LAST_BILL_BY_TYPE[type] ?? LAST_BILL_BY_TYPE.cargo)();
   if (!b) {
     showToast("Generate the bill first before printing.", "warning");
     return;
   }
   // Re-validate before printing in case inputs were edited after the bill was
   // generated — surface exactly what is wrong instead of printing an invalid bill.
-  const printErrors =
-    type === "car" ? collectCarErrors() : type === "reexport" ? collectReexportErrors() : collectCargoErrors();
+  const printErrors = (COLLECT_ERRORS_BY_TYPE[type] ?? COLLECT_ERRORS_BY_TYPE.cargo)();
   if (reportInputErrors(printErrors)) return;
   try {
     const today = new Date().toLocaleDateString("en-GB", {
@@ -1013,12 +1023,12 @@ function printBill(type) {
 
     if (type === "car") {
       // ── INFO GRID ──
-      const rateMode =
-        b.rateMode === "split"
-          ? "Split (Old + New)"
-          : b.rateMode === "old"
-            ? "Old Rates (Pre-23/07/2024)"
-            : "New Rates (From 23/07/2024)";
+      const RATE_MODE_PRINT_TEXT = {
+        split: "Split (Old + New)",
+        old: "Old Rates (Pre-23/07/2024)",
+        new: "New Rates (From 23/07/2024)",
+      };
+      const rateMode = RATE_MODE_PRINT_TEXT[b.rateMode] ?? RATE_MODE_PRINT_TEXT.new;
       infoHtml = `<div class="info-grid">
       ${b.cnfName ? `<div class="info-cell"><div class="info-label">C&amp;F Agent</div><div class="info-value">${b.cnfName}</div></div>` : ""}
       ${b.blNumber ? `<div class="info-cell"><div class="info-label">BL Number</div><div class="info-value">${b.blNumber}</div></div>` : ""}
@@ -1036,6 +1046,9 @@ function printBill(type) {
 
       // ── SECTIONS ──
       if (b.hasWharfrent) {
+        // Renders the Car inside/outside wharfrent tables for the printed invoice —
+        // mirrors buildCarBillTable's split-rate branching; see printBill's file-level note.
+        // eslint-disable-next-line sonarjs/cognitive-complexity
         ["inside", "outside"].forEach((side) => {
           // NOSONAR
           const isIn = side === "inside";
@@ -1269,6 +1282,10 @@ function printBill(type) {
         const gVatAdj = calcVATmpa(gBaseAdj, b.vatRate * 100);
         const gLevyAdj = cargoIncludePayables ? b.gLevy : 0;
         const gTotalAdj = _rp(gBaseAdj + gVatAdj + gLevyAdj);
+        // Renders the Cargo inside/outside wharfrent + self-drive tables for the printed
+        // invoice — mirrors cargoCompute's split-rate/self-drive branching; see printBill's
+        // file-level note.
+        // eslint-disable-next-line sonarjs/cognitive-complexity
         ["inside", "outside"].forEach((side) => {
           const isIn = side === "inside";
           const normalSlabs = isIn ? b.insideSlabs : b.outsideSlabs;
@@ -1362,14 +1379,11 @@ function printBill(type) {
           const headLabel = isIn ? `INSIDE WHARFRENT` : `OUTSIDE WHARFRENT`;
           const sdWp = isIn ? b.wharfSdInside || 0 : b.wharfSdOutside || 0;
           const wWp = isIn ? b.insideW : b.outsideW;
+          const headRateLabel = isIn ? "Full Rate" : "½ Rate";
           const headBadge =
             sdWp > 0
-              ? isIn
-                ? `${fmtN(wWp - sdWp)}t Normal + ${fmtN(sdWp)}t SD — Full Rate`
-                : `${fmtN(wWp - sdWp)}t Normal + ${fmtN(sdWp)}t SD — ½ Rate`
-              : isIn
-                ? `${fmtN(b.insideW)} ton(s) — Full Rate`
-                : `${fmtN(b.outsideW)} ton(s) — ½ Rate`;
+              ? `${fmtN(wWp - sdWp)}t Normal + ${fmtN(sdWp)}t SD — ${headRateLabel}`
+              : `${fmtN(wWp)} ton(s) — ${headRateLabel}`;
           const subNote = isIn
             ? "Full rate — inside shed / warehouse"
             : "½ rate — outside shed / warehouse";
@@ -1387,11 +1401,10 @@ function printBill(type) {
       } else {
         // Payable-only: either free time OR wharfrent toggled off
         let rows = "";
-        const rawPayList = cargoIncludePayables
-          ? b.payables && b.payables.length > 0
-            ? b.payables
-            : [...(b.insidePayables || []), ...(b.outsidePayables || [])]
-          : [];
+        const hasPayables = b.payables && b.payables.length > 0;
+        const mergedPayables = [...(b.insidePayables || []), ...(b.outsidePayables || [])];
+        const payablesIfIncluded = hasPayables ? b.payables : mergedPayables;
+        const rawPayList = cargoIncludePayables ? payablesIfIncluded : [];
         // When wharfrent is excluded, merge inside+outside rows of the same charge into one total-tons row
         const payList = !includeWharfrent
           ? (() => {
@@ -1456,17 +1469,19 @@ function printBill(type) {
       if (includeWharfrent && cargoIncludePayables)
         sectionsHtml += buildCargoBreakdownPrintHtml(b);
       const hasW = (b.hasWharfrent || b.isPartBilling) && includeWharfrent;
+      let printTitle = "GENERAL CARGO BILL";
+      let printSubtitle = "Port Authority — General Cargo Wharfrent & Payable Charges";
+      if (!includeWharfrent) {
+        printTitle = "GENERAL CARGO BILL — PAYABLE CHARGES";
+        printSubtitle = "Port Authority — Payable Charges Only (Wharfrent Excluded)";
+      } else if (b.isPartBilling) {
+        const stageCount = (b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery).length;
+        printTitle = "GENERAL CARGO BILL — PART BILLING";
+        printSubtitle = `Port Authority — General Cargo Part Billing · ${stageCount} delivery stages`;
+      }
       opts = {
-        title: !includeWharfrent
-          ? "GENERAL CARGO BILL — PAYABLE CHARGES"
-          : b.isPartBilling
-            ? "GENERAL CARGO BILL — PART BILLING"
-            : "GENERAL CARGO BILL",
-        subtitle: !includeWharfrent
-          ? "Port Authority — Payable Charges Only (Wharfrent Excluded)"
-          : b.isPartBilling
-            ? `Port Authority — General Cargo Part Billing · ${(b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery).length} delivery stages`
-            : "Port Authority — General Cargo Wharfrent & Payable Charges",
+        title: printTitle,
+        subtitle: printSubtitle,
         billRef,
         today,
         infoHtml,
@@ -1531,8 +1546,10 @@ function printBill(type) {
           rows += `<tr class="calc-row"><td colspan="6">&#8627; ${fmtN(nn("re-removalMult"))}&times;&nbsp;&times;&nbsp;${fmtN(be.landingRate)}&nbsp;Tk/ton &times; ${fmtN(be.removalTon)}&nbsp;ton(s) = ${fmt(be.removal)}</td></tr>`;
         }
         rows += printTotRow("Bill of Entry Sub-Total (Base for VAT)", fmt(be.vatBase));
-        const headLabel = `BILL OF ENTRY ${be.beNumber || `#${be.idx + 1}`}`;
-        const headBadge = `${fmtN(be.totalTon)} ton(s)${be.beDate ? ` — ${be.beDate}` : ""} — Landing Rate ${fmtN(be.landingRate)} Tk/ton`;
+        const beLabel = be.beNumber || `#${be.idx + 1}`;
+        const headLabel = `BILL OF ENTRY ${beLabel}`;
+        const beDateSuffix = be.beDate ? ` — ${be.beDate}` : "";
+        const headBadge = `${fmtN(be.totalTon)} ton(s)${beDateSuffix} — Landing Rate ${fmtN(be.landingRate)} Tk/ton`;
         sectionsHtml += `${secHead(headLabel, headBadge)}<div class="no-break">${buildPrintTable(rows)}</div>`;
       });
 
@@ -1563,7 +1580,8 @@ function printBill(type) {
 
     const html = buildInvoiceHtml(opts);
     openPrintPreview(html, opts.title, billRef, type === "reexport" ? "reexport" : type === "cargo");
-  } catch (_) {
+  } catch (e) {
+    dbg.warn("printBill failed:", e);
     showToast("Error building print preview. Please try again.", "error");
   }
 }
@@ -1573,7 +1591,9 @@ document.getElementById("year").textContent = new Date().getFullYear();
 globalThis.scrollTo(0, 0);
 try {
   history.scrollRestoration = "manual";
-} catch (_) {}
+} catch (e) {
+  dbg.warn("scrollRestoration unsupported:", e);
+}
 
 // Native <dialog> event wiring
 const overlay = document.getElementById("overlay");
@@ -1648,7 +1668,8 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeAdminPasswordPanel();
 });
 
-// Floating particles
+// Floating particles — decorative CSS positioning only, not security-sensitive
+/* eslint-disable sonarjs/pseudo-random -- cosmetic randomness, no security implication */
 (function () {
   const container = document.createElement("div");
   container.className = "particle-container";
@@ -1665,6 +1686,7 @@ document.addEventListener("keydown", (e) => {
     container.appendChild(p);
   }
 })();
+/* eslint-enable sonarjs/pseudo-random */
 
 
 
@@ -1720,7 +1742,10 @@ async function saveConfigToWorker(config) {
       body: JSON.stringify(config),
     });
     return res.ok;
-  } catch (_) { return false; }
+  } catch (e) {
+    dbg.warn("saveConfigToWorker failed:", e);
+    return false;
+  }
 }
 
 async function loadConfigFromGitHub() {
@@ -1732,7 +1757,9 @@ async function loadConfigFromGitHub() {
       _cloudPasswordHash = cfg.adminPasswordHash;
       localStorage.setItem(ADMIN_PASS_STORAGE_KEY, cfg.adminPasswordHash);
     }
-  } catch (_) { /* offline — use localStorage */ }
+  } catch (e) {
+    dbg.warn("loadConfigFromGitHub failed, using localStorage:", e);
+  }
 }
 
 // Load saved-bills from Cloudflare Worker on startup (enables cross-device sync)
@@ -1762,14 +1789,18 @@ function getDeviceId() {
   let id = null;
   try {
     id = localStorage.getItem(DEVICE_ID_KEY);
-  } catch (_) { /* storage unavailable */ }
+  } catch (e) {
+    dbg.warn("getDeviceId: storage unavailable:", e);
+  }
   if (!id) {
     id = crypto.randomUUID
       ? crypto.randomUUID()
-      : Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
+      : Date.now().toString(36) + "-" + Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(36).padStart(2, "0")).join("");
     try {
       localStorage.setItem(DEVICE_ID_KEY, id);
-    } catch (_) { /* storage unavailable */ }
+    } catch (e) {
+      dbg.warn("getDeviceId: storage unavailable:", e);
+    }
   }
   return id;
 }
@@ -1856,8 +1887,12 @@ function renderStats(s) {
       `<title>${escHtml(d.key)} — ${d.uniques} unique user(s)</title></rect>`;
     if (i % 5 === 0 || i === days.length - 1) {
       // Anchor edge labels inward so they don't clip outside the viewBox
-      const anchor = i === 0 ? "start" : i === days.length - 1 ? "end" : "middle";
-      const tx = i === 0 ? PAD : i === days.length - 1 ? W - PAD : PAD + i * bw + bw * 0.34;
+      const isFirst = i === 0;
+      const isLast = i === days.length - 1;
+      let anchor = "middle";
+      let tx = PAD + i * bw + bw * 0.34;
+      if (isFirst) { anchor = "start"; tx = PAD; }
+      else if (isLast) { anchor = "end"; tx = W - PAD; }
       bars += `<text x="${tx.toFixed(1)}" y="${H - 2}" class="sbar-x" text-anchor="${anchor}">${label}</text>`;
     }
   });
@@ -1933,7 +1968,7 @@ function printSavedBill(billNumber) {
   const all = getSavedBills();
   const record = all.find((b) => b.billNumber === billNumber);
   if (!record) { showToast('Bill not found', 'error'); return; }
-  const type = record.type === 'cargo' ? 'cargo' : record.type === 'reexport' ? 'reexport' : 'car';
+  const type = ['cargo', 'reexport'].includes(record.type) ? record.type : 'car';
   editSavedBill(billNumber);
   setTimeout(() => printBill(type), 80);
 }
@@ -1970,11 +2005,17 @@ function saveDraft(type) {
     const payload = { ts: Date.now(), inputs: billInputSnapshot(type) };
     if (type === 'reexport') payload.reexportBEs = JSON.parse(JSON.stringify(reexportBEs));
     localStorage.setItem(DRAFT_KEYS[type], JSON.stringify(payload));
-  } catch (_) {}
+  } catch (e) {
+    dbg.warn(`saveDraft(${type}) failed:`, e);
+  }
 }
 
 function clearDraft(type) {
-  try { localStorage.removeItem(DRAFT_KEYS[type]); } catch (_) {}
+  try {
+    localStorage.removeItem(DRAFT_KEYS[type]);
+  } catch (e) {
+    dbg.warn(`clearDraft(${type}) failed:`, e);
+  }
 }
 
 function getDraft(type) {
@@ -1987,7 +2028,10 @@ function getDraft(type) {
       return null;
     }
     return d;
-  } catch (_) { return null; }
+  } catch (e) {
+    dbg.warn(`getDraft(${type}) failed:`, e);
+    return null;
+  }
 }
 
 function hasMeaningfulDraft(inputs, type) {
@@ -2174,7 +2218,7 @@ function editSavedBill(billNumber) {
   const record = all.find((b) => b.billNumber === billNumber);
   if (!record) { showToast("Bill not found", "error"); return; }
 
-  const type = record.type === "cargo" ? "cargo" : record.type === "reexport" ? "reexport" : "car";
+  const type = ["cargo", "reexport"].includes(record.type) ? record.type : "car";
   switchModule(type);
 
   // Restore scalar inputs from snapshot
@@ -2228,7 +2272,7 @@ async function deleteSavedBill(billNumber) {
   const target = all.find((b) => b.billNumber === billNumber);
   if (!target) return;
   const type = target.type;
-  const prefix = parsed ? parsed.prefix : (type === "cargo" ? "GCA" : type === "reexport" ? "RE" : "CA");
+  const prefix = parsed ? parsed.prefix : (BILL_PREFIX_BY_TYPE[type] ?? BILL_PREFIX_BY_TYPE.car);
 
   // Remove the bill
   all = all.filter((b) => b.billNumber !== billNumber);

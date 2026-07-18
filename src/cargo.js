@@ -123,6 +123,7 @@ function cargoValidateSelfDriveTon(showAlert = false) {
 // later stages must be strictly after the previous stage's delivery. Mirrors the
 // periodDays<=0 "invalid" gate in computePartBillingWharfrent, but surfaces the
 // reason inline so the user knows why a stage isn't billing. Returns true when all dates are valid.
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function validatePartBillingDates() {
   const cldEl = document.getElementById("c-cld");
   if (!cldEl) return true;
@@ -135,11 +136,8 @@ function validatePartBillingDates() {
     10,
   );
   const fdDays = Number.isNaN(_cfd) ? 4 : Math.max(0, _cfd);
-  const freeEnd = cldOk
-    ? fdDays === 0
-      ? addD(cld, -1)
-      : addD(cld, fdDays - 1)
-    : null;
+  const freeDaysOffset = fdDays === 0 ? -1 : fdDays - 1;
+  const freeEnd = cldOk ? addD(cld, freeDaysOffset) : null;
 
   let allValid = true;
   let prevEnd = freeEnd; // running reference; advances to each valid stage date
@@ -268,23 +266,18 @@ function renderPartBillingStages() {
   const showSdOut =
     !!document.getElementById("c-chkSelfDriveOutside")?.checked &&
     pbMaxSdWeight(0, "outside") > 0;
+  // Renders one part-billing stage row (balance inputs, SD sub-fields); branches map
+  // 1:1 to the fields documented in CLAUDE.md's "Part billing stages" section.
   container.innerHTML = partBillingStages
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     .map((stage, idx) => {
       const isFirst = idx === 0;
       const isLast = idx === total - 1;
       const _n = idx + 1,
         _v = _n % 10,
         _h = _n % 100;
-      const _suf =
-        _h >= 11 && _h <= 13
-          ? "th"
-          : _v === 1
-            ? "st"
-            : _v === 2
-              ? "nd"
-              : _v === 3
-                ? "rd"
-                : "th";
+      const ORDINAL_SUFFIX_BY_LAST_DIGIT = { 1: "st", 2: "nd", 3: "rd" };
+      const _suf = (_h >= 11 && _h <= 13) ? "th" : (ORDINAL_SUFFIX_BY_LAST_DIGIT[_v] ?? "th");
       const periodLabel = `${_n}${_suf} Delivery`;
       const maxIn = pbMaxWeight(idx, "inside");
       const maxOut = pbMaxWeight(idx, "outside");
@@ -306,6 +299,55 @@ function renderPartBillingStages() {
         partBillingStages[idx].sdOutsideAfter = maxSdOut;
         stage.sdOutsideAfter = maxSdOut;
       }
+
+      let insideMaxNote = "";
+      if (maxIn > 0) {
+        const insideMaxText = maxSdIn > 0
+          ? `max&nbsp;${maxIn}t&nbsp;Normal&nbsp;+&nbsp;${maxSdIn}t&nbsp;SD`
+          : `max&nbsp;${maxIn}t`;
+        insideMaxNote = `<span class="pbs-max-note">${insideMaxText}</span>`;
+      }
+      let outsideMaxNote = "";
+      if (maxOut > 0) {
+        const outsideMaxText = maxSdOut > 0
+          ? `max&nbsp;${maxOut}t&nbsp;Normal&nbsp;+&nbsp;${maxSdOut}t&nbsp;SD`
+          : `max&nbsp;${maxOut}t`;
+        outsideMaxNote = `<span class="pbs-max-note">${outsideMaxText}</span>`;
+      }
+
+      let sdInsideBlockHtml = "";
+      if (showSdIn) {
+        const sdInsideMaxNote = maxSdIn > 0 ? `<span class="pbs-max-note">max&nbsp;${maxSdIn}t</span>` : "";
+        const sdInsideValueAttr = stage.sdInsideAfter ? `value="${stage.sdInsideAfter}"` : "";
+        const sdInsideMaxAttr = maxSdIn > 0 ? `max="${maxSdIn}"` : "";
+        sdInsideBlockHtml = `<div class="fg">
+                <label class="lbl pbs-bal-lbl" for="pb-sd-inside-${idx}">
+                  <span class="pbs-bal-dot" style="background:var(--gold-hi)"></span><span style="color:var(--gold-hi)">SD</span> Inside
+                  ${sdInsideMaxNote}
+                </label>
+                <input type="number" id="pb-sd-inside-${idx}" class="cargo-glow pb-balance-input"
+                  ${sdInsideValueAttr} placeholder="0" min="0" ${sdInsideMaxAttr} step="1"
+                  oninput="pbSdBalanceChange(${idx},'inside',this.value);" />
+              </div>`;
+      }
+
+      let sdOutsideBlockHtml = "";
+      if (showSdOut) {
+        const sdOutsideGridStyle = !showSdIn ? ' style="grid-column:2"' : "";
+        const sdOutsideMaxNote = maxSdOut > 0 ? `<span class="pbs-max-note">max&nbsp;${maxSdOut}t</span>` : "";
+        const sdOutsideValueAttr = stage.sdOutsideAfter ? `value="${stage.sdOutsideAfter}"` : "";
+        const sdOutsideMaxAttr = maxSdOut > 0 ? `max="${maxSdOut}"` : "";
+        sdOutsideBlockHtml = `<div class="fg"${sdOutsideGridStyle}>
+                <label class="lbl pbs-bal-lbl" for="pb-sd-outside-${idx}">
+                  <span class="pbs-bal-dot" style="background:var(--gold-hi)"></span><span style="color:var(--gold-hi)">SD</span> Outside
+                  ${sdOutsideMaxNote}
+                </label>
+                <input type="number" id="pb-sd-outside-${idx}" class="cargo-glow pb-balance-input"
+                  ${sdOutsideValueAttr} placeholder="0" min="0" ${sdOutsideMaxAttr} step="1"
+                  oninput="pbSdBalanceChange(${idx},'outside',this.value);" />
+              </div>`;
+      }
+
       return `<div class="pbs-row${isLast ? " pbs-row-last" : ""}" id="pb-stage-${idx}">
       <div class="pbs-connector">
         <div class="pbs-dot"><span>${_n}</span></div>
@@ -342,7 +384,7 @@ function renderPartBillingStages() {
               <div class="fg">
                 <label class="lbl pbs-bal-lbl" for="pb-inside-${idx}">
                   <span class="pbs-bal-dot" style="background:var(--blue)"></span>Inside
-                  ${maxIn > 0 ? `<span class="pbs-max-note">${maxSdIn > 0 ? `max&nbsp;${maxIn}t&nbsp;Normal&nbsp;+&nbsp;${maxSdIn}t&nbsp;SD` : `max&nbsp;${maxIn}t`}</span>` : ""}
+                  ${insideMaxNote}
                 </label>
                 <input type="number" id="pb-inside-${idx}" class="cargo-glow pb-balance-input"
                   ${stage.insideAfter ? `value="${stage.insideAfter}"` : ""} placeholder="0" min="0" ${maxIn > 0 ? `max="${maxIn}"` : ""} step="1"
@@ -351,38 +393,14 @@ function renderPartBillingStages() {
               <div class="fg">
                 <label class="lbl pbs-bal-lbl" for="pb-outside-${idx}">
                   <span class="pbs-bal-dot" style="background:var(--purple)"></span>Outside
-                  ${maxOut > 0 ? `<span class="pbs-max-note">${maxSdOut > 0 ? `max&nbsp;${maxOut}t&nbsp;Normal&nbsp;+&nbsp;${maxSdOut}t&nbsp;SD` : `max&nbsp;${maxOut}t`}</span>` : ""}
+                  ${outsideMaxNote}
                 </label>
                 <input type="number" id="pb-outside-${idx}" class="cargo-glow pb-balance-input"
                   ${stage.outsideAfter ? `value="${stage.outsideAfter}"` : ""} placeholder="0" min="0" ${maxOut > 0 ? `max="${maxOut}"` : ""} step="1"
                   oninput="pbBalanceChange(${idx},'outside',this.value);" />
               </div>
-              ${
-                showSdIn
-                  ? `<div class="fg">
-                <label class="lbl pbs-bal-lbl" for="pb-sd-inside-${idx}">
-                  <span class="pbs-bal-dot" style="background:var(--gold-hi)"></span><span style="color:var(--gold-hi)">SD</span> Inside
-                  ${maxSdIn > 0 ? `<span class="pbs-max-note">max&nbsp;${maxSdIn}t</span>` : ""}
-                </label>
-                <input type="number" id="pb-sd-inside-${idx}" class="cargo-glow pb-balance-input"
-                  ${stage.sdInsideAfter ? `value="${stage.sdInsideAfter}"` : ""} placeholder="0" min="0" ${maxSdIn > 0 ? `max="${maxSdIn}"` : ""} step="1"
-                  oninput="pbSdBalanceChange(${idx},'inside',this.value);" />
-              </div>`
-                  : ""
-              }
-              ${
-                showSdOut
-                  ? `<div class="fg"${!showSdIn ? ' style="grid-column:2"' : ""}>
-                <label class="lbl pbs-bal-lbl" for="pb-sd-outside-${idx}">
-                  <span class="pbs-bal-dot" style="background:var(--gold-hi)"></span><span style="color:var(--gold-hi)">SD</span> Outside
-                  ${maxSdOut > 0 ? `<span class="pbs-max-note">max&nbsp;${maxSdOut}t</span>` : ""}
-                </label>
-                <input type="number" id="pb-sd-outside-${idx}" class="cargo-glow pb-balance-input"
-                  ${stage.sdOutsideAfter ? `value="${stage.sdOutsideAfter}"` : ""} placeholder="0" min="0" ${maxSdOut > 0 ? `max="${maxSdOut}"` : ""} step="1"
-                  oninput="pbSdBalanceChange(${idx},'outside',this.value);" />
-              </div>`
-                  : ""
-              }
+              ${sdInsideBlockHtml}
+              ${sdOutsideBlockHtml}
             </div>
           </div>
         </div>
@@ -608,6 +626,7 @@ function calcCarBillingSdSlabs(
 
 // Compute multi-period wharfrent for part billing mode
 // Slab progression never resets — daysOffset accumulates from original CLD
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function computePartBillingWharfrent(
   cld,
   freeEnd,
@@ -912,17 +931,17 @@ function buildPartBillingBillTable(b, side) {
   const halfSuffix = isIn
     ? ""
     : '<span style="font-size:11px;color:var(--m2)"> × 0.50</span>';
+  // Renders each part-billing period's slab/balance row; mirrors computePartBillingWharfrent's
+  // period model documented in CLAUDE.md — see that function's own suppression note.
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   allPeriods.forEach((p, pi) => {
     const isLast = pi === allPeriods.length - 1;
     if (p.freeTimeDelivery) {
       const balSd_ft = isIn ? (p.balanceSdInsideAfter || 0) : (p.balanceSdOutsideAfter || 0);
       const balNorm_ft = isIn ? (p.balanceInsideAfter || 0) : (p.balanceOutsideAfter || 0);
       const balAfterStr_ft = balSd_ft > 0 ? `${balNorm_ft}t Normal + ${balSd_ft}t SD` : `${balNorm_ft}t`;
-      const balNote_ft = isLast
-        ? " · Final Delivery"
-        : isIn
-          ? ` · Balance: Inside ${balAfterStr_ft}`
-          : ` · Balance: Outside ${balAfterStr_ft}`;
+      const sideLabel_ft = isIn ? "Inside" : "Outside";
+      const balNote_ft = isLast ? " · Final Delivery" : ` · Balance: ${sideLabel_ft} ${balAfterStr_ft}`;
       rows += `<tr class="sep"><td colspan="6">Stage ${p.periodNum}: ${fd(p.deliveryDate)} — ✓ Delivery within free time — no wharfrent charge${balNote_ft}</td></tr>`;
       return;
     }
@@ -936,13 +955,10 @@ function buildPartBillingBillTable(b, side) {
     const balNorm_s = isIn ? p.balanceInsideAfter : p.balanceOutsideAfter;
     const balAfterStr_s =
       balSd_s > 0 ? `${balNorm_s}t Normal + ${balSd_s}t SD` : `${balNorm_s}t`;
-    const balNote = p.isCurrentDate
-      ? " · Up to Today"
-      : !isLast
-        ? isIn
-          ? ` · Balance: Inside ${balAfterStr_s}`
-          : ` · Balance: Outside ${balAfterStr_s}`
-        : " · Final Delivery";
+    const sideLabel_s = isIn ? "Inside" : "Outside";
+    let balNote = " · Final Delivery";
+    if (p.isCurrentDate) balNote = " · Up to Today";
+    else if (!isLast) balNote = ` · Balance: ${sideLabel_s} ${balAfterStr_s}`;
     const tonLabel_s =
       sdW > 0
         ? `Normal: ${fmtN(w - sdW)}t + SD: ${fmtN(sdW)}t`
@@ -980,22 +996,25 @@ function buildPartBillingBillTable(b, side) {
 }
 
 // Build part billing print section for inside or outside
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function buildPartBillingPrintSection(b, side) {
   //NOSONAR
   const allPeriods = (b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery);
   const isIn = side === "inside";
   let rows = "";
+  // Print-invoice counterpart of buildPartBillingBillTable's per-period renderer — see that
+  // forEach's suppression note.
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   allPeriods.forEach((p, pi) => {
     const isLast = pi === allPeriods.length - 1;
     if (p.freeTimeDelivery) {
       const balSd_ft = isIn ? (p.balanceSdInsideAfter || 0) : (p.balanceSdOutsideAfter || 0);
       const balNorm_ft = isIn ? (p.balanceInsideAfter || 0) : (p.balanceOutsideAfter || 0);
       const balAfterStr_ft = balSd_ft > 0 ? `${balNorm_ft}t Normal + ${balSd_ft}t SD` : `${balNorm_ft}t`;
+      const sideLabel_ft = isIn ? "Inside" : "Outside";
       const balNote_ft = isLast
         ? " | Final Delivery — no cargo remains"
-        : isIn
-          ? ` | Remaining balance after this delivery: Inside ${balAfterStr_ft}`
-          : ` | Remaining balance after this delivery: Outside ${balAfterStr_ft}`;
+        : ` | Remaining balance after this delivery: ${sideLabel_ft} ${balAfterStr_ft}`;
       rows += `<tr class="sep"><td colspan="6">Stage ${p.periodNum}: ${fd(p.deliveryDate)} &mdash; Delivery within free time &mdash; no wharfrent charge${balNote_ft}</td></tr>`;
       return;
     }
@@ -1009,13 +1028,10 @@ function buildPartBillingPrintSection(b, side) {
     const balNorm_p = isIn ? p.balanceInsideAfter : p.balanceOutsideAfter;
     const balAfterStr_p =
       balSd_p > 0 ? `${balNorm_p}t Normal + ${balSd_p}t SD` : `${balNorm_p}t`;
-    const balNote = p.isCurrentDate
-      ? " | Up to Today"
-      : !isLast
-        ? isIn
-          ? ` | Remaining balance after this delivery: Inside ${balAfterStr_p}`
-          : ` | Remaining balance after this delivery: Outside ${balAfterStr_p}`
-        : " | Final Delivery — no cargo remains";
+    const sideLabel_p = isIn ? "Inside" : "Outside";
+    let balNote = " | Final Delivery — no cargo remains";
+    if (p.isCurrentDate) balNote = " | Up to Today";
+    else if (!isLast) balNote = ` | Remaining balance after this delivery: ${sideLabel_p} ${balAfterStr_p}`;
     const normalW_p = w - sdW;
     const tonLabel_p =
       sdW > 0
@@ -1057,17 +1073,14 @@ function buildPartBillingPrintSection(b, side) {
   });
   const rp2 = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0;
   const wharfTotal = isIn ? b.insideWharfrent : b.outsideWharfrent;
-  const filteredPay = cargoIncludePayables
-    ? isIn
-      ? b.insidePayables
-      : b.outsidePayables
-    : [];
+  const sidePayables = isIn ? b.insidePayables : b.outsidePayables;
+  const filteredPay = cargoIncludePayables ? sidePayables : [];
   // This section shows only the per-portion sub-total (wharfrent + payables).
   // VAT and Levy are charged ONCE on the combined base in the BILL SUMMARY that
   // follows both sections (see buildCombinedSummaryPrintSection).
+  const sidePaySub = isIn ? b.insidePaySub : b.outsidePaySub;
   const baseAmt = rp2(
-    (isIn ? b.iBase : b.oBase) -
-      (cargoIncludePayables ? 0 : isIn ? b.insidePaySub : b.outsidePaySub),
+    (isIn ? b.iBase : b.oBase) - (cargoIncludePayables ? 0 : sidePaySub),
   );
   const subLabel = isIn
     ? "Inside Sub-Total (Base for VAT)"
@@ -1096,18 +1109,19 @@ function buildPartBillingPrintSection(b, side) {
   rows += printTotRow(subLabel, fmt(baseAmt));
   const wt = isIn ? b.insideW : b.outsideW;
   const sdWt = isIn ? b.wharfSdInside || 0 : b.wharfSdOutside || 0;
+  const headRateLabel = isIn ? "Full Rate" : "½ Rate";
   const headBadge =
     sdWt > 0
-      ? isIn
-        ? `${fmtN(wt - sdWt)}t Normal + ${fmtN(sdWt)}t SD — Full Rate`
-        : `${fmtN(wt - sdWt)}t Normal + ${fmtN(sdWt)}t SD — ½ Rate`
-      : isIn
-        ? `${fmtN(wt)} ton initial — Full Rate`
-        : `${fmtN(wt)} ton initial — ½ Rate`;
+      ? `${fmtN(wt - sdWt)}t Normal + ${fmtN(sdWt)}t SD — ${headRateLabel}`
+      : `${fmtN(wt)} ton initial — ${headRateLabel}`;
   const subNote = `Part Billing — ${allPeriods.length} stage${allPeriods.length !== 1 ? "s" : ""} · ${isIn ? "Full" : "½"} rate · Day-count continuous from CLD`;
   return `${secHead(isIn ? "INSIDE WHARFRENT" : "OUTSIDE WHARFRENT", headBadge)}<div class="section-sub">${subNote}</div><div class="no-break">${buildPrintTable(rows)}</div>`;
 }
 
+// Core Cargo billing math (inside/outside slabs, self-drive, part billing, combined
+// VAT/Levy per CLAUDE.md); branching mirrors MPA tariff rules — decomposing risks
+// silently changing bill totals. See car.js's carCompute for the same rationale.
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function cargoCompute() {
   // NOSONAR
   const meta = readMeta("c");
@@ -1560,7 +1574,7 @@ function cargoCompute() {
 }
 
 function syncPbMaxLabels() {
-  partBillingStages.forEach((stage, idx) => {
+  partBillingStages.forEach((_stage, idx) => {
     const maxIn = pbMaxWeight(idx, "inside");
     const maxOut = pbMaxWeight(idx, "outside");
     const maxSdIn = pbMaxSdWeight(idx, "inside");
@@ -1604,6 +1618,9 @@ function syncPbMaxLabels() {
   });
 }
 
+// Live-preview renderer mirrors cargoCalculate's branching (part billing/wharfrent/free-time);
+// splitting it risks the preview and the final bill silently drifting apart.
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function cargoRefreshNow() {
   try {
     validateDateField("c-cld", "c-cld-hint", "CLD");
@@ -1674,6 +1691,7 @@ function cargoRefreshNow() {
     if (!b) return;
     // Sync ton field active/inactive state + inline error
     // maxVal: if > 0, also validates that entered value does not exceed this limit
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     const syncTon = (chkId, inputId, errId, maxVal = 0) => {
       const on = document.getElementById(chkId)?.checked;
       const inp = document.getElementById(inputId);
@@ -1728,8 +1746,6 @@ function cargoRefreshNow() {
       ? `<div class="rbadge rb-new" style="background:rgba(14,165,233,0.10);border-color:rgba(14,165,233,0.28);color:var(--sky);">📦 PART BILLING — ${(b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery).length} Delivery Stage(s)</div>`
       : `<div class="rbadge rb-new">● CARGO RATES — Landing Tier: ${getCargoTierLabel(b.totalWeight)}</div>`;
     const pv = document.getElementById("cargo-preview");
-    const inside = ceilTon(document.getElementById("c-inside").value);
-    const outside = ceilTon(document.getElementById("c-outside").value);
     if (b.isPartBilling) {
       const vp = (b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery);
       pv.innerHTML =
@@ -1751,7 +1767,8 @@ function cargoRefreshNow() {
         `<div class="pvr pvr-grand pvr-grand-cargo"><span class="pvr-lbl">General Cargo Grand Total</span><span class="pvr-val v-cyan">${fmt(b.nTotal)}</span></div>`;
     }
     if (isAdmin && !isInitialLoad) saveRates();
-  } catch (_) {
+  } catch (e) {
+    dbg.warn("cargoRefreshNow failed:", e);
     document.getElementById("cargo-preview").innerHTML = SP_CARGO_IDLE;
   }
 }
@@ -2041,12 +2058,17 @@ function buildCargoBreakdownPrintHtml(b) {
   </table></div></div>`;
 }
 
+// Renders the on-screen Cargo bill (info bar, summary, part-billing/normal sections,
+// grand total); branches mirror cargoCompute's combined-VAT-base model documented in
+// CLAUDE.md — decomposing risks the screen bill and print bill silently drifting apart.
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function cargoCalculate() {
   if (reportInputErrors(collectCargoErrors())) return;
   let b;
   try {
     b = cargoCompute();
-  } catch (_) {
+  } catch (e) {
+    dbg.warn("cargoCompute failed:", e);
     showToast("Billing calculation failed — please check inputs and try again.", "error");
     return;
   }
@@ -2055,12 +2077,28 @@ function cargoCalculate() {
   try {
     document.getElementById("cargo-results").style.display = "block";
 
+    const billNoHtml = b.billNumber
+      ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>`
+      : "";
+    const cnfHtml = b.cnfName
+      ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>`
+      : "";
+    const blHtml = b.blNumber
+      ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>`
+      : "";
+    const beNoHtml = b.billEntryNumber
+      ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>`
+      : "";
+    const beDateHtml = b.billEntryDate
+      ? `<div class="ii"><div class="il">B/E Date</div><div class="iv">${b.billEntryDate}</div></div>`
+      : "";
+
     if (b.isPartBilling) {
       const vp = (b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery);
       const firstDel = vp.length > 0 ? fd(vp[0].deliveryDate) : "—";
       const lastDel = vp.length > 0 ? fd(vp[vp.length - 1].deliveryDate) : "—";
       document.getElementById("cargo-ibar").innerHTML =
-        `<div class="ibar"><div>${b.billNumber ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>` : ""}${b.billEntryNumber ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>` : ""}${b.billEntryDate ? `<div class="ii"><div class="il">B/E Date</div><div class="iv">${b.billEntryDate}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${fd(b.storStart)}</div></div><div class="ii"><div class="il">First Delivery</div><div class="iv">${firstDel}</div></div><div class="ii"><div class="il">Last Delivery</div><div class="iv">${lastDel}</div></div><div class="ii"><div class="il">Delivery Stages</div><div class="iv" style="color:var(--cargo-accent)">${vp.length} stages</div></div><div class="ii"><div class="il">Initial Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Total Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.totalDays} days</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
+        `<div class="ibar"><div>${billNoHtml}${cnfHtml}${blHtml}${beNoHtml}${beDateHtml}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${fd(b.storStart)}</div></div><div class="ii"><div class="il">First Delivery</div><div class="iv">${firstDel}</div></div><div class="ii"><div class="il">Last Delivery</div><div class="iv">${lastDel}</div></div><div class="ii"><div class="il">Delivery Stages</div><div class="iv" style="color:var(--cargo-accent)">${vp.length} stages</div></div><div class="ii"><div class="il">Initial Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Total Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.totalDays} days</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
       document.getElementById("cargo-srow").innerHTML =
         `<div class="sc cg"><div class="sl">Grand Total — Part Billing</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(b.gTotal)}</div><div class="ss">${vp.length} stages · incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Sub-Total</div><div class="sv">${fmtN(b.iBase)}</div><div class="ss">Before VAT &amp; Levy · ${b.totalDays} days</div></div><div class="sc cp"><div class="sl">Outside Sub-Total</div><div class="sv">${fmtN(b.oBase)}</div><div class="ss">Before VAT &amp; Levy · ${b.totalDays} days</div></div>`;
       const pbInDesc =
@@ -2077,8 +2115,10 @@ function cargoCalculate() {
         `<div style="margin-bottom:20px;"><div class="cargo-split-info" style="background:rgba(192,132,252,0.06);border-color:rgba(192,132,252,0.2);color:var(--purple);">Part Billing — ${vp.length} stage(s) · Initial Outside: <strong>${pbOutDesc}</strong> · ½ rate</div><div class="slbl sl-cout">▪ Outside Wharfrent — Part Billing — ½ Rate</div><div class="card" style="padding:0;overflow:hidden;">${buildPartBillingBillTable(b, "outside")}</div></div>` +
         `<div style="margin-bottom:20px;"><div class="slbl sl-payable">▪ Bill Summary — VAT &amp; Levy on Inside + Outside</div><div class="card" style="padding:0;overflow:hidden;">${buildCombinedSummaryTable(b)}</div></div>`;
     } else {
+      const wharfrentStarts = b.hasWharfrent ? fd(b.storStart) : "—";
+      const wharfrentDaysText = b.hasWharfrent ? b.totalDays + " days" : "In free time";
       document.getElementById("cargo-ibar").innerHTML =
-        `<div class="ibar"><div>${b.billNumber ? `<div class="ii bill-no-ii"><div class="il">Bill Number</div><div class="iv bill-no-val">${b.billNumber}</div></div>` : ""}${b.cnfName ? `<div class="ii"><div class="il">C&F Agent</div><div class="iv">${b.cnfName}</div></div>` : ""}${b.blNumber ? `<div class="ii"><div class="il">BL Number</div><div class="iv" style="color:var(--sky)">${b.blNumber}</div></div>` : ""}${b.billEntryNumber ? `<div class="ii"><div class="il">Bill of Entry</div><div class="iv">${b.billEntryNumber}</div></div>` : ""}${b.billEntryDate ? `<div class="ii"><div class="il">B/E Date</div><div class="iv">${b.billEntryDate}</div></div>` : ""}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${b.hasWharfrent ? fd(b.storStart) : "—"}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Total Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.hasWharfrent ? b.totalDays + " days" : "In free time"}</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
+        `<div class="ibar"><div>${billNoHtml}${cnfHtml}${blHtml}${beNoHtml}${beDateHtml}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${wharfrentStarts}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Total Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Wharfrent Days</div><div class="iv" style="color:var(--gold)">${wharfrentDaysText}</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
       if (b.hasWharfrent) {
         document.getElementById("cargo-srow").innerHTML =
           `<div class="sc cg"><div class="sl">General Cargo Grand Total</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(b.gTotal)}</div><div class="ss">incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Sub-Total</div><div class="sv">${fmtN(b.iBase)}</div><div class="ss">Full rate · before VAT</div></div><div class="sc cp"><div class="sl">Outside Sub-Total</div><div class="sv">${fmtN(b.oBase)}</div><div class="ss">½ rate · before VAT</div></div>`;
@@ -2109,15 +2149,17 @@ function cargoCalculate() {
 
     const grand =
       b.hasWharfrent || b.isPartBilling ? b.gTotal : b.nTotal;
+    const pbSuffix = b.isPartBilling ? " — Part Billing" : "";
     const cargoGrandSplitHtml =
       b.hasWharfrent || b.isPartBilling
-        ? `<div><div class="glbl">Inside Sub-Total${b.isPartBilling ? " — Part Billing" : ""}</div><div class="gval" style="color:var(--blue)">${fmt(b.iBase)}</div><div class="gsub">Full rate · before VAT</div></div><div><div class="glbl">Outside Sub-Total${b.isPartBilling ? " — Part Billing" : ""}</div><div class="gval" style="color:var(--purple)">${fmt(b.oBase)}</div><div class="gsub">½ rate · before VAT</div></div>`
+        ? `<div><div class="glbl">Inside Sub-Total${pbSuffix}</div><div class="gval" style="color:var(--blue)">${fmt(b.iBase)}</div><div class="gsub">Full rate · before VAT</div></div><div><div class="glbl">Outside Sub-Total${pbSuffix}</div><div class="gval" style="color:var(--purple)">${fmt(b.oBase)}</div><div class="gsub">½ rate · before VAT</div></div>`
         : `<div><div class="glbl">Payable Charges</div><div class="gval" style="color:var(--green)">${fmt(b.nBase)}</div><div class="gsub">No wharfrent — payable charges only</div></div><div></div>`;
     document.getElementById("cargo-grandSec").innerHTML =
       `<div class="gbox cargo-grand"><div class="ginn">${cargoGrandSplitHtml}<div class="gfin"><div class="glbl">GENERAL CARGO GRAND TOTAL</div><div class="gval" style="color:var(--cargo-accent)">${fmt(grand)}</div><div class="gsub">Tk — All inclusive</div></div></div></div>`;
     const cargoEmpty = document.getElementById("cargo-empty");
     if (cargoEmpty) cargoEmpty.style.display = "none";
     const cargoGbox = document.querySelector("#cargo-grandSec .gbox");
+    // eslint-disable-next-line sonarjs/void-use -- void forces the offsetWidth read (reflow) that restarts the gboxPulse CSS animation
     if (cargoGbox) { cargoGbox.classList.remove("just-calculated"); void cargoGbox.offsetWidth; cargoGbox.classList.add("just-calculated"); }
 
     if (!isInitialLoad) {
@@ -2129,7 +2171,8 @@ function cargoCalculate() {
         80,
       );
     }
-  } catch (_) {
+  } catch (e) {
+    dbg.warn("cargoCalculate render failed:", e);
     showToast("Display error — bill may not render correctly.", "warning");
   }
 }

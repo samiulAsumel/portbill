@@ -225,7 +225,8 @@ function loadSavedRates() {
   let saved = {};
   try {
     saved = JSON.parse(localStorage.getItem(RATE_STORAGE_KEY) || "{}");
-  } catch (_) {
+  } catch (e) {
+    dbg.warn("loadSavedRates: corrupted localStorage entry:", e);
     saved = {};
   }
   Object.keys(RATE_DEFAULTS).forEach((id) => {
@@ -430,12 +431,14 @@ function billDateKey(date = new Date()) {
 function readJsonStorage(key, fallback) {
   try {
     return JSON.parse(localStorage.getItem(key) || "") ?? fallback;
-  } catch (_) {
+  } catch (e) {
+    dbg.warn(`readJsonStorage(${key}) failed:`, e);
     return fallback;
   }
 }
+const BILL_PREFIX_BY_TYPE = { cargo: "GCA", reexport: "RE", car: "CA" };
 function nextBillNumber(type) {
-  const prefix = type === "cargo" ? "GCA" : type === "reexport" ? "RE" : "CA";
+  const prefix = BILL_PREFIX_BY_TYPE[type] ?? BILL_PREFIX_BY_TYPE.car;
   const datePart = billDateKey();
   const key = `${prefix}-${datePart}`;
   const counters = readJsonStorage(BILL_COUNTER_KEY, {});
@@ -464,12 +467,13 @@ function billInputSnapshot(type) {
   });
   return data;
 }
+const BILL_SNAPSHOT_IDS_BY_TYPE = {
+  cargo: ["cargo-ibar", "cargo-srow", "cargo-insideSec", "cargo-outsideSec", "cargo-breakdownSec", "cargo-grandSec"],
+  reexport: ["reexport-ibar", "reexport-srow", "reexport-beSec", "reexport-grandSec"],
+  car: ["car-ibar", "car-srow", "car-insideSec", "car-outsideSec", "car-grandSec"],
+};
 function billHtmlSnapshot(type) {
-  const ids = type === "cargo"
-    ? ["cargo-ibar", "cargo-srow", "cargo-insideSec", "cargo-outsideSec", "cargo-breakdownSec", "cargo-grandSec"]
-    : type === "reexport"
-      ? ["reexport-ibar", "reexport-srow", "reexport-beSec", "reexport-grandSec"]
-      : ["car-ibar", "car-srow", "car-insideSec", "car-outsideSec", "car-grandSec"];
+  const ids = BILL_SNAPSHOT_IDS_BY_TYPE[type] ?? BILL_SNAPSHOT_IDS_BY_TYPE.car;
   return ids.map((id) => `<section data-section="${id}">${document.getElementById(id)?.innerHTML || ""}</section>`).join("");
 }
 function getSavedBills() {
@@ -483,13 +487,20 @@ function persistSavedBill(record) {
   else bills.unshift(record);
   localStorage.setItem(SAVED_BILLS_KEY, JSON.stringify(bills));
 }
+const LAST_BILL_BY_TYPE = { cargo: () => lastCargoBill, reexport: () => lastReexportBill, car: () => lastCarBill };
+const COLLECT_ERRORS_BY_TYPE = {
+  cargo: () => collectCargoErrors(),
+  reexport: () => collectReexportErrors(),
+  car: () => collectCarErrors(),
+};
+const MODULE_LABEL_BY_TYPE = { cargo: "General Cargo", reexport: "Re-Export", car: "Car" };
 function saveBill(type) {
-  const b = type === "cargo" ? lastCargoBill : type === "reexport" ? lastReexportBill : lastCarBill;
+  const b = (LAST_BILL_BY_TYPE[type] ?? LAST_BILL_BY_TYPE.car)();
   if (!b) {
     showToast("Generate the bill first before saving.", "warning");
     return;
   }
-  const errors = type === "cargo" ? collectCargoErrors() : type === "reexport" ? collectReexportErrors() : collectCarErrors();
+  const errors = (COLLECT_ERRORS_BY_TYPE[type] ?? COLLECT_ERRORS_BY_TYPE.car)();
   if (reportInputErrors(errors)) return;
   if (!b.billNumber) b.billNumber = editingBillNumber[type] || nextBillNumber(type);
   b.savedAt = new Date().toISOString();
@@ -512,7 +523,7 @@ function saveBill(type) {
   persistSavedBill({
     billNumber: b.billNumber,
     type,
-    module: type === "cargo" ? "General Cargo" : type === "reexport" ? "Re-Export" : "Car",
+    module: MODULE_LABEL_BY_TYPE[type] ?? MODULE_LABEL_BY_TYPE.car,
     savedAt: b.savedAt,
     cld: cldDisplay,
     delivery: deliveryDisplay,
@@ -534,9 +545,10 @@ function saveBill(type) {
     if (!ok) showToast("GitHub sync failed — saved locally only", "warning");
   });
 }
+const IBAR_ID_BY_TYPE = { cargo: "cargo-ibar", reexport: "reexport-ibar", car: "car-ibar" };
 function renderBillNumberBadge(type, billNumber) {
   if (!billNumber) return;
-  const ibar = document.getElementById(type === "cargo" ? "cargo-ibar" : type === "reexport" ? "reexport-ibar" : "car-ibar");
+  const ibar = document.getElementById(IBAR_ID_BY_TYPE[type] ?? IBAR_ID_BY_TYPE.car);
   const inner = ibar?.querySelector(".ibar > div");
   if (!inner) return;
   const existing = ibar.querySelector(".bill-no-ii");
@@ -556,7 +568,6 @@ function syncSpan(inputId, spanId) {
 }
 
 
-// eslint-disable-next-line sonarjs/max-params
 function calcSlabs( //NOSONAR
   totalDays,
   r1,
@@ -651,6 +662,11 @@ function collectCarErrors() {
   return errors;
 }
 
+// Pre-calculate validation gate for Cargo (see CLAUDE.md "Pre-calculate input validation") —
+// each branch is one independent field guard; cargoCalculate/printBill rely on this being the
+// single source of truth for what blocks a bill, so splitting it risks a guard silently
+// stopping being enforced.
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function collectCargoErrors() {
   const errors = [];
   const cldV = (document.getElementById("c-cld")?.value || "").trim();
