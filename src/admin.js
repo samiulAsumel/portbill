@@ -31,36 +31,22 @@ function switchModule(mod) {
   globalThis.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+// Shared by updateAdminNavigation — hides/shows one admin-only tab button.
+function setAdminTabVisibility(tab) {
+  if (!tab) return;
+  tab.hidden = !isAdmin;
+  tab.tabIndex = isAdmin ? 0 : -1;
+  tab.setAttribute("aria-hidden", isAdmin ? "false" : "true");
+}
+
+const ADMIN_ONLY_MODULES = ["rotation", "saved", "stats"];
+
 function updateAdminNavigation() {
-  const rotTab = document.getElementById("tab-rotation");
-  const rotPage = document.getElementById("page-rotation");
-  const savedTab = document.getElementById("tab-saved");
-  const savedPage = document.getElementById("page-saved");
-  const statsTab = document.getElementById("tab-stats");
-  const statsPage = document.getElementById("page-stats");
-  if (rotTab) {
-    rotTab.hidden = !isAdmin;
-    rotTab.tabIndex = isAdmin ? 0 : -1;
-    rotTab.setAttribute("aria-hidden", isAdmin ? "false" : "true");
-  }
-  if (savedTab) {
-    savedTab.hidden = !isAdmin;
-    savedTab.tabIndex = isAdmin ? 0 : -1;
-    savedTab.setAttribute("aria-hidden", isAdmin ? "false" : "true");
-  }
-  if (statsTab) {
-    statsTab.hidden = !isAdmin;
-    statsTab.tabIndex = isAdmin ? 0 : -1;
-    statsTab.setAttribute("aria-hidden", isAdmin ? "false" : "true");
-  }
-  if (!isAdmin) {
-    closeAdminPasswordPanel();
-    if (rotPage) rotPage.classList.remove("active");
-    if (savedPage) savedPage.classList.remove("active");
-    if (statsPage) statsPage.classList.remove("active");
-    if (currentModule === "rotation" || currentModule === "saved" || currentModule === "stats")
-      switchModule("car");
-  }
+  ADMIN_ONLY_MODULES.forEach((mod) => setAdminTabVisibility(document.getElementById("tab-" + mod)));
+  if (isAdmin) return;
+  closeAdminPasswordPanel();
+  ADMIN_ONLY_MODULES.forEach((mod) => document.getElementById("page-" + mod)?.classList.remove("active"));
+  if (ADMIN_ONLY_MODULES.includes(currentModule)) switchModule("car");
 }
 
 
@@ -142,9 +128,10 @@ async function doLogin() {
       loginAttempts++;
       _setAttempts(loginAttempts);
       const remaining = 5 - loginAttempts;
+      const attemptWord = remaining === 1 ? "attempt" : "attempts";
       errEl.textContent =
         remaining > 0
-          ? `Invalid username or password. ${remaining} attempt${remaining === 1 ? "" : "s"} remaining.`
+          ? `Invalid username or password. ${remaining} ${attemptWord} remaining.`
           : "Too many failed attempts. Please close this tab and try again.";
       errEl.classList.add("show");
       document.getElementById("mpass").value = "";
