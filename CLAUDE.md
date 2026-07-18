@@ -39,7 +39,7 @@ One markup file, six logic modules under `src/`, one stylesheet, plus the PWA/Wo
 - **`worker.js`** — Cloudflare Worker proxy. `GET` endpoints are open. All `PUT` endpoints require `Authorization: Bearer <token>`; the token's SHA-256 is verified against the `WRITE_TOKEN_HASH` Cloudflare secret (set via `wrangler secret put WRITE_TOKEN_HASH`). If the secret is absent, PUT returns 503. Usage analytics routes need a **D1 binding `DB`** (table `visits (day, device, opens, PK(day, device))`, index `idx_visits_day`): `POST /track` is open (validated device id, one upsert per day+device), `GET /stats` is guarded by the same `WRITE_TOKEN_HASH` bearer check as PUTs and returns exact `COUNT(DISTINCT device)` buckets (today / 7 / 30 days / all-time) plus a per-day series. **Live in production** — the `portbill-stats` D1 database is provisioned and bound; `wrangler.toml` (repo root) pins `name`, `main`, and the `[[d1_databases]]` binding so `wrangler deploy` alone redeploys with correct bindings (no dashboard step). `WRITE_TOKEN_HASH` is not yet set as a secret, so `/stats` (like PUT) is currently open — same "personal use" default described above.
 - **`manifest.json`** — PWA web app manifest: `name`, `short_name`, `display: standalone`, `theme_color: #020202`, `icons` pointing at `favicon.svg`.
 - **`favicon.svg`** — Compass-rose emblem SVG (gold stroke `#c09230`). Also used as `apple-touch-icon` and PWA icon.
-- **`sw.js`** — Service worker. Cache name: `portbill-v13` (increment on each deploy). Caches `./`, `index.html`, the six `./src/*.js` files, `style.css`, `favicon.svg`, `manifest.json`. Strategy: cache-first with background network update (stale-while-revalidate). Only intercepts same-origin GET requests. **When deploying a new version, bump the cache name to invalidate stale caches** — this matters more now than with a single file, since a stale-cached `src/*.js` can silently serve pre-refactor logic; when in doubt during local testing, unregister the SW and clear caches rather than trusting a plain reload.
+- **`sw.js`** — Service worker. Cache name: `portbill-v14` (increment on each deploy). Caches `./`, `index.html`, the six `./src/*.js` files, `style.css`, `favicon.svg`, `manifest.json`. Strategy: cache-first with background network update (stale-while-revalidate). Only intercepts same-origin GET requests. **When deploying a new version, bump the cache name to invalidate stale caches** — this matters more now than with a single file, since a stale-cached `src/*.js` can silently serve pre-refactor logic; when in doubt during local testing, unregister the SW and clear caches rather than trusting a plain reload.
 - **`tests/vat.test.js`** — VAT MPA-parity suite (12 cases incl. half-to-even midpoints and null safety). Runs with `node tests/vat.test.js`; extracts `calcVATmpa` from `src/core.js` at runtime so the shipped source is tested, not a copy — `calcVATmpa` must stay a bare `function` declaration with a column-0 closing `}` for the extraction regex to match. Exit code 0 = all pass.
 
 ## Key Design Patterns
@@ -106,7 +106,7 @@ One markup file, six logic modules under `src/`, one stylesheet, plus the PWA/Wo
 
 **Draft auto-save**: `DRAFT_KEYS = { car: 'pb_draft_car', cargo: 'pb_draft_cargo' }`, TTL 24 hours. `saveDraft(type)` snapshots via `billInputSnapshot(type)` and stores `{ ts, inputs }`. `restoreFormDraft(type)` only restores when `hasMeaningfulDraft(inputs, type)` is true — checks for non-empty `blNumber`, `cnfName`, or non-default `billEntry` (`!== 'C-'`). Restore runs inside `setTimeout(0)` in `DOMContentLoaded` so it fires after the date-defaults initialisation. `clearDraft(type)` is called from `carReset()`, `cargoReset()` (the originals), and `saveBill()`. The `carReset` patch (bottom of file) also calls `clearDraft('car')`.
 
-**Service worker versioning**: The cache name is `portbill-v13` in `sw.js`. Every production deploy that changes any cached asset must increment this string (e.g. `portbill-v14`). The `activate` handler deletes all caches whose names don't match the current version.
+**Service worker versioning**: The cache name is `portbill-v14` in `sw.js`. Every production deploy that changes any cached asset must increment this string (e.g. `portbill-v15`). The `activate` handler deletes all caches whose names don't match the current version.
 
 **Usage analytics privacy**: Tracking is anonymous by design — a random UUID per browser, no IPs, no names, no PII, no cookies. Never add personal data to the `/track` payload. The Analytics module (`#page-stats`) is admin-gated exactly like rotation/saved: listed in the `switchModule()` guard and in `updateAdminNavigation()`.
 
@@ -116,7 +116,7 @@ One markup file, six logic modules under `src/`, one stylesheet, plus the PWA/Wo
 Current classes that replace formerly-inline styles:
 
 | Class | Replaces | Where used |
-|---|---|---|
+| --- | --- | --- |
 | `.lbl-sub` | `style="font-size:12px;color:var(--m2)"` | CLD and Free Time label sub-text (4 places) |
 | `.card--rules` | `style="border-style:dashed;background:transparent"` | Billing rules cards (both modules) |
 | `.hr-cargo` | `style="border-color:rgba(34,211,238,0.15)"` | Cargo results divider |
@@ -124,6 +124,7 @@ Current classes that replace formerly-inline styles:
 | `.guide-note--gold` | `style="color:var(--gold);margin-top:4px;"` | Self Drive note in cargo guide |
 
 CSS rules that replace formerly-inline module-specific overrides:
+
 - `.pgtitle` uses `color: var(--accent)` — automatically gold in car mode, sky blue in cargo mode (body.mode-cargo overrides `--accent`)
 - `body.mode-cargo .pgsub` — sets `color: var(--m1)` for the cargo subtitle (slightly lighter than the car default `--tx-2`)
 - `body.mode-cargo .card--rules` — sets `border-color: rgba(14,165,233,0.20)` for the sky-blue dashed border on the cargo billing rules card
