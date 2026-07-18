@@ -2,4 +2,9 @@
 node_modules/
 .env
 .env.local
+.dev.vars
 Rate_Comparison_Running.docx
+
+# OS junk
+.DS_Store
+Thumbs.db
