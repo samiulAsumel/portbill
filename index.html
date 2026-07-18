@@ -6,22 +6,31 @@
 
     <!-- Primary meta -->
     <title>PortBill — Port Authority Wharfrent Calculator</title>
-    <meta name="description" content="Professional port billing calculator for Car and General Cargo wharfrent — slab-based rating, split billing at the 23 Jul 2024 rate cut, VAT, levy, and print-ready invoice generation." />
+    <meta
+      name="description"
+      content="Professional port billing calculator for Car and General Cargo wharfrent — slab-based rating, split billing at the 23 Jul 2024 rate cut, VAT, levy, and print-ready invoice generation."
+    />
     <meta name="author" content="samiulAsumel" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://samiulAsumel.github.io/portbill" />
 
     <!-- Open Graph -->
-    <meta property="og:type"        content="website" />
-    <meta property="og:url"         content="https://samiulAsumel.github.io/portbill" />
-    <meta property="og:site_name"   content="PortBill" />
-    <meta property="og:title"       content="PortBill — Port Authority Wharfrent Calculator" />
-    <meta property="og:description" content="Professional port billing calculator for Car and General Cargo wharfrent — slab-based rating, split billing, VAT, levy, and print-ready invoice generation." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://samiulAsumel.github.io/portbill" />
+    <meta property="og:site_name" content="PortBill" />
+    <meta property="og:title" content="PortBill — Port Authority Wharfrent Calculator" />
+    <meta
+      property="og:description"
+      content="Professional port billing calculator for Car and General Cargo wharfrent — slab-based rating, split billing, VAT, levy, and print-ready invoice generation."
+    />
 
     <!-- Twitter Card -->
-    <meta name="twitter:card"        content="summary" />
-    <meta name="twitter:title"       content="PortBill — Port Authority Wharfrent Calculator" />
-    <meta name="twitter:description" content="Professional port billing calculator for Car and General Cargo wharfrent charges." />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="PortBill — Port Authority Wharfrent Calculator" />
+    <meta
+      name="twitter:description"
+      content="Professional port billing calculator for Car and General Cargo wharfrent charges."
+    />
 
     <!-- PWA / theme -->
     <meta name="theme-color" content="#020202" />
@@ -43,34 +52,87 @@
 
     <!-- HEADER -->
     <header>
-      <div class="logo">
+      <h1 class="logo">
         <span class="logo-mark" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="28" height="28" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="32" cy="32" r="29.5" stroke-width="2.5"/>
-            <circle cx="32" cy="12" r="3.8" stroke-width="2.2"/>
-            <line x1="32" y1="15.8" x2="32" y2="50.5" stroke-width="2.8"/>
-            <line x1="20" y1="21.5" x2="44" y2="21.5" stroke-width="2.8"/>
-            <circle cx="20" cy="21.5" r="2.5" fill="currentColor" stroke="none"/>
-            <circle cx="44" cy="21.5" r="2.5" fill="currentColor" stroke="none"/>
-            <path d="M32,50.5 Q22,49 17,41" stroke-width="2.6"/>
-            <polygon points="13.5,38 17.5,45 24,42" fill="currentColor" stroke="none"/>
-            <path d="M32,50.5 Q42,49 47,41" stroke-width="2.6"/>
-            <polygon points="50.5,38 46.5,45 40,42" fill="currentColor" stroke="none"/>
-            <path d="M22,56 Q27,53 32,56 Q37,59 42,56" stroke-width="2"/>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 64 64"
+            width="28"
+            height="28"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="32" cy="32" r="29.5" stroke-width="2.5" />
+            <circle cx="32" cy="12" r="3.8" stroke-width="2.2" />
+            <line x1="32" y1="15.8" x2="32" y2="50.5" stroke-width="2.8" />
+            <line x1="20" y1="21.5" x2="44" y2="21.5" stroke-width="2.8" />
+            <circle cx="20" cy="21.5" r="2.5" fill="currentColor" stroke="none" />
+            <circle cx="44" cy="21.5" r="2.5" fill="currentColor" stroke="none" />
+            <path d="M32,50.5 Q22,49 17,41" stroke-width="2.6" />
+            <polygon points="13.5,38 17.5,45 24,42" fill="currentColor" stroke="none" />
+            <path d="M32,50.5 Q42,49 47,41" stroke-width="2.6" />
+            <polygon points="50.5,38 46.5,45 40,42" fill="currentColor" stroke="none" />
+            <path d="M22,56 Q27,53 32,56 Q37,59 42,56" stroke-width="2" />
           </svg>
         </span>
         PORT<span class="logo-sub"> / BILLING SYSTEM</span>
-      </div>
+      </h1>
       <div class="hright">
         <div class="admin-pass-menu" id="adminPassMenu">
-          <div class="hbadge" id="modeBadge" role="button" tabindex="-1" title="Change admin password" aria-controls="adminPassCard" aria-expanded="false" onclick="openAdminPasswordPanel()" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openAdminPasswordPanel(); }">USER</div>
+          <button
+            type="button"
+            class="hbadge"
+            id="modeBadge"
+            title="Change admin password"
+            aria-controls="adminPassCard"
+            aria-expanded="false"
+            onclick="openAdminPasswordPanel()"
+            onkeydown="
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openAdminPasswordPanel();
+              }
+            "
+          >
+            USER
+          </button>
           <div class="admin-pass-dropdown" id="adminPassCard" hidden>
             <div class="rot-reg-title" id="admin-password-title">CHANGE ADMIN PASSWORD</div>
             <div class="admin-pass-form">
-              <input type="password" id="adminCurrentPass" class="rot-reg-input" placeholder="Current password" autocomplete="current-password" />
-              <input type="password" id="adminNewPass" class="rot-reg-input" placeholder="New password" autocomplete="new-password" />
-              <input type="password" id="adminConfirmPass" class="rot-reg-input" placeholder="Confirm new password" autocomplete="new-password" onkeydown="if (event.key === 'Enter') changeAdminPassword();" />
-              <button type="button" class="rot-reg-add-btn admin-pass-btn" onclick="changeAdminPassword()">UPDATE</button>
+              <label class="sr-only" for="adminCurrentPass">Current password</label>
+              <input
+                type="password"
+                id="adminCurrentPass"
+                class="rot-reg-input"
+                placeholder="Current password"
+                autocomplete="current-password"
+              />
+              <label class="sr-only" for="adminNewPass">New password</label>
+              <input
+                type="password"
+                id="adminNewPass"
+                class="rot-reg-input"
+                placeholder="New password"
+                autocomplete="new-password"
+              />
+              <label class="sr-only" for="adminConfirmPass">Confirm new password</label>
+              <input
+                type="password"
+                id="adminConfirmPass"
+                class="rot-reg-input"
+                placeholder="Confirm new password"
+                autocomplete="new-password"
+                onkeydown="if (event.key === 'Enter') changeAdminPassword();"
+              />
+              <button
+                type="button"
+                class="rot-reg-add-btn admin-pass-btn"
+                onclick="changeAdminPassword()"
+              >
+                UPDATE
+              </button>
             </div>
             <div class="rot-reg-status admin-pass-status" id="adminPassStatus"></div>
           </div>
@@ -79,21 +141,24 @@
           class="admin-btn"
           id="resetRatesBtn"
           onclick="resetRatesToDefaults()"
-          aria-label="Reset rates to defaults"
-          style="display:none;"
+          style="display: none"
         >
           ↺ Reset Rates
         </button>
-        <button
-          class="admin-btn"
-          id="adminBtn"
-          onclick="toggleAdmin()"
-          aria-label="Admin login"
-        >
+        <button class="admin-btn" id="adminBtn" onclick="toggleAdmin()" aria-label="Admin login">
           <span class="adot" id="adot"></span>
-          <svg id="adminIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          <svg
+            id="adminIcon"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            aria-hidden="true"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
           <span id="adminTxt">Admin</span>
         </button>
@@ -195,43 +260,40 @@
           />
         </div>
         <div class="mbtns">
-          <button type="button" class="btn bsm" style="flex: 1" onclick="doLogin()">
-            LOGIN
-          </button>
-          <button
-            class="btn bsm bg"
-            style="flex: 1; margin-top: 0"
-            onclick="closeModal()"
-          >
+          <button type="button" class="btn bsm" style="flex: 1" onclick="doLogin()">LOGIN</button>
+          <button class="btn bsm bg" style="flex: 1; margin-top: 0" onclick="closeModal()">
             CANCEL
           </button>
         </div>
       </div>
     </dialog>
 
+    <main id="app-main">
     <!-- ════════════════════════════════════════
          CAR BILLING MODULE
     ════════════════════════════════════════ -->
-    <div id="page-car" class="module-page active">
-      <main class="wrap">
-        <div class="pgtitle">CAR WHARFRENT BILL</div>
-        <div class="pgsub">
-          Port Authority — CAR Wharfrent &amp; Payable Charges
-        </div>
+    <div id="page-car" class="module-page active" role="tabpanel" aria-labelledby="tab-car" tabindex="0">
+      <div class="wrap">
+        <h2 class="pgtitle">CAR WHARFRENT BILL</h2>
+        <div class="pgsub">Port Authority — CAR Wharfrent &amp; Payable Charges</div>
         <div class="weight-note">
-          <div><strong>Hoisting Charge:</strong> When vehicle weight exceeds <strong>3 tons</strong>, hoisting charge (125% of landing) is auto-applied. &nbsp;<strong>Disclaimer:</strong> This bill is for <strong>informational purposes only</strong> and cannot be used as an official reference.</div>
+          <div>
+            <strong>Hoisting Charge:</strong> When vehicle weight exceeds <strong>3 tons</strong>,
+            hoisting charge (125% of landing) is auto-applied. &nbsp;<strong>Disclaimer:</strong>
+            This bill is for <strong>informational purposes only</strong> and cannot be used as an
+            official reference.
+          </div>
         </div>
 
         <div class="layout" id="car-inputSection">
           <!-- LEFT -->
           <div>
             <div class="card">
-              <div class="ctitle">
+              <h3 class="ctitle">
                 Car Wharfrent Details<span class="cnote"
-                  ><span class="lck"></span> CLD, Delivery &amp;
-                  Weight editable</span
+                  ><span class="lck"></span> CLD, Delivery &amp; Weight editable</span
                 >
-              </div>
+              </h3>
               <div class="r2 bill-meta-row">
                 <div class="fg">
                   <label class="lbl" for="car-cnfName">C&amp;F Agent Name</label>
@@ -280,7 +342,10 @@
                       class="cyan-glow"
                       placeholder="DD/MM/YYYY"
                       maxlength="10"
-                      oninput="formatDate(this); carRefresh();"
+                      oninput="
+                        formatDate(this);
+                        carRefresh();
+                      "
                       autocomplete="off"
                     />
                     <span class="cal" aria-hidden="true"></span>
@@ -296,9 +361,11 @@
                 </div>
                 <div class="rot-card-body">
                   <div class="rot-seg">
+                    <label class="sr-only" for="rotYear">Rotation year</label>
                     <select id="rotYear" class="rot-sel" onchange="onRotYearChange()">
                       <option value="">Year</option>
                     </select>
+                    <label class="sr-only" for="rotNum">Rotation number</label>
                     <select id="rotNum" class="rot-sel" disabled onchange="onRotNumChange()">
                       <option value="">Number</option>
                     </select>
@@ -309,10 +376,7 @@
               <div class="r2">
                 <div class="fg">
                   <label class="lbl" for="cld"
-                    >CLD
-                    <span class="lbl-sub"
-                      >(Common Landing Day)</span
-                    ></label
+                    >CLD <span class="lbl-sub">(Common Landing Day)</span></label
                   >
                   <div class="date-field-wrap">
                     <input
@@ -334,11 +398,9 @@
                 <div class="fg">
                   <label class="lbl" for="freeDays"
                     >Free Time
-                    <span class="lbl-sub"
-                      >(days incl. CLD)</span
-                    >
-                    <span class="lck"></span></label
-                  >
+                    <span class="lbl-sub">(days incl. CLD)</span>
+                    <span class="lck"></span
+                  ></label>
                   <input
                     type="number"
                     id="freeDays"
@@ -346,7 +408,10 @@
                     min="0"
                     class="ro"
                     readonly
-                    oninput="if(+this.value<0)this.value=0;carRefresh()"
+                    oninput="
+                      if (+this.value < 0) this.value = 0;
+                      carRefresh();
+                    "
                   />
                 </div>
               </div>
@@ -355,15 +420,11 @@
               </div>
               <div class="r2">
                 <div class="fg">
-                  <div class="lbl">
-                    Free Time Ends <span class="lck"></span>
-                  </div>
+                  <div class="lbl">Free Time Ends <span class="lck"></span></div>
                   <div class="date-display" id="car-freeEnd">—</div>
                 </div>
                 <div class="fg">
-                  <div class="lbl">
-                    Car Wharfrent Starts <span class="lck"></span>
-                  </div>
+                  <div class="lbl">Car Wharfrent Starts <span class="lck"></span></div>
                   <div class="date-display" id="car-storStart">—</div>
                 </div>
               </div>
@@ -408,111 +469,165 @@
 
             <!-- PAYABLE CHARGES — CAR -->
             <div class="card">
-              <div class="ctitle">Payable Charges</div>
+              <h3 class="ctitle">Payable Charges</h3>
               <div class="pc-list">
-
-                <div class="pc-row" style="--pc-color:var(--sky);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--sky)">
+                  <label class="pc-toggle" for="chkRiver">
+                    <span class="sr-only">Enable River Dues</span>
                     <input type="checkbox" id="chkRiver" checked oninput="carRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--sky);"></div>
+                  <div class="pc-accent" style="background: var(--sky)"></div>
                   <div class="pc-body">
                     <div class="pc-name">River Dues</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="rRiver" value="33" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <label class="sr-only" for="rRiver">River dues rate</label>
+                    <input
+                      type="number"
+                      id="rRiver"
+                      value="33"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="carRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-yes">VAT</div>
                 </div>
 
-                <div class="pc-row" style="--pc-color:var(--gold);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--gold)">
+                  <label class="pc-toggle" for="chkLanding">
+                    <span class="sr-only">Enable Landing Charge</span>
                     <input type="checkbox" id="chkLanding" checked oninput="carRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--gold);"></div>
+                  <div class="pc-accent" style="background: var(--gold)"></div>
                   <div class="pc-body">
                     <div class="pc-name">Landing Charge</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="rLanding" value="175" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <label class="sr-only" for="rLanding">Landing charge rate</label>
+                    <input
+                      type="number"
+                      id="rLanding"
+                      value="175"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="carRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-yes">VAT</div>
                 </div>
 
-                <div class="pc-row" style="--pc-color:var(--purple);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--purple)">
+                  <label class="pc-toggle" for="chkRemoval">
+                    <span class="sr-only">Enable Removal Charge</span>
                     <input type="checkbox" id="chkRemoval" checked oninput="carRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--purple);"></div>
+                  <div class="pc-accent" style="background: var(--purple)"></div>
                   <div class="pc-body">
                     <div class="pc-name">Removal Charge</div>
                     <div class="pc-note">2× landing charge</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="rRemoval" placeholder="0" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <label class="sr-only" for="rRemoval">Removal charge rate</label>
+                    <input
+                      type="number"
+                      id="rRemoval"
+                      placeholder="0"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="carRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-yes">VAT</div>
                 </div>
 
-                <div class="pc-row" style="--pc-color:var(--gold);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--gold)">
+                  <label class="pc-toggle" for="chkWeighment">
+                    <span class="sr-only">Enable Weighment Charge</span>
                     <input type="checkbox" id="chkWeighment" checked oninput="carRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--gold);"></div>
+                  <div class="pc-accent" style="background: var(--gold)"></div>
                   <div class="pc-body">
                     <div class="pc-name">Weighment Charge</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="rWeighment" value="2.5" step="0.5" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <label class="sr-only" for="rWeighment">Weighment charge rate</label>
+                    <input
+                      type="number"
+                      id="rWeighment"
+                      value="2.5"
+                      step="0.5"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="carRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-yes">VAT</div>
                 </div>
 
-                <div class="pc-row" style="--pc-color:var(--gold-hi);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--gold-hi)">
+                  <label class="pc-toggle" for="chkHoisting">
+                    <span class="sr-only">Enable Hoisting Charge</span>
                     <input type="checkbox" id="chkHoisting" oninput="carRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--gold-hi);"></div>
+                  <div class="pc-accent" style="background: var(--gold-hi)"></div>
                   <div class="pc-body">
                     <div class="pc-name">Hoisting Charge</div>
                     <div class="pc-note">125% of landing charge × 0.50 (&gt;3t)</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="rHoisting" placeholder="0" step="0.01" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <label class="sr-only" for="rHoisting">Hoisting charge rate</label>
+                    <input
+                      type="number"
+                      id="rHoisting"
+                      placeholder="0"
+                      step="0.01"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="carRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-yes">VAT</div>
                 </div>
 
-                <div class="pc-row" style="--pc-color:var(--green);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--green)">
+                  <label class="pc-toggle" for="chkLevy">
+                    <span class="sr-only">Enable Levy Charge</span>
                     <input type="checkbox" id="chkLevy" checked oninput="carRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--green);"></div>
+                  <div class="pc-accent" style="background: var(--green)"></div>
                   <div class="pc-body">
                     <div class="pc-name">Levy Charge</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="rLevy" value="1.5" step="0.5" class="ro pc-rate-input" readonly oninput="carRefresh()" />
+                    <label class="sr-only" for="rLevy">Levy charge rate</label>
+                    <input
+                      type="number"
+                      id="rLevy"
+                      value="1.5"
+                      step="0.5"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="carRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-no">No VAT</div>
                 </div>
-
               </div>
               <div class="vatr">
-                <label class="lbl" for="vatRate"
-                  >VAT Rate (%) <span class="lck"></span></label
+                <label class="lbl" for="vatRate">VAT Rate (%) <span class="lck"></span></label
                 ><input
                   type="number"
                   id="vatRate"
@@ -529,11 +644,11 @@
 
             <!-- WHARFRENT RATES — CAR -->
             <div class="card">
-              <div class="ctitle">
+              <h3 class="ctitle">
                 Car Wharfrent Rates — Tk per ton per day<span class="cnote"
                   ><span class="lck"></span> Admin only</span
                 >
-              </div>
+              </h3>
               <div class="rg">
                 <div>
                   <div class="rst rn">▲ New (From 23/07/2024)</div>
@@ -551,7 +666,7 @@
                           <span class="rspan" id="dnr1">70</span
                           ><input
                             type="number"
-                            id="nr1"
+                            id="nr1" aria-label="Car new rate, 1st 7 days (Tk per ton per day)"
                             value="70"
                             style="display: none"
                             class="ro"
@@ -569,7 +684,7 @@
                           <span class="rspan" id="dnr2">185</span
                           ><input
                             type="number"
-                            id="nr2"
+                            id="nr2" aria-label="Car new rate, 8th–14th day (Tk per ton per day)"
                             value="185"
                             style="display: none"
                             class="ro"
@@ -587,7 +702,7 @@
                           <span class="rspan" id="dnr3">295</span
                           ><input
                             type="number"
-                            id="nr3"
+                            id="nr3" aria-label="Car new rate, 15th day+ (Tk per ton per day)"
                             value="295"
                             style="display: none"
                             class="ro"
@@ -618,7 +733,7 @@
                           <span class="rspan" id="dor1">40</span
                           ><input
                             type="number"
-                            id="or1"
+                            id="or1" aria-label="Car old rate, 1st 7 days (Tk per ton per day)"
                             value="40"
                             style="display: none"
                             class="ro"
@@ -636,7 +751,7 @@
                           <span class="rspan" id="dor2">115</span
                           ><input
                             type="number"
-                            id="or2"
+                            id="or2" aria-label="Car old rate, 8th–14th day (Tk per ton per day)"
                             value="115"
                             style="display: none"
                             class="ro"
@@ -654,7 +769,7 @@
                           <span class="rspan" id="dor3">185</span
                           ><input
                             type="number"
-                            id="or3"
+                            id="or3" aria-label="Car old rate, 15th day+ (Tk per ton per day)"
                             value="185"
                             style="display: none"
                             class="ro"
@@ -675,10 +790,10 @@
           <!-- RIGHT -->
           <div>
             <div class="sp">
-              <div class="ctitle">
+              <h3 class="ctitle">
                 Quick Preview
                 <span class="sp-live-badge">● LIVE</span>
-              </div>
+              </h3>
               <div class="sp-mod-label">Car Wharfrent Module</div>
               <div id="car-preview">
                 <div class="sp-idle">
@@ -693,14 +808,16 @@
                     <rect x="2" y="3" width="20" height="14" rx="2" />
                     <path d="M8 21h8M12 17v4" />
                   </svg>
-                  <span
-                    >Fill in shipment details<br />to see live cost
-                    preview</span
-                  >
+                  <span>Fill in shipment details<br />to see live cost preview</span>
                 </div>
               </div>
               <div class="sp-actions sp-actions-car">
-                <button type="button" class="car-gen-btn" onclick="carCalculate()" aria-label="Generate car bill">
+                <button
+                  type="button"
+                  class="car-gen-btn"
+                  onclick="carCalculate()"
+                  aria-label="Generate car bill"
+                >
                   <span class="cgb-icon" aria-hidden="true">
                     <svg
                       width="14"
@@ -735,9 +852,7 @@
                     stroke="currentColor"
                     stroke-width="2"
                   >
-                    <path
-                      d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
-                    />
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                     <path d="M3 3v5h5" />
                   </svg>
                   Reset
@@ -745,7 +860,7 @@
               </div>
             </div>
             <div class="card card--rules">
-              <div class="ctitle">Billing Rules</div>
+              <h3 class="ctitle">Billing Rules</h3>
               <div class="guide">
                 <div>① Free Time = CLD + 3 days (4 days incl. CLD)</div>
                 <div>② Car Wharfrent starts day after free time ends</div>
@@ -755,18 +870,16 @@
                   <span style="color: var(--red)">split billing</span>
                 </div>
                 <div>
-                  ⑤ <span style="color: var(--blue)">Inside</span> = Car
-                  Wharfrent + payable + VAT + levy
+                  ⑤ <span style="color: var(--blue)">Inside</span> = Car Wharfrent + payable + VAT +
+                  levy
                 </div>
                 <div>
-                  ⑥ <span style="color: var(--purple)">Outside</span> = ½ Car
-                  Wharfrent + payable + VAT + levy
+                  ⑥ <span style="color: var(--purple)">Outside</span> = ½ Car Wharfrent + payable +
+                  VAT + levy
                 </div>
                 <div>⑦ Payable charges always apply</div>
                 <div>⑧ Levy added without VAT</div>
-                <div>
-                  ⑨ Hoisting = 125% of landing charge × 0.50 (auto-enabled >3t)
-                </div>
+                <div>⑨ Hoisting = 125% of landing charge × 0.50 (auto-enabled >3t)</div>
                 <div>⑩ <span class="lck"></span> Rates editable by Admin only</div>
               </div>
             </div>
@@ -779,25 +892,25 @@
           <div class="rh">
             <div class="rtitle">CAR WHARFRENT BILL STATEMENT</div>
             <div class="bill-action-group">
-              <button type="button" class="save-btn" onclick="saveBill('car')" aria-label="Save car bill">Save Bill</button>
-            <button type="button" class="print-btn" onclick="printBill('car')" aria-label="Print car bill">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                aria-hidden="true"
-              >
-                <polyline points="6 9 6 2 18 2 18 9" />
-                <path
-                  d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
-                />
-                <rect x="6" y="14" width="12" height="8" />
-              </svg>
-              Print Bill
-            </button>
+              <button type="button" class="save-btn" onclick="saveBill('car')">Save Bill</button>
+              <button type="button" class="print-btn" onclick="printBill('car')">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <polyline points="6 9 6 2 18 2 18 9" />
+                  <path
+                    d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+                  />
+                  <rect x="6" y="14" width="12" height="8" />
+                </svg>
+                Print Bill
+              </button>
             </div>
           </div>
           <div id="car-ibar"></div>
@@ -806,28 +919,45 @@
           <div id="car-outsideSec"></div>
           <div id="car-grandSec">
             <div class="bill-empty-state" id="car-empty">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
               <div class="bes-title">No bill generated yet</div>
               <div class="bes-sub">Fill in CLD, delivery date and weight above</div>
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
 
     <!-- ════════════════════════════════════════
          GENERAL CARGO BILLING MODULE
     ════════════════════════════════════════ -->
-    <div id="page-cargo" class="module-page">
-      <main class="wrap">
-        <div class="pgtitle">
-          GENERAL CARGO WHARFRENT BILL
-        </div>
-        <div class="pgsub">
-          Port Authority — GENERAL Cargo Wharfrent &amp; Payable Charges
-        </div>
+    <div id="page-cargo" class="module-page" role="tabpanel" aria-labelledby="tab-cargo" tabindex="0">
+      <div class="wrap">
+        <h2 class="pgtitle">GENERAL CARGO WHARFRENT BILL</h2>
+        <div class="pgsub">Port Authority — GENERAL Cargo Wharfrent &amp; Payable Charges</div>
         <div class="cargo-note">
-          <div><strong>General Cargo Module:</strong> Enter <strong>total cargo weight</strong>, then specify Inside vs Outside portions — they must equal total weight. Outside wharfrent is always <strong>½ of inside rate</strong>. &nbsp;<strong>Disclaimer:</strong> For <strong>informational purposes only</strong>.</div>
+          <div>
+            <strong>General Cargo Module:</strong> Enter <strong>total cargo weight</strong>, then
+            specify Inside vs Outside portions — they must equal total weight. Outside wharfrent is
+            always <strong>½ of inside rate</strong>. &nbsp;<strong>Disclaimer:</strong> For
+            <strong>informational purposes only</strong>.
+          </div>
         </div>
 
         <div class="layout" id="cargo-inputSection">
@@ -835,12 +965,11 @@
           <div>
             <!-- CARGO DETAILS -->
             <div class="card">
-              <div class="ctitle cargo-title">
+              <h3 class="ctitle cargo-title">
                 General Cargo Wharfrent Details<span class="cnote"
-                  ><span class="lck"></span> CLD, Delivery &amp;
-                  Weight editable</span
+                  ><span class="lck"></span> CLD, Delivery &amp; Weight editable</span
                 >
-              </div>
+              </h3>
               <div class="r2 bill-meta-row">
                 <div class="fg">
                   <label class="lbl" for="c-cnfName">C&amp;F Agent Name</label>
@@ -889,7 +1018,10 @@
                       class="cargo-glow"
                       placeholder="DD/MM/YYYY"
                       maxlength="10"
-                      oninput="formatDate(this); cargoRefresh();"
+                      oninput="
+                        formatDate(this);
+                        cargoRefresh();
+                      "
                       autocomplete="off"
                     />
                     <span class="cal" aria-hidden="true"></span>
@@ -900,10 +1032,7 @@
               <div class="r2">
                 <div class="fg">
                   <label class="lbl" for="c-cld"
-                    >CLD
-                    <span class="lbl-sub"
-                      >(Common Landing Day)</span
-                    ></label
+                    >CLD <span class="lbl-sub">(Common Landing Day)</span></label
                   >
                   <div class="date-field-wrap">
                     <input
@@ -924,11 +1053,9 @@
                 <div class="fg">
                   <label class="lbl" for="c-freeDays"
                     >Free Time
-                    <span class="lbl-sub"
-                      >(days incl. CLD)</span
-                    >
-                    <span class="lck"></span></label
-                  >
+                    <span class="lbl-sub">(days incl. CLD)</span>
+                    <span class="lck"></span
+                  ></label>
                   <input
                     type="number"
                     id="c-freeDays"
@@ -936,27 +1063,23 @@
                     min="0"
                     class="ro"
                     readonly
-                    oninput="if(+this.value<0)this.value=0;cargoRefresh()"
+                    oninput="
+                      if (+this.value < 0) this.value = 0;
+                      cargoRefresh();
+                    "
                   />
                 </div>
               </div>
               <div id="cargo-ftStrip" class="ft-strip ft-strip--cargo">
-                <span
-                  id="cargo-ftDays"
-                  style="color: var(--cargo-accent)"
-                ></span>
+                <span id="cargo-ftDays" style="color: var(--cargo-accent)"></span>
               </div>
               <div class="r2">
                 <div class="fg">
-                  <div class="lbl">
-                    Free Time Ends <span class="lck"></span>
-                  </div>
+                  <div class="lbl">Free Time Ends <span class="lck"></span></div>
                   <div class="date-display" id="cargo-freeEnd">—</div>
                 </div>
                 <div class="fg">
-                  <div class="lbl">
-                    General Cargo Wharfrent Starts <span class="lck"></span>
-                  </div>
+                  <div class="lbl">General Cargo Wharfrent Starts <span class="lck"></span></div>
                   <div class="date-display" id="cargo-storStart">—</div>
                 </div>
               </div>
@@ -988,7 +1111,10 @@
                     placeholder="0"
                     min="0"
                     step="1"
-                    oninput="if(this.value!==''&&+this.value<0)this.value=0; cargoRefresh();"
+                    oninput="
+                      if (this.value !== '' && +this.value < 0) this.value = 0;
+                      cargoRefresh();
+                    "
                   />
                 </div>
               </div>
@@ -996,10 +1122,13 @@
               <div class="pb-mode-row">
                 <div class="pb-mode-text">
                   <span class="pb-mode-title">Part Billing Mode</span>
-                  <span class="pb-mode-hint">For cargo delivered in multiple stages — payable charges off by default</span>
+                  <span class="pb-mode-hint"
+                    >For cargo delivered in multiple stages — payable charges off by default</span
+                  >
                 </div>
-                <label class="pb-toggle">
-                  <input type="checkbox" id="c-partBilling" onchange="onPartBillingChange()">
+                <label class="pb-toggle" for="c-partBilling">
+                  <span class="sr-only">Enable part billing mode</span>
+                  <input type="checkbox" id="c-partBilling" onchange="onPartBillingChange()" />
                   <span class="pb-toggle-track"><span class="pb-toggle-thumb"></span></span>
                 </label>
               </div>
@@ -1008,9 +1137,7 @@
 
             <!-- INSIDE / OUTSIDE SPLIT -->
             <div class="card">
-              <div class="ctitle cargo-title">
-                Inside / Outside Weight Split
-              </div>
+              <h3 class="ctitle cargo-title">Inside / Outside Weight Split</h3>
               <div class="inside-outside-row">
                 <div class="iorow-title">Cargo Portion Allocation</div>
                 <div class="r3">
@@ -1025,14 +1152,14 @@
                       placeholder="0"
                       min="0"
                       step="1"
-                      oninput="if(this.value!==''&&+this.value<0)this.value=0; cargoRefresh();"
+                      oninput="
+                        if (this.value !== '' && +this.value < 0) this.value = 0;
+                        cargoRefresh();
+                      "
                     />
                   </div>
                   <div class="fg">
-                    <label
-                      class="lbl"
-                      for="c-outside"
-                      style="color: var(--purple)"
+                    <label class="lbl" for="c-outside" style="color: var(--purple)"
                       >Outside (tons)</label
                     >
                     <input
@@ -1042,45 +1169,86 @@
                       placeholder="0"
                       min="0"
                       step="1"
-                      oninput="if(this.value!==''&&+this.value<0)this.value=0; cargoRefresh();"
+                      oninput="
+                        if (this.value !== '' && +this.value < 0) this.value = 0;
+                        cargoRefresh();
+                      "
                     />
                   </div>
                   <div class="fg">
                     <div class="lbl">Total Check</div>
-                    <div id="c-totalCheck" class="io-total-badge io-ok">
-                      ✓ 100 ton(s)
-                    </div>
+                    <div id="c-totalCheck" class="io-total-badge io-ok">✓ 100 ton(s)</div>
                   </div>
                 </div>
                 <div class="iorow-note">
-                  Outside wharfrent = ½ × inside rate. Inside + Outside must
-                  equal Total Weight.
+                  Outside wharfrent = ½ × inside rate. Inside + Outside must equal Total Weight.
                 </div>
               </div>
             </div>
 
             <!-- PART BILLING STAGES CARD -->
-            <div class="card" id="c-pbStagesCard" style="display:none">
+            <div class="card" id="c-pbStagesCard" style="display: none">
               <div class="pbs-card-header">
                 <div class="pbs-card-title">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
                   Part Delivery Stages
                 </div>
                 <span class="pbs-count-badge" id="c-pbStageCount"></span>
               </div>
               <div class="pbs-info-bar">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                Slab progression runs continuously from CLD — only weight changes per delivery stage.
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                Slab progression runs continuously from CLD — only weight changes per delivery
+                stage.
               </div>
               <div class="pbs-timeline" id="c-pbStagesContainer"></div>
               <div class="pbs-footer">
                 <button type="button" class="pbs-add-btn" onclick="addPartBillingStage()">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    aria-hidden="true"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
                   Add Delivery Stage
                 </button>
                 <div class="pbs-uptodate">
-                  <label class="pb-toggle">
-                    <input type="checkbox" id="c-pbUpToDate" onchange="onPbUpToDateChange()">
+                  <label class="pb-toggle" for="c-pbUpToDate">
+                    <span class="sr-only">Bill up to today</span>
+                    <input type="checkbox" id="c-pbUpToDate" onchange="onPbUpToDateChange()" />
                     <span class="pb-toggle-track"><span class="pb-toggle-thumb"></span></span>
                   </label>
                   <span class="pbs-uptodate-lbl">Bill up to today</span>
@@ -1092,7 +1260,22 @@
             <div class="card sd-card">
               <div class="sd-header">
                 <div class="sd-icon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 4 1 2 3v4h-6V8Z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="1" y="3" width="15" height="13" rx="2" />
+                    <path d="m16 8 4 1 2 3v4h-6V8Z" />
+                    <circle cx="5.5" cy="18.5" r="2.5" />
+                    <circle cx="18.5" cy="18.5" r="2.5" />
+                  </svg>
                 </div>
                 <div>
                   <div class="sd-title">Self Drive</div>
@@ -1101,148 +1284,227 @@
               </div>
               <div class="sd-rows">
                 <div>
-                  <div class="pc-row" style="--pc-color:var(--blue);">
-                    <label class="pc-toggle">
+                  <div class="pc-row" style="--pc-color: var(--blue)">
+                    <label class="pc-toggle" for="c-chkSelfDriveInside">
+                      <span class="sr-only">Enable inside self drive</span>
                       <input type="checkbox" id="c-chkSelfDriveInside" oninput="cargoRefresh()" />
                       <span class="pc-slider"></span>
                     </label>
-                    <div class="pc-accent" style="background:var(--blue);"></div>
+                    <div class="pc-accent" style="background: var(--blue)"></div>
                     <div class="pc-body">
-                      <div class="pc-name"><span style="color:var(--blue)">Inside</span> Self Drive</div>
-                      <div class="pc-note" style="white-space:nowrap;">Car rates · old/new split</div>
+                      <div class="pc-name">
+                        <span style="color: var(--blue)">Inside</span> Self Drive
+                      </div>
+                      <div class="pc-note" style="white-space: nowrap">
+                        Car rates · old/new split
+                      </div>
                     </div>
                     <div class="fg sd-inp-fg">
                       <label class="lbl" for="c-selfDriveTonInside">Weight (tons)</label>
-                      <input type="number" id="c-selfDriveTonInside" class="sd-glow ton-inactive" placeholder="0" min="0" step="1" oninput="cargoRefresh()" />
+                      <input
+                        type="number"
+                        id="c-selfDriveTonInside"
+                        class="sd-glow ton-inactive"
+                        placeholder="0"
+                        min="0"
+                        step="1"
+                        oninput="cargoRefresh()"
+                      />
                     </div>
                   </div>
-                  <span class="ton-err-msg sd-err" id="c-selfDriveTonInside-err">⚠ Enter inside self drive weight &gt; 0</span>
+                  <span class="ton-err-msg sd-err" id="c-selfDriveTonInside-err"
+                    >⚠ Enter inside self drive weight &gt; 0</span
+                  >
                 </div>
                 <div>
-                  <div class="pc-row" style="--pc-color:var(--purple);">
-                    <label class="pc-toggle">
+                  <div class="pc-row" style="--pc-color: var(--purple)">
+                    <label class="pc-toggle" for="c-chkSelfDriveOutside">
+                      <span class="sr-only">Enable outside self drive</span>
                       <input type="checkbox" id="c-chkSelfDriveOutside" oninput="cargoRefresh()" />
                       <span class="pc-slider"></span>
                     </label>
-                    <div class="pc-accent" style="background:var(--purple);"></div>
+                    <div class="pc-accent" style="background: var(--purple)"></div>
                     <div class="pc-body">
-                      <div class="pc-name"><span style="color:var(--purple)">Outside</span> Self Drive</div>
-                      <div class="pc-note" style="white-space:nowrap;">Car rates · old/new split</div>
+                      <div class="pc-name">
+                        <span style="color: var(--purple)">Outside</span> Self Drive
+                      </div>
+                      <div class="pc-note" style="white-space: nowrap">
+                        Car rates · old/new split
+                      </div>
                     </div>
                     <div class="fg sd-inp-fg">
                       <label class="lbl" for="c-selfDriveTonOutside">Weight (tons)</label>
-                      <input type="number" id="c-selfDriveTonOutside" class="sd-glow ton-inactive" placeholder="0" min="0" step="1" oninput="cargoRefresh()" />
+                      <input
+                        type="number"
+                        id="c-selfDriveTonOutside"
+                        class="sd-glow ton-inactive"
+                        placeholder="0"
+                        min="0"
+                        step="1"
+                        oninput="cargoRefresh()"
+                      />
                     </div>
                   </div>
-                  <span class="ton-err-msg sd-err" id="c-selfDriveTonOutside-err">⚠ Enter outside self drive weight &gt; 0</span>
+                  <span class="ton-err-msg sd-err" id="c-selfDriveTonOutside-err"
+                    >⚠ Enter outside self drive weight &gt; 0</span
+                  >
                 </div>
               </div>
             </div>
 
             <!-- CARGO PAYABLE CHARGES -->
             <div class="card">
-              <div class="ctitle cargo-title">Payable Charges</div>
+              <h3 class="ctitle cargo-title">Payable Charges</h3>
               <div class="pc-list">
-
-                <div class="pc-row" style="--pc-color:var(--sky);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--sky)">
+                  <label class="pc-toggle" for="c-chkRiver">
+                    <span class="sr-only">Enable River Dues</span>
                     <input type="checkbox" id="c-chkRiver" checked oninput="cargoRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--sky);"></div>
+                  <div class="pc-accent" style="background: var(--sky)"></div>
                   <div class="pc-body">
                     <div class="pc-name">River Dues</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="c-rRiver" value="33" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
+                    <input
+                      type="number"
+                      id="c-rRiver" aria-label="River Dues rate (Tk per ton)"
+                      value="33"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="cargoRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-yes">VAT</div>
                 </div>
 
-                <div class="pc-row" style="--pc-color:var(--cargo-accent);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--cargo-accent)">
+                  <label class="pc-toggle" for="c-chkLanding">
+                    <span class="sr-only">Enable Landing Charge</span>
                     <input type="checkbox" id="c-chkLanding" checked oninput="cargoRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--cargo-accent);"></div>
+                  <div class="pc-accent" style="background: var(--cargo-accent)"></div>
                   <div class="pc-body">
                     <div class="pc-name">Landing Charge</div>
                     <div class="pc-note">≤3t: 90 · &gt;3–20t: 180 · &gt;20t: 250 Tk/ton</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="c-rLanding" value="250" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
+                    <input
+                      type="number"
+                      id="c-rLanding" aria-label="Landing Charge rate (Tk per ton)"
+                      value="250"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="cargoRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-yes">VAT</div>
                 </div>
 
-                <div class="pc-row" style="--pc-color:var(--purple);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--purple)">
+                  <label class="pc-toggle" for="c-chkRemoval">
+                    <span class="sr-only">Enable Removal Charge</span>
                     <input type="checkbox" id="c-chkRemoval" oninput="cargoRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--purple);"></div>
+                  <div class="pc-accent" style="background: var(--purple)"></div>
                   <div class="pc-body">
                     <div class="pc-name">Removal Charge</div>
                     <div class="pc-note">7× slab (landing ✓) · 8× slab (landing ✗)</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="c-rRemoval" value="1750" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
+                    <input
+                      type="number"
+                      id="c-rRemoval" aria-label="Removal Charge rate (Tk per ton)"
+                      value="1750"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="cargoRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-yes">VAT</div>
                 </div>
 
-                <div class="pc-row" style="--pc-color:var(--gold);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--gold)">
+                  <label class="pc-toggle" for="c-chkWeighment">
+                    <span class="sr-only">Enable Weighment Charge</span>
                     <input type="checkbox" id="c-chkWeighment" oninput="cargoRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--gold);"></div>
+                  <div class="pc-accent" style="background: var(--gold)"></div>
                   <div class="pc-body">
                     <div class="pc-name">Weighment Charge</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="c-rWeighment" value="2.5" step="0.5" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
+                    <input
+                      type="number"
+                      id="c-rWeighment" aria-label="Weighment Charge rate (Tk per ton)"
+                      value="2.5"
+                      step="0.5"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="cargoRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-yes">VAT</div>
                 </div>
 
-                <div class="pc-row" style="--pc-color:var(--gold-hi);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--gold-hi)">
+                  <label class="pc-toggle" for="c-chkHoisting">
+                    <span class="sr-only">Enable Hoisting Charge</span>
                     <input type="checkbox" id="c-chkHoisting" checked oninput="cargoRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--gold-hi);"></div>
+                  <div class="pc-accent" style="background: var(--gold-hi)"></div>
                   <div class="pc-body">
                     <div class="pc-name">Hoisting Charge</div>
                     <div class="pc-note">125% of landing slab rate</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="c-rHoisting" value="312.5" step="0.01" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
+                    <input
+                      type="number"
+                      id="c-rHoisting" aria-label="Hoisting Charge rate (Tk per ton)"
+                      value="312.5"
+                      step="0.01"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="cargoRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-yes">VAT</div>
                 </div>
 
-                <div class="pc-row" style="--pc-color:var(--green);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--green)">
+                  <label class="pc-toggle" for="c-chkLevy">
+                    <span class="sr-only">Enable Levy Charge</span>
                     <input type="checkbox" id="c-chkLevy" checked oninput="cargoRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--green);"></div>
+                  <div class="pc-accent" style="background: var(--green)"></div>
                   <div class="pc-body">
                     <div class="pc-name">Levy Charge</div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="c-rLevy" value="1.5" step="0.5" class="ro pc-rate-input" readonly oninput="cargoRefresh()" />
+                    <input
+                      type="number"
+                      id="c-rLevy" aria-label="Levy Charge rate (Tk per ton)"
+                      value="1.5"
+                      step="0.5"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="cargoRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-no">No VAT</div>
                 </div>
-
               </div>
               <div id="cargo-tier-info" class="cargo-tier-info">
                 <span style="color: var(--m2)">Landing Tier: </span
@@ -1250,9 +1512,7 @@
               </div>
               <div class="r2">
                 <div class="fg">
-                  <label class="lbl" for="c-removalTon"
-                    >Removal Cargo (ton)</label
-                  >
+                  <label class="lbl" for="c-removalTon">Removal Cargo (ton)</label>
                   <input
                     type="number"
                     id="c-removalTon"
@@ -1262,12 +1522,12 @@
                     step="1"
                     oninput="cargoRefresh()"
                   />
-                  <span class="ton-err-msg" id="c-removalTon-err">⚠ Enter removal weight greater than 0</span>
+                  <span class="ton-err-msg" id="c-removalTon-err"
+                    >⚠ Enter removal weight greater than 0</span
+                  >
                 </div>
                 <div class="fg">
-                  <label class="lbl" for="c-weighmentTon"
-                    >Weighment Cargo (ton)</label
-                  >
+                  <label class="lbl" for="c-weighmentTon">Weighment Cargo (ton)</label>
                   <input
                     type="number"
                     id="c-weighmentTon"
@@ -1277,12 +1537,13 @@
                     step="1"
                     oninput="cargoRefresh()"
                   />
-                  <span class="ton-err-msg" id="c-weighmentTon-err">⚠ Enter weighment weight greater than 0</span>
+                  <span class="ton-err-msg" id="c-weighmentTon-err"
+                    >⚠ Enter weighment weight greater than 0</span
+                  >
                 </div>
               </div>
               <div class="vatr">
-                <label class="lbl" for="c-vatRate"
-                  >VAT Rate (%) <span class="lck"></span></label
+                <label class="lbl" for="c-vatRate">VAT Rate (%) <span class="lck"></span></label
                 ><input
                   type="number"
                   id="c-vatRate"
@@ -1299,12 +1560,11 @@
 
             <!-- CARGO WHARFRENT RATES -->
             <div class="card">
-              <div class="ctitle cargo-title">
-                General Cargo Wharfrent Rates — Tk per ton per day<span
-                  class="cnote"
+              <h3 class="ctitle cargo-title">
+                General Cargo Wharfrent Rates — Tk per ton per day<span class="cnote"
                   ><span class="lck"></span> Admin only</span
                 >
-              </div>
+              </h3>
               <div>
                 <div class="rst rn">● Standard Cargo Rates</div>
                 <table class="cargo-rate-table">
@@ -1321,7 +1581,7 @@
                         <span class="rspan" id="c-dor1">10</span
                         ><input
                           type="number"
-                          id="c-or1"
+                          id="c-or1" aria-label="Cargo standard rate, 1st 7 days (Tk per ton per day)"
                           value="10"
                           style="display: none"
                           class="ro"
@@ -1339,7 +1599,7 @@
                         <span class="rspan" id="c-dor2">20</span
                         ><input
                           type="number"
-                          id="c-or2"
+                          id="c-or2" aria-label="Cargo standard rate, 8th–14th day (Tk per ton per day)"
                           value="20"
                           style="display: none"
                           class="ro"
@@ -1357,7 +1617,7 @@
                         <span class="rspan" id="c-dor3">25</span
                         ><input
                           type="number"
-                          id="c-or3"
+                          id="c-or3" aria-label="Cargo standard rate, 15th day+ (Tk per ton per day)"
                           value="25"
                           style="display: none"
                           class="ro"
@@ -1378,13 +1638,11 @@
           <!-- RIGHT -->
           <div>
             <div class="sp sp-cargo">
-              <div class="ctitle cargo-title">
+              <h3 class="ctitle cargo-title">
                 Quick Preview
                 <span class="sp-live-badge sp-live-cargo">● LIVE</span>
-              </div>
-              <div class="sp-mod-label sp-mod-cargo">
-                General Cargo Wharfrent Module
-              </div>
+              </h3>
+              <div class="sp-mod-label sp-mod-cargo">General Cargo Wharfrent Module</div>
               <div id="cargo-preview">
                 <div class="sp-idle">
                   <svg
@@ -1400,13 +1658,16 @@
                     <circle cx="5.5" cy="18.5" r="2.5" />
                     <circle cx="18.5" cy="18.5" r="2.5" />
                   </svg>
-                  <span
-                    >Fill in cargo details<br />to see live cost preview</span
-                  >
+                  <span>Fill in cargo details<br />to see live cost preview</span>
                 </div>
               </div>
               <div class="sp-actions sp-actions-cargo">
-                <button type="button" class="cargo-gen-btn" onclick="cargoCalculate()" aria-label="Generate cargo bill">
+                <button
+                  type="button"
+                  class="cargo-gen-btn"
+                  onclick="cargoCalculate()"
+                  aria-label="Generate cargo bill"
+                >
                   <span class="cgb-icon" aria-hidden="true">
                     <svg
                       width="14"
@@ -1441,9 +1702,7 @@
                     stroke="currentColor"
                     stroke-width="2"
                   >
-                    <path
-                      d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
-                    />
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                     <path d="M3 3v5h5" />
                   </svg>
                   Reset
@@ -1451,12 +1710,10 @@
               </div>
             </div>
             <div class="card card--rules">
-              <div class="ctitle cargo-title">Billing Rules</div>
+              <h3 class="ctitle cargo-title">Billing Rules</h3>
               <div class="guide">
                 <div>① Free Time = CLD + 3 days (4 days incl. CLD)</div>
-                <div>
-                  ② General Cargo Wharfrent starts day after free time ends
-                </div>
+                <div>② General Cargo Wharfrent starts day after free time ends</div>
                 <div>③ Rate: Tk × ton × day (slab-wise)</div>
                 <div>④ River Dues = 33 Tk/ton (flat)</div>
                 <div>
@@ -1471,27 +1728,25 @@
                   <span style="color: var(--gold)">7× slab</span> (landing ✓) or
                   <span style="color: var(--gold)">8× slab</span> (landing ✗)
                 </div>
-                <div>⑦ Hoisting = 125% of landing slab rate · Self Drive = 50% of hoisting rate</div>
                 <div>
-                  ⑧ <span style="color: var(--blue)">Inside</span> = full
-                  wharfrent (inside tons)
+                  ⑦ Hoisting = 125% of landing slab rate · Self Drive = 50% of hoisting rate
                 </div>
                 <div>
-                  ⑨ <span style="color: var(--purple)">Outside</span> = ½
-                  wharfrent (outside tons)
+                  ⑧ <span style="color: var(--blue)">Inside</span> = full wharfrent (inside tons)
                 </div>
                 <div>
-                  ⑩ Payable basis: total tons (free time) / inside-outside
-                  (wharfrent)
+                  ⑨ <span style="color: var(--purple)">Outside</span> = ½ wharfrent (outside tons)
                 </div>
+                <div>⑩ Payable basis: total tons (free time) / inside-outside (wharfrent)</div>
                 <div>⑪ Levy added without VAT</div>
                 <div>⑫ <span class="lck"></span> Landing/Removal/Hoisting auto-computed</div>
                 <div class="guide-note--sky">
-                  ⑬ <strong>Part Billing:</strong> Slab progression never resets — only weight changes per stage
+                  ⑬ <strong>Part Billing:</strong> Slab progression never resets — only weight
+                  changes per stage
                 </div>
                 <div class="guide-note--gold">
                   ⑭ <strong>Self Drive</strong> (Hoisting ✓): SD tons billed at
-                  <span style="color:var(--green)">Car Billing rates</span>
+                  <span style="color: var(--green)">Car Billing rates</span>
                   — old/new split applies at 23/07/2024
                 </div>
               </div>
@@ -1503,43 +1758,55 @@
         <div id="cargo-results">
           <hr class="hr-cargo" />
           <div class="rh">
-            <div class="rtitle cargo">
-              GENERAL CARGO WHARFRENT BILL STATEMENT
-            </div>
+            <div class="rtitle cargo">GENERAL CARGO WHARFRENT BILL STATEMENT</div>
             <div class="print-opts-group">
               <div class="print-opt-toggle">
-                <label class="pb-toggle">
-                  <input type="checkbox" id="c-chkPrintWharfrent" checked onchange="onCargoWharfrentToggle()">
+                <label class="pb-toggle" for="c-chkPrintWharfrent">
+                  <span class="sr-only">Include wharfrent in printed bill</span>
+                  <input
+                    type="checkbox"
+                    id="c-chkPrintWharfrent"
+                    checked
+                    onchange="onCargoWharfrentToggle()"
+                  />
                   <span class="pb-toggle-track"><span class="pb-toggle-thumb"></span></span>
                 </label>
                 <span class="print-opt-label">Wharfrent</span>
               </div>
               <div class="print-opt-toggle payables-toggle">
-                <label class="pb-toggle">
-                  <input type="checkbox" id="c-chkAllPayables" checked onchange="onToggleAllPayables(this.checked)">
+                <label class="pb-toggle" for="c-chkAllPayables">
+                  <span class="sr-only">Include all payables in printed bill</span>
+                  <input
+                    type="checkbox"
+                    id="c-chkAllPayables"
+                    checked
+                    onchange="onToggleAllPayables(this.checked)"
+                  />
                   <span class="pb-toggle-track"><span class="pb-toggle-thumb"></span></span>
                 </label>
                 <span class="print-opt-label payables-label">Payables</span>
               </div>
-              <button type="button" class="save-btn cargo" onclick="saveBill('cargo')" aria-label="Save cargo bill">Save Bill</button>
-            <button type="button" class="print-btn cargo" onclick="printBill('cargo')" aria-label="Print cargo bill">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                aria-hidden="true"
-              >
-                <polyline points="6 9 6 2 18 2 18 9" />
-                <path
-                  d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
-                />
-                <rect x="6" y="14" width="12" height="8" />
-              </svg>
-              Print Bill
-            </button>
+              <button type="button" class="save-btn cargo" onclick="saveBill('cargo')">
+                Save Bill
+              </button>
+              <button type="button" class="print-btn cargo" onclick="printBill('cargo')">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <polyline points="6 9 6 2 18 2 18 9" />
+                  <path
+                    d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+                  />
+                  <rect x="6" y="14" width="12" height="8" />
+                </svg>
+                Print Bill
+              </button>
             </div>
           </div>
           <div id="cargo-ibar"></div>
@@ -1549,37 +1816,56 @@
           <div id="cargo-breakdownSec"></div>
           <div id="cargo-grandSec">
             <div class="bill-empty-state" id="cargo-empty">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
               <div class="bes-title">No bill generated yet</div>
               <div class="bes-sub">Fill in CLD, delivery date and weight above</div>
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
 
     <!-- ════════════════════════════════════════
          RE-EXPORT BILL MODULE
     ════════════════════════════════════════ -->
-    <div id="page-reexport" class="module-page">
-      <main class="wrap">
-        <div class="pgtitle">RE-EXPORT BILL</div>
-        <div class="pgsub">
-          Port Authority — Transhipment / Re-Shipment &amp; Payable Charges
-        </div>
+    <div id="page-reexport" class="module-page" role="tabpanel" aria-labelledby="tab-reexport" tabindex="0">
+      <div class="wrap">
+        <h2 class="pgtitle">RE-EXPORT BILL</h2>
+        <div class="pgsub">Port Authority — Transhipment / Re-Shipment &amp; Payable Charges</div>
         <div class="weight-note">
-          <div><strong>Hoisting Charge:</strong> 125% of the Landing Rate slab — auto-applied unless the vessel uses its own crane. &nbsp;<strong>Disclaimer:</strong> This bill is for <strong>informational purposes only</strong> and cannot be used as an official reference.</div>
+          <div>
+            <strong>Hoisting Charge:</strong> 125% of the Landing Rate slab — auto-applied unless
+            the vessel uses its own crane. &nbsp;<strong>Disclaimer:</strong> This bill is for
+            <strong>informational purposes only</strong> and cannot be used as an official
+            reference.
+          </div>
         </div>
 
         <div class="layout" id="reexport-inputSection">
           <!-- LEFT -->
           <div>
             <div class="card">
-              <div class="ctitle">
+              <h3 class="ctitle">
                 Re-Export Details<span class="cnote"
                   ><span class="lck"></span> Rate &amp; free-time editable</span
                 >
-              </div>
+              </h3>
               <div class="r2 bill-meta-row">
                 <div class="fg">
                   <label class="lbl" for="reexport-cnfName">C&amp;F Agent / Consignee Name</label>
@@ -1608,8 +1894,7 @@
               <div class="r2">
                 <div class="fg">
                   <label class="lbl" for="reexport-reexportDate"
-                    >Re-Export Date
-                    <span class="lbl-sub">(calculation anchor)</span></label
+                    >Re-Export Date <span class="lbl-sub">(calculation anchor)</span></label
                   >
                   <div class="date-field-wrap">
                     <input
@@ -1618,19 +1903,24 @@
                       class="cyan-glow"
                       placeholder="DD/MM/YYYY"
                       maxlength="10"
-                      oninput="formatDate(this); reexportRefresh();"
+                      oninput="
+                        formatDate(this);
+                        reexportRefresh();
+                      "
                       autocomplete="off"
                     />
                     <span class="cal" aria-hidden="true"></span>
                   </div>
-                  <div class="field-hint hint-muted" id="reexport-reexportDate-hint">DD/MM/YYYY</div>
+                  <div class="field-hint hint-muted" id="reexport-reexportDate-hint">
+                    DD/MM/YYYY
+                  </div>
                 </div>
                 <div class="fg" id="reexport-freeTimeFg">
                   <label class="lbl" for="reexport-freeDays"
                     >Free Time
                     <span class="lbl-sub">(days incl. CLD)</span>
-                    <span class="lck"></span></label
-                  >
+                    <span class="lck"></span
+                  ></label>
                   <input
                     type="number"
                     id="reexport-freeDays"
@@ -1638,26 +1928,61 @@
                     min="0"
                     class="ro"
                     readonly
-                    oninput="if(+this.value<0)this.value=0;reexportRefresh()"
+                    oninput="
+                      if (+this.value < 0) this.value = 0;
+                      reexportRefresh();
+                    "
                   />
                 </div>
               </div>
               <div class="r2" id="reexport-typeRow">
                 <div class="fg">
-                  <label class="lbl">Re-Export Type</label>
-                  <div class="seg" id="reexportTypeSeg" role="group" aria-label="Re-Export Type">
-                    <button type="button" class="seg-btn active" data-value="portside" aria-pressed="true" onclick="setReexportType('portside')">Port Side</button>
-                    <button type="button" class="seg-btn" data-value="overside" aria-pressed="false" onclick="setReexportType('overside')">Overside</button>
-                  </div>
-                  <input type="hidden" id="reexport-type" value="portside">
+                  <fieldset class="seg" id="reexportTypeSeg">
+                    <legend class="lbl">Re-Export Type</legend>
+                    <button
+                      type="button"
+                      class="seg-btn active"
+                      data-value="portside"
+                      aria-pressed="true"
+                      onclick="setReexportType('portside')"
+                    >
+                      Port Side
+                    </button>
+                    <button
+                      type="button"
+                      class="seg-btn"
+                      data-value="overside"
+                      aria-pressed="false"
+                      onclick="setReexportType('overside')"
+                    >
+                      Overside
+                    </button>
+                  </fieldset>
+                  <input type="hidden" id="reexport-type" value="portside" />
                 </div>
                 <div class="fg">
-                  <label class="lbl">Wharf Type</label>
-                  <div class="seg" id="reexportWharfSeg" role="group" aria-label="Wharf Type">
-                    <button type="button" class="seg-btn" data-value="same" aria-pressed="false" onclick="setReexportWharfType('same')">Same Wharf (150%)</button>
-                    <button type="button" class="seg-btn active" data-value="diff" aria-pressed="true" onclick="setReexportWharfType('diff')">Different Wharf (200%)</button>
-                  </div>
-                  <input type="hidden" id="reexport-wharfType" value="diff">
+                  <fieldset class="seg" id="reexportWharfSeg">
+                    <legend class="lbl">Wharf Type</legend>
+                    <button
+                      type="button"
+                      class="seg-btn"
+                      data-value="same"
+                      aria-pressed="false"
+                      onclick="setReexportWharfType('same')"
+                    >
+                      Same Wharf (150%)
+                    </button>
+                    <button
+                      type="button"
+                      class="seg-btn active"
+                      data-value="diff"
+                      aria-pressed="true"
+                      onclick="setReexportWharfType('diff')"
+                    >
+                      Different Wharf (200%)
+                    </button>
+                  </fieldset>
+                  <input type="hidden" id="reexport-wharfType" value="diff" />
                 </div>
               </div>
             </div>
@@ -1666,19 +1991,59 @@
             <div class="card" id="reexport-beCard">
               <div class="pbs-card-header">
                 <div class="pbs-card-title">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
                   Bill of Entries
                 </div>
                 <span class="pbs-count-badge" id="reexport-beCount"></span>
               </div>
               <div class="pbs-info-bar">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                Landing Rate slab is based on each Bill of Entry's total CLD tonnage. Add a CLD row per landing lot within a Bill of Entry.
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                Landing Rate slab is based on each Bill of Entry's total CLD tonnage. Add a CLD row
+                per landing lot within a Bill of Entry.
               </div>
               <div class="pbs-timeline" id="reexport-beContainer"></div>
               <div class="pbs-footer">
                 <button type="button" class="pbs-add-btn" onclick="addBillOfEntry()">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    aria-hidden="true"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
                   Add Bill of Entry
                 </button>
               </div>
@@ -1686,43 +2051,68 @@
 
             <!-- PAYABLE CHARGES — RE-EXPORT -->
             <div class="card">
-              <div class="ctitle">Payable Charges</div>
+              <h3 class="ctitle">Payable Charges</h3>
               <div class="pc-list">
-
-                <div class="pc-row" style="--pc-color:var(--gold-hi);">
-                  <label class="pc-toggle">
-                    <input type="checkbox" id="reexport-chkHoisting" checked oninput="reexportRefresh()" />
+                <div class="pc-row" style="--pc-color: var(--gold-hi)">
+                  <label class="pc-toggle" for="reexport-chkHoisting">
+                    <span class="sr-only">Enable hoisting charge</span>
+                    <input
+                      type="checkbox"
+                      id="reexport-chkHoisting"
+                      checked
+                      oninput="reexportRefresh()"
+                    />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--gold-hi);"></div>
+                  <div class="pc-accent" style="background: var(--gold-hi)"></div>
                   <div class="pc-body">
                     <div class="pc-name">Hoisting Charge</div>
-                    <div class="pc-note">125% of landing rate — uncheck if vessel uses own crane</div>
+                    <div class="pc-note">
+                      125% of landing rate — uncheck if vessel uses own crane
+                    </div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="re-hoistPct" value="1.25" step="0.01" class="ro pc-rate-input" readonly oninput="reexportRefresh()" />
+                    <input
+                      type="number"
+                      id="re-hoistPct" aria-label="Hoisting Charge multiplier (× landing rate)"
+                      value="1.25"
+                      step="0.01"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="reexportRefresh()"
+                    />
                     <span class="pc-unit">× landing</span>
                   </div>
                   <div class="pc-vat pc-vat-yes">VAT</div>
                 </div>
 
-                <div class="pc-row" style="--pc-color:var(--green);">
-                  <label class="pc-toggle">
+                <div class="pc-row" style="--pc-color: var(--green)">
+                  <label class="pc-toggle" for="reexport-chkLevy">
+                    <span class="sr-only">Enable levy charge</span>
                     <input type="checkbox" id="reexport-chkLevy" oninput="reexportRefresh()" />
                     <span class="pc-slider"></span>
                   </label>
-                  <div class="pc-accent" style="background:var(--green);"></div>
+                  <div class="pc-accent" style="background: var(--green)"></div>
                   <div class="pc-body">
                     <div class="pc-name">Levy Charge</div>
-                    <div class="pc-note">Optional — enable if Levy is applicable for this shipment</div>
+                    <div class="pc-note">
+                      Optional — enable if Levy is applicable for this shipment
+                    </div>
                   </div>
                   <div class="pc-rate-wrap">
-                    <input type="number" id="re-rLevy" value="1.5" step="0.5" class="ro pc-rate-input" readonly oninput="reexportRefresh()" />
+                    <input
+                      type="number"
+                      id="re-rLevy" aria-label="Levy Charge rate (Tk per ton)"
+                      value="1.5"
+                      step="0.5"
+                      class="ro pc-rate-input"
+                      readonly
+                      oninput="reexportRefresh()"
+                    />
                     <span class="pc-unit">Tk/ton</span>
                   </div>
                   <div class="pc-vat pc-vat-no">No VAT</div>
                 </div>
-
               </div>
               <div class="vatr">
                 <label class="lbl" for="reexport-vatRate"
@@ -1743,11 +2133,11 @@
 
             <!-- RE-EXPORT RATES — MPA TARIFF -->
             <div class="card">
-              <div class="ctitle">
+              <h3 class="ctitle">
                 Re-Export Rates — MPA Tariff<span class="cnote"
                   ><span class="lck"></span> Admin only</span
                 >
-              </div>
+              </h3>
               <div class="rg">
                 <div>
                   <div class="rst rn">Structural Rates</div>
@@ -1761,7 +2151,21 @@
                     <tbody>
                       <tr class="rt-gh">
                         <td colspan="2">
-                          <svg class="rt-gh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.5h5M9.5 13.5h5"/></svg>
+                          <svg
+                            class="rt-gh-icon"
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <circle cx="12" cy="12" r="8" />
+                            <path d="M12 8v8M9.5 10.5h5M9.5 13.5h5" />
+                          </svg>
                           River Dues
                         </td>
                       </tr>
@@ -1769,13 +2173,38 @@
                         <td>Re-export (flat)</td>
                         <td>
                           <span class="rspan" id="dre-rRiver">33</span
-                          ><input type="number" id="re-rRiver" value="33" style="display:none" class="ro" readonly oninput="syncSpan('re-rRiver','dre-rRiver'); reexportRefresh();" />
+                          ><input
+                            type="number"
+                            id="re-rRiver" aria-label="River Dues, re-export flat rate (Tk)"
+                            value="33"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('re-rRiver', 'dre-rRiver');
+                              reexportRefresh();
+                            "
+                          />
                         </td>
                       </tr>
 
                       <tr class="rt-gh">
                         <td colspan="2">
-                          <svg class="rt-gh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                          <svg
+                            class="rt-gh-icon"
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                          </svg>
                           Wharf Rent — Tiered by Day
                         </td>
                       </tr>
@@ -1783,42 +2212,130 @@
                         <td>Days 1–20</td>
                         <td>
                           <span class="rspan" id="dre-wharfLow">5</span
-                          ><input type="number" id="re-wharfLow" value="5" style="display:none" class="ro" readonly oninput="syncSpan('re-wharfLow','dre-wharfLow'); reexportRefresh();" />
+                          ><input
+                            type="number"
+                            id="re-wharfLow" aria-label="Wharf rent, days 1–20 rate (Tk)"
+                            value="5"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('re-wharfLow', 'dre-wharfLow');
+                              reexportRefresh();
+                            "
+                          />
                         </td>
                       </tr>
                       <tr>
                         <td>Days 21+</td>
                         <td>
                           <span class="rspan" id="dre-wharfHigh">15</span
-                          ><input type="number" id="re-wharfHigh" value="15" style="display:none" class="ro" readonly oninput="syncSpan('re-wharfHigh','dre-wharfHigh'); reexportRefresh();" />
+                          ><input
+                            type="number"
+                            id="re-wharfHigh" aria-label="Wharf rent, days 21+ rate (Tk)"
+                            value="15"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('re-wharfHigh', 'dre-wharfHigh');
+                              reexportRefresh();
+                            "
+                          />
                         </td>
                       </tr>
 
                       <tr class="rt-gh">
                         <td colspan="2">
-                          <svg class="rt-gh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10 3 14l4 4"/><path d="M3 14h13"/><path d="M17 6l4 4-4 4"/><path d="M21 10H8"/></svg>
+                          <svg
+                            class="rt-gh-icon"
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M7 10 3 14l4 4" />
+                            <path d="M3 14h13" />
+                            <path d="M17 6l4 4-4 4" />
+                            <path d="M21 10H8" />
+                          </svg>
                           Re-Shipment — by Wharf Type
                           <span class="rt-live-tag">● LIVE</span>
                         </td>
                       </tr>
                       <tr id="re-reship-same-row" class="rt-choice">
-                        <td>Same Wharf (150%) <span class="rt-active-badge" id="re-reship-same-badge">✓ Applicable</span></td>
+                        <td>
+                          Same Wharf (150%)
+                          <span class="rt-active-badge" id="re-reship-same-badge"
+                            >✓ Applicable</span
+                          >
+                        </td>
                         <td>
                           <span class="rspan" id="dre-reshipSame">1.5</span
-                          ><input type="number" id="re-reshipSame" value="1.5" step="0.01" style="display:none" class="ro" readonly oninput="syncSpan('re-reshipSame','dre-reshipSame'); reexportRefresh();" />
+                          ><input
+                            type="number"
+                            id="re-reshipSame" aria-label="Re-shipment rate, same wharf (150%)"
+                            value="1.5"
+                            step="0.01"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('re-reshipSame', 'dre-reshipSame');
+                              reexportRefresh();
+                            "
+                          />
                         </td>
                       </tr>
                       <tr id="re-reship-diff-row" class="rt-choice">
-                        <td>Different Wharf (200%) <span class="rt-active-badge" id="re-reship-diff-badge">✓ Applicable</span></td>
+                        <td>
+                          Different Wharf (200%)
+                          <span class="rt-active-badge" id="re-reship-diff-badge"
+                            >✓ Applicable</span
+                          >
+                        </td>
                         <td>
                           <span class="rspan" id="dre-reshipDiff">2</span
-                          ><input type="number" id="re-reshipDiff" value="2" step="0.01" style="display:none" class="ro" readonly oninput="syncSpan('re-reshipDiff','dre-reshipDiff'); reexportRefresh();" />
+                          ><input
+                            type="number"
+                            id="re-reshipDiff" aria-label="Re-shipment rate, different wharf (200%)"
+                            value="2"
+                            step="0.01"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('re-reshipDiff', 'dre-reshipDiff');
+                              reexportRefresh();
+                            "
+                          />
                         </td>
                       </tr>
 
                       <tr class="rt-gh">
                         <td colspan="2">
-                          <svg class="rt-gh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="7" width="13" height="9" rx="1"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="5.5" cy="18.5" r="1.8"/><circle cx="17.5" cy="18.5" r="1.8"/></svg>
+                          <svg
+                            class="rt-gh-icon"
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <rect x="1" y="7" width="13" height="9" rx="1" />
+                            <path d="M14 10h4l3 3v3h-7z" />
+                            <circle cx="5.5" cy="18.5" r="1.8" />
+                            <circle cx="17.5" cy="18.5" r="1.8" />
+                          </svg>
                           Removal Charge
                         </td>
                       </tr>
@@ -1826,7 +2343,18 @@
                         <td>Multiplier</td>
                         <td>
                           <span class="rspan" id="dre-removalMult">7</span
-                          ><input type="number" id="re-removalMult" value="7" style="display:none" class="ro" readonly oninput="syncSpan('re-removalMult','dre-removalMult'); reexportRefresh();" />
+                          ><input
+                            type="number"
+                            id="re-removalMult" aria-label="Removal charge multiplier"
+                            value="7"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('re-removalMult', 'dre-removalMult');
+                              reexportRefresh();
+                            "
+                          />
                         </td>
                       </tr>
                     </tbody>
@@ -1846,21 +2374,54 @@
                         <td>≤ 3,000 Kg</td>
                         <td>
                           <span class="rspan" id="dre-land1">90</span
-                          ><input type="number" id="re-land1" value="90" style="display:none" class="ro" readonly oninput="syncSpan('re-land1','dre-land1'); reexportRefresh();" />
+                          ><input
+                            type="number"
+                            id="re-land1" aria-label="Landing rate, total Bill of Entry weight up to 3,000 Kg (Tk per ton)"
+                            value="90"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('re-land1', 'dre-land1');
+                              reexportRefresh();
+                            "
+                          />
                         </td>
                       </tr>
                       <tr>
                         <td>3,001–20,000 Kg</td>
                         <td>
                           <span class="rspan" id="dre-land2">180</span
-                          ><input type="number" id="re-land2" value="180" style="display:none" class="ro" readonly oninput="syncSpan('re-land2','dre-land2'); reexportRefresh();" />
+                          ><input
+                            type="number"
+                            id="re-land2" aria-label="Landing rate, total Bill of Entry weight 3,001–20,000 Kg (Tk per ton)"
+                            value="180"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('re-land2', 'dre-land2');
+                              reexportRefresh();
+                            "
+                          />
                         </td>
                       </tr>
                       <tr>
                         <td>&gt; 20,000 Kg</td>
                         <td>
                           <span class="rspan" id="dre-land3">250</span
-                          ><input type="number" id="re-land3" value="250" style="display:none" class="ro" readonly oninput="syncSpan('re-land3','dre-land3'); reexportRefresh();" />
+                          ><input
+                            type="number"
+                            id="re-land3" aria-label="Landing rate, total Bill of Entry weight over 20,000 Kg (Tk per ton)"
+                            value="250"
+                            style="display: none"
+                            class="ro"
+                            readonly
+                            oninput="
+                              syncSpan('re-land3', 'dre-land3');
+                              reexportRefresh();
+                            "
+                          />
                         </td>
                       </tr>
                     </tbody>
@@ -1872,10 +2433,10 @@
           <!-- RIGHT -->
           <div>
             <div class="sp">
-              <div class="ctitle">
+              <h3 class="ctitle">
                 Quick Preview
                 <span class="sp-live-badge">● LIVE</span>
-              </div>
+              </h3>
               <div class="sp-mod-label">Re-Export Bill Module</div>
               <div id="reexport-preview">
                 <div class="sp-idle">
@@ -1890,14 +2451,16 @@
                     <rect x="2" y="3" width="20" height="14" rx="2" />
                     <path d="M8 21h8M12 17v4" />
                   </svg>
-                  <span
-                    >Fill in Bill of Entry details<br />to see live cost
-                    preview</span
-                  >
+                  <span>Fill in Bill of Entry details<br />to see live cost preview</span>
                 </div>
               </div>
               <div class="sp-actions sp-actions-car">
-                <button type="button" class="car-gen-btn" onclick="reexportCalculate()" aria-label="Generate re-export bill">
+                <button
+                  type="button"
+                  class="car-gen-btn"
+                  onclick="reexportCalculate()"
+                  aria-label="Generate re-export bill"
+                >
                   <span class="cgb-icon" aria-hidden="true">
                     <svg
                       width="14"
@@ -1932,9 +2495,7 @@
                     stroke="currentColor"
                     stroke-width="2"
                   >
-                    <path
-                      d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
-                    />
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                     <path d="M3 3v5h5" />
                   </svg>
                   Reset
@@ -1942,18 +2503,30 @@
               </div>
             </div>
             <div class="card card--rules">
-              <div class="ctitle">Billing Rules</div>
+              <h3 class="ctitle">Billing Rules</h3>
               <div class="guide">
                 <div>① Port Side: Re-export date ≤ CLD date → validation error</div>
                 <div>② Port Side: Re-export date within 20-day free period → Wharf Rent = 0</div>
                 <div>③ Port Side: Removal ton = 0 → Removal row skipped</div>
-                <div>④ <span style="color: var(--sky)">Overside</span> → CLD not required, no Wharf Rent, no Removal, Hoisting off by default</div>
+                <div>
+                  ④ <span style="color: var(--sky)">Overside</span> → CLD not required, no Wharf
+                  Rent, no Removal, Hoisting off by default
+                </div>
                 <div>⑤ Hoisting unchecked → Hoisting row skipped (both types)</div>
-                <div>⑥ Port Side: multiple CLD dates per Bill of Entry → each Wharf Rent calculated separately; slab uses SUM of all CLD tons</div>
-                <div>⑦ Same vs Different Wharf → affects Re-Shipment % only; Removal stays 7× (Port Side)</div>
+                <div>
+                  ⑥ Port Side: multiple CLD dates per Bill of Entry → each Wharf Rent calculated
+                  separately; slab uses SUM of all CLD tons
+                </div>
+                <div>
+                  ⑦ Same vs Different Wharf → affects Re-Shipment % only; Removal stays 7× (Port
+                  Side)
+                </div>
                 <div>⑧ VAT always applies — excludes Levy</div>
                 <div>⑨ Levy unchecked (default) → Levy row skipped</div>
-                <div>⑩ <span class="lck"></span> Levy checked adds Tk 1.50/ton after VAT — rates editable by Admin only</div>
+                <div>
+                  ⑩ <span class="lck"></span> Levy checked adds Tk 1.50/ton after VAT — rates
+                  editable by Admin only
+                </div>
               </div>
             </div>
           </div>
@@ -1965,25 +2538,27 @@
           <div class="rh">
             <div class="rtitle reexport">RE-EXPORT BILL STATEMENT</div>
             <div class="bill-action-group">
-              <button type="button" class="save-btn" onclick="saveBill('reexport')" aria-label="Save re-export bill">Save Bill</button>
-            <button type="button" class="print-btn" onclick="printBill('reexport')" aria-label="Print re-export bill">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                aria-hidden="true"
-              >
-                <polyline points="6 9 6 2 18 2 18 9" />
-                <path
-                  d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
-                />
-                <rect x="6" y="14" width="12" height="8" />
-              </svg>
-              Print Bill
-            </button>
+              <button type="button" class="save-btn" onclick="saveBill('reexport')">
+                Save Bill
+              </button>
+              <button type="button" class="print-btn" onclick="printBill('reexport')">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <polyline points="6 9 6 2 18 2 18 9" />
+                  <path
+                    d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+                  />
+                  <rect x="6" y="14" width="12" height="8" />
+                </svg>
+                Print Bill
+              </button>
             </div>
           </div>
           <div id="reexport-ibar"></div>
@@ -1991,63 +2566,136 @@
           <div id="reexport-beSec"></div>
           <div id="reexport-grandSec">
             <div class="bill-empty-state" id="reexport-empty">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
               <div class="bes-title">No bill generated yet</div>
               <div class="bes-sub">Add at least one Bill of Entry with a CLD lot above</div>
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
 
     <!-- ════════════════════════════════════════
          ADMIN ROTATION REGISTRY
     ════════════════════════════════════════ -->
-    <div id="page-rotation" class="module-page admin-only-page">
-      <main class="wrap rotation-page">
-        <div class="pgtitle">ROTATION REGISTRY</div>
-        <div class="pgsub">
-          Admin-only rotation numbers and Common Landing Day records
-        </div>
+    <div id="page-rotation" class="module-page admin-only-page" role="tabpanel" aria-labelledby="tab-rotation" tabindex="0">
+      <div class="wrap rotation-page">
+        <h2 class="pgtitle">ROTATION REGISTRY</h2>
+        <div class="pgsub">Admin-only rotation numbers and Common Landing Day records</div>
 
         <div class="rotation-grid">
-          <section class="card rot-registry" id="rotRegistry" style="display:none;" aria-labelledby="rotation-registry-title">
+          <section
+            class="card rot-registry"
+            id="rotRegistry"
+            style="display: none"
+            aria-labelledby="rotation-registry-title"
+          >
             <div class="rot-reg-title" id="rotation-registry-title">ADD ROTATION</div>
             <div class="rot-reg-form">
-              <input type="text" id="rotRegYear" class="rot-reg-input" placeholder="Year e.g. 2026" maxlength="4" inputmode="numeric" />
-              <input type="text" id="rotRegNum" class="rot-reg-input" placeholder="No. e.g. 400" maxlength="6" inputmode="numeric" />
-              <input type="text" id="rotRegCld" class="rot-reg-input rot-reg-cld" placeholder="CLD DD/MM/YYYY" maxlength="10" inputmode="numeric" oninput="formatDate(this)" />
+              <label class="sr-only" for="rotRegYear">Rotation year</label>
+              <input
+                type="text"
+                id="rotRegYear"
+                class="rot-reg-input"
+                placeholder="Year e.g. 2026"
+                maxlength="4"
+                inputmode="numeric"
+              />
+              <label class="sr-only" for="rotRegNum">Rotation number</label>
+              <input
+                type="text"
+                id="rotRegNum"
+                class="rot-reg-input"
+                placeholder="No. e.g. 400"
+                maxlength="6"
+                inputmode="numeric"
+              />
+              <label class="sr-only" for="rotRegCld">Common landing day</label>
+              <input
+                type="text"
+                id="rotRegCld"
+                class="rot-reg-input rot-reg-cld"
+                placeholder="CLD DD/MM/YYYY"
+                maxlength="10"
+                inputmode="numeric"
+                oninput="formatDate(this)"
+              />
               <button type="button" class="rot-reg-add-btn" onclick="addRotation()">+ ADD</button>
             </div>
             <div class="rot-reg-status" id="rotRegStatus"></div>
             <div class="rot-reg-table-wrap">
               <table class="rot-reg-table" id="rotRegTable">
-                <thead><tr><th>Rotation No</th><th>CLD Date</th><th></th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Rotation No</th>
+                    <th>CLD Date</th>
+                    <th></th>
+                  </tr>
+                </thead>
                 <tbody id="rotRegTbody"></tbody>
               </table>
             </div>
           </section>
         </div>
-      </main>
+      </div>
     </div>
 
     <!-- ════════════════════════════════════════
          SAVED BILLS MODULE
     ════════════════════════════════════════ -->
-    <div id="page-saved" class="module-page admin-only-page">
-      <main class="wrap rotation-page">
-        <div class="pgtitle">SAVED BILLS</div>
-        <div class="pgsub">Admin-only — view, edit and delete saved Car &amp; General Cargo bills</div>
+    <div id="page-saved" class="module-page admin-only-page" role="tabpanel" aria-labelledby="tab-saved" tabindex="0">
+      <div class="wrap rotation-page">
+        <h2 class="pgtitle">SAVED BILLS</h2>
+        <div class="pgsub">
+          Admin-only — view, edit and delete saved Car &amp; General Cargo bills
+        </div>
 
         <!-- SUB-TABS -->
         <div class="saved-sub-tabs" role="tablist" aria-label="Saved bill type">
-          <button class="saved-sub-tab active" id="saved-sub-car" role="tab" aria-selected="true" aria-controls="saved-car-panel" onclick="switchSavedTab('car')">
+          <button
+            class="saved-sub-tab active"
+            id="saved-sub-car"
+            role="tab"
+            aria-selected="true"
+            aria-controls="saved-car-panel"
+            onclick="switchSavedTab('car')"
+          >
             Car Bills
           </button>
-          <button class="saved-sub-tab" id="saved-sub-cargo" role="tab" aria-selected="false" aria-controls="saved-cargo-panel" onclick="switchSavedTab('cargo')">
+          <button
+            class="saved-sub-tab"
+            id="saved-sub-cargo"
+            role="tab"
+            aria-selected="false"
+            aria-controls="saved-cargo-panel"
+            onclick="switchSavedTab('cargo')"
+          >
             General Cargo Bills
           </button>
-          <button class="saved-sub-tab" id="saved-sub-reexport" role="tab" aria-selected="false" aria-controls="saved-reexport-panel" onclick="switchSavedTab('reexport')">
+          <button
+            class="saved-sub-tab"
+            id="saved-sub-reexport"
+            role="tab"
+            aria-selected="false"
+            aria-controls="saved-reexport-panel"
+            onclick="switchSavedTab('reexport')"
+          >
             Re-Export Bills
           </button>
         </div>
@@ -2057,7 +2705,15 @@
           <div class="sb-panel-head">
             <div class="rot-reg-title" id="saved-car-title">CAR SAVED BILLS</div>
             <div class="sb-search-wrap">
-              <input type="search" id="sbCarSearch" class="sb-search" placeholder="Search bill no., BL, C&amp;F, CLD…" oninput="sbSearch('car',this.value)" autocomplete="off" />
+              <label class="sr-only" for="sbCarSearch">Search saved car bills</label>
+              <input
+                type="search"
+                id="sbCarSearch"
+                class="sb-search"
+                placeholder="Search bill no., BL, C&amp;F, CLD…"
+                oninput="sbSearch('car', this.value)"
+                autocomplete="off"
+              />
             </div>
           </div>
           <div class="rot-reg-table-wrap">
@@ -2080,11 +2736,24 @@
         </section>
 
         <!-- GC BILLS PANEL -->
-        <section id="saved-cargo-panel" class="card rot-registry" style="display:none;" aria-labelledby="saved-cargo-title">
+        <section
+          id="saved-cargo-panel"
+          class="card rot-registry"
+          style="display: none"
+          aria-labelledby="saved-cargo-title"
+        >
           <div class="sb-panel-head">
             <div class="rot-reg-title" id="saved-cargo-title">GENERAL CARGO SAVED BILLS</div>
             <div class="sb-search-wrap">
-              <input type="search" id="sbCargoSearch" class="sb-search" placeholder="Search bill no., BL, C&amp;F, CLD…" oninput="sbSearch('cargo',this.value)" autocomplete="off" />
+              <label class="sr-only" for="sbCargoSearch">Search saved cargo bills</label>
+              <input
+                type="search"
+                id="sbCargoSearch"
+                class="sb-search"
+                placeholder="Search bill no., BL, C&amp;F, CLD…"
+                oninput="sbSearch('cargo', this.value)"
+                autocomplete="off"
+              />
             </div>
           </div>
           <div class="rot-reg-table-wrap">
@@ -2107,11 +2776,24 @@
         </section>
 
         <!-- RE-EXPORT BILLS PANEL -->
-        <section id="saved-reexport-panel" class="card rot-registry" style="display:none;" aria-labelledby="saved-reexport-title">
+        <section
+          id="saved-reexport-panel"
+          class="card rot-registry"
+          style="display: none"
+          aria-labelledby="saved-reexport-title"
+        >
           <div class="sb-panel-head">
             <div class="rot-reg-title" id="saved-reexport-title">RE-EXPORT SAVED BILLS</div>
             <div class="sb-search-wrap">
-              <input type="search" id="sbReexportSearch" class="sb-search" placeholder="Search bill no., BL, C&amp;F, CLD…" oninput="sbSearch('reexport',this.value)" autocomplete="off" />
+              <label class="sr-only" for="sbReexportSearch">Search saved re-export bills</label>
+              <input
+                type="search"
+                id="sbReexportSearch"
+                class="sb-search"
+                placeholder="Search bill no., BL, C&amp;F, CLD…"
+                oninput="sbSearch('reexport', this.value)"
+                autocomplete="off"
+              />
             </div>
           </div>
           <div class="rot-reg-table-wrap">
@@ -2132,18 +2814,16 @@
             </table>
           </div>
         </section>
-      </main>
+      </div>
     </div>
 
     <!-- ════════════════════════════════════════
          USAGE ANALYTICS MODULE
     ════════════════════════════════════════ -->
-    <div id="page-stats" class="module-page admin-only-page">
-      <main class="wrap rotation-page">
-        <div class="pgtitle">USAGE ANALYTICS</div>
-        <div class="pgsub">
-          Admin-only — anonymous device counts per day, week and month
-        </div>
+    <div id="page-stats" class="module-page admin-only-page" role="tabpanel" aria-labelledby="tab-stats" tabindex="0">
+      <div class="wrap rotation-page">
+        <h2 class="pgtitle">USAGE ANALYTICS</h2>
+        <div class="pgsub">Admin-only — anonymous device counts per day, week and month</div>
 
         <section class="card rot-registry stats-panel" aria-labelledby="stats-panel-title">
           <div class="sb-panel-head">
@@ -2178,16 +2858,20 @@
           <div class="stats-legend">Unique devices — an "open" is one browser session</div>
           <div class="stats-chart-wrap">
             <div class="stats-chart-title">Daily unique users &mdash; last 30 days</div>
-            <div class="stats-chart" id="statsChart" role="img" aria-label="Bar chart of daily unique users for the last 30 days"></div>
+            <div
+              class="stats-chart"
+              id="statsChart"
+              aria-label="Bar chart of daily unique users for the last 30 days"
+            ></div>
           </div>
           <div class="stats-privacy">
-            Counting is anonymous: each browser stores a random device ID &mdash; no
-            names, no IPs, no personal data. One device &ne; one person (phone and PC
-            count separately).
+            Counting is anonymous: each browser stores a random device ID &mdash; no names, no IPs,
+            no personal data. One device &ne; one person (phone and PC count separately).
           </div>
         </section>
-      </main>
+      </div>
     </div>
+    </main>
 
     <footer class="copyright-footer">
       <div class="footer-top">
@@ -2204,7 +2888,8 @@
       </div>
       <div class="footer-rule" aria-hidden="true"></div>
       <div class="footer-disclaimer">
-        For <strong>informational and estimation purposes only</strong> — computations are non-binding and do not constitute an official invoice or legal document.
+        For <strong>informational and estimation purposes only</strong> — computations are
+        non-binding and do not constitute an official invoice or legal document.
       </div>
     </footer>
 
@@ -2213,18 +2898,27 @@
       <div class="ppv-bar" id="ppvBar">
         <div class="ppv-bar-left">
           <div class="ppv-logo-mark" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="32" height="32" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="32" cy="32" r="29.5" stroke-width="2.5"/>
-              <circle cx="32" cy="12" r="3.8" stroke-width="2.2"/>
-              <line x1="32" y1="15.8" x2="32" y2="50.5" stroke-width="2.8"/>
-              <line x1="20" y1="21.5" x2="44" y2="21.5" stroke-width="2.8"/>
-              <circle cx="20" cy="21.5" r="2.5" fill="currentColor" stroke="none"/>
-              <circle cx="44" cy="21.5" r="2.5" fill="currentColor" stroke="none"/>
-              <path d="M32,50.5 Q22,49 17,41" stroke-width="2.6"/>
-              <polygon points="13.5,38 17.5,45 24,42" fill="currentColor" stroke="none"/>
-              <path d="M32,50.5 Q42,49 47,41" stroke-width="2.6"/>
-              <polygon points="50.5,38 46.5,45 40,42" fill="currentColor" stroke="none"/>
-              <path d="M22,56 Q27,53 32,56 Q37,59 42,56" stroke-width="2"/>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 64 64"
+              width="32"
+              height="32"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="32" cy="32" r="29.5" stroke-width="2.5" />
+              <circle cx="32" cy="12" r="3.8" stroke-width="2.2" />
+              <line x1="32" y1="15.8" x2="32" y2="50.5" stroke-width="2.8" />
+              <line x1="20" y1="21.5" x2="44" y2="21.5" stroke-width="2.8" />
+              <circle cx="20" cy="21.5" r="2.5" fill="currentColor" stroke="none" />
+              <circle cx="44" cy="21.5" r="2.5" fill="currentColor" stroke="none" />
+              <path d="M32,50.5 Q22,49 17,41" stroke-width="2.6" />
+              <polygon points="13.5,38 17.5,45 24,42" fill="currentColor" stroke="none" />
+              <path d="M32,50.5 Q42,49 47,41" stroke-width="2.6" />
+              <polygon points="50.5,38 46.5,45 40,42" fill="currentColor" stroke="none" />
+              <path d="M22,56 Q27,53 32,56 Q37,59 42,56" stroke-width="2" />
             </svg>
           </div>
           <div class="ppv-bar-label">
@@ -2235,11 +2929,7 @@
         <div class="ppv-bar-center" id="ppvTitle"></div>
         <div class="ppv-bar-right">
           <div class="ppv-bar-ref" id="ppvRef"></div>
-          <button
-            class="ppv-btn-print"
-            id="ppvPrintBtn"
-            aria-label="Print document"
-          >
+          <button class="ppv-btn-print" id="ppvPrintBtn" aria-label="Print document">
             <svg
               width="14"
               height="14"
@@ -2257,11 +2947,7 @@
             </svg>
             Print
           </button>
-          <button
-            class="ppv-btn-close"
-            id="ppvCloseBtn"
-            aria-label="Close preview"
-          >
+          <button class="ppv-btn-close" id="ppvCloseBtn" aria-label="Close preview">
             <svg
               width="15"
               height="15"
@@ -2317,29 +3003,25 @@
         "
       >
         <div>
-          <strong
-            style="
-              color: #c9a832;
-              display: block;
-              margin-bottom: 8px;
-              font-size: 18px;
-            "
+          <strong style="color: #c9a832; display: block; margin-bottom: 8px; font-size: 18px"
             >JavaScript Required</strong
-          >Port Billing System requires JavaScript to function.<br />Please
-          enable JavaScript in your browser settings.
+          >Port Billing System requires JavaScript to function.<br />Please enable JavaScript in
+          your browser settings.
         </div>
       </div>
     </noscript>
     <!-- PWA install banner — shown by JS when beforeinstallprompt fires and app is not standalone -->
-    <div id="pwaInstallBanner" class="pwa-banner" role="banner" aria-label="Install app" hidden>
+    <header id="pwaInstallBanner" class="pwa-banner" aria-label="Install app" hidden>
       <div class="pwa-banner-icon" aria-hidden="true"></div>
       <div class="pwa-banner-text">
         <strong>Install Port Billing</strong>
         <span>Add to home screen for offline access</span>
       </div>
       <button type="button" class="pwa-banner-install" id="pwaInstallBtn">Install</button>
-      <button type="button" class="pwa-banner-close" id="pwaInstallClose" aria-label="Dismiss">✕</button>
-    </div>
+      <button type="button" class="pwa-banner-close" id="pwaInstallClose" aria-label="Dismiss">
+        ✕
+      </button>
+    </header>
     <!-- Modular app scripts — classic scripts (no bundler), share one global
          scope, load in dependency order. core.js MUST load first (shared
          state + utilities); platform.js MUST load last (app bootstrap). -->
@@ -2349,6 +3031,10 @@
     <script src="src/cargo.js" defer></script>
     <script src="src/reexport.js" defer></script>
     <script src="src/platform.js" defer></script>
-    <script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js')); }</script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+      }
+    </script>
   </body>
 </html>
