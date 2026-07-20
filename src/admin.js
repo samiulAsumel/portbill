@@ -124,6 +124,7 @@ async function doLogin() {
       applyAdmin();
       switchModule("rotation");
       showToast("Admin mode activated", "success");
+      flushSync();
     } else {
       loginAttempts++;
       _setAttempts(loginAttempts);

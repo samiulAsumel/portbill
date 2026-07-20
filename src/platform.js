@@ -1698,7 +1698,9 @@ function putHeaders() {
   return h;
 }
 
-// Save rotations array to Cloudflare Worker
+// Save rotations array to Cloudflare Worker.
+// On failure (offline, etc.) the change is flagged pending and retried by
+// flushSync() once connectivity returns — see markPending/clearPending in core.js.
 async function saveRotationsToWorker(rotationsArr) {
   if (!isAdmin || !_sessionWriteToken) return false;
   try {
@@ -1708,9 +1710,13 @@ async function saveRotationsToWorker(rotationsArr) {
       body: JSON.stringify(rotationsArr)
     });
     if (!r.ok) throw new Error("HTTP " + r.status);
+    clearPending('rotations');
+    updateSyncBadge();
     return true;
   } catch (e) {
     dbg.error("saveRotationsToWorker failed:", e.message);
+    markPending('rotations');
+    updateSyncBadge();
     return false;
   }
 }
@@ -1718,6 +1724,7 @@ async function saveRotationsToWorker(rotationsArr) {
 // Save saved-bills array to Cloudflare Worker.
 // Bill saving is not admin-gated — any user can save bills.
 // Sends bearer token when in admin mode; Worker accepts both authenticated and open writes.
+// On failure the change is flagged pending and retried by flushSync() when back online.
 async function saveBillsToWorker(billsArr) {
   try {
     const r = await fetch(PROXY_URL + "/saved-bills", {
@@ -1725,14 +1732,19 @@ async function saveBillsToWorker(billsArr) {
       headers: putHeaders(),
       body: JSON.stringify(billsArr),
     });
-    if (r.ok) return true;
-    throw new Error("HTTP " + r.status);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    clearPending('bills');
+    updateSyncBadge();
+    return true;
   } catch (e) {
     dbg.error("saveBillsToWorker failed:", e.message);
+    markPending('bills');
+    updateSyncBadge();
     return false;
   }
 }
 
+// On failure the change is flagged pending and retried by flushSync() when back online.
 async function saveConfigToWorker(config) {
   if (!isAdmin || !_sessionWriteToken) return false;
   try {
@@ -1741,10 +1753,57 @@ async function saveConfigToWorker(config) {
       headers: putHeaders(),
       body: JSON.stringify(config),
     });
-    return res.ok;
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    clearPending('config');
+    updateSyncBadge();
+    return true;
   } catch (e) {
     dbg.warn("saveConfigToWorker failed:", e);
+    markPending('config');
+    updateSyncBadge();
     return false;
+  }
+}
+
+// Reflects connection + pending-write state in the header pill (#syncBadge).
+// Hidden when online with nothing pending; shows "Offline" or "N unsynced" otherwise.
+function updateSyncBadge() {
+  const el = document.getElementById('syncBadge');
+  if (!el) return;
+  const pendingCount = Object.keys(getPending()).length;
+  if (!navigator.onLine) {
+    el.hidden = false;
+    el.textContent = 'Offline';
+    el.className = 'hbadge sync-badge sync-offline';
+  } else if (pendingCount > 0) {
+    el.hidden = false;
+    el.textContent = `Syncing ${pendingCount}…`;
+    el.className = 'hbadge sync-badge sync-pending';
+  } else {
+    el.hidden = true;
+  }
+}
+
+// Re-pushes the current local state of every resource flagged pending in
+// pb_sync_pending (see markPending/clearPending in core.js). Whole-state
+// last-write-wins: each writer re-sends the full current array/object, so
+// there is no delta/op-log to replay — just "is this resource dirty".
+async function flushSync() {
+  if (!navigator.onLine) return;
+  const pending = getPending();
+  let syncedCount = 0;
+  if (pending.bills) {
+    if (await saveBillsToWorker(getSavedBills())) syncedCount++;
+  }
+  if (pending.rotations && isAdmin && _sessionWriteToken) {
+    if (await saveRotationsToWorker(readJsonStorage(ROTATIONS_KEY, []))) syncedCount++;
+  }
+  if (pending.config && isAdmin && _sessionWriteToken) {
+    if (await saveConfigToWorker({ adminPasswordHash: getAdminPasswordHash() })) syncedCount++;
+  }
+  updateSyncBadge();
+  if (syncedCount > 0) {
+    showToast(`Synced ${syncedCount} offline change${syncedCount > 1 ? 's' : ''}`, 'success');
   }
 }
 
@@ -2073,19 +2132,33 @@ function restoreFormDraft(type) {
   showToast('Draft restored from your last session.', 'info');
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+window.addEventListener('online', function() {
+  updateSyncBadge();
+  flushSync();
+});
+window.addEventListener('offline', updateSyncBadge);
+
+document.addEventListener("DOMContentLoaded", async function() {
+  updateSyncBadge();
   loadConfigFromGitHub();
   updateAdminNavigation();
   applyRotationAccessState();
   loadRotations();
   trackVisit();
+  // Push any offline-made bill changes up first, so the cloud-read below can
+  // never overwrite a local bill that hasn't reached the Worker yet.
+  await flushSync();
   // Pull saved bills from cloud — cloud is source of truth for cross-device sync.
   // Falls back silently to existing localStorage data when offline or on 404.
-  loadBillsFromWorker().then(function(bills) {
-    if (!Array.isArray(bills)) return;
-    localStorage.setItem(SAVED_BILLS_KEY, JSON.stringify(bills));
-    if (currentModule === 'saved') renderSavedBills();
-  });
+  // Skipped when a local bill change is still pending (flushSync above failed,
+  // e.g. offline) to avoid clobbering it.
+  if (!getPending().bills) {
+    loadBillsFromWorker().then(function(bills) {
+      if (!Array.isArray(bills)) return;
+      localStorage.setItem(SAVED_BILLS_KEY, JSON.stringify(bills));
+      if (currentModule === 'saved') renderSavedBills();
+    });
+  }
 
   // Restore drafts for both modules after defaults are set
   setTimeout(() => {

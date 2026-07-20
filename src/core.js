@@ -284,6 +284,8 @@ let lastCargoBill = null;
 let lastReexportBill = null;
 const SAVED_BILLS_KEY = "pb_saved_bills";
 const BILL_COUNTER_KEY = "pb_bill_counter";
+const ROTATIONS_KEY = "pb_rotations_cache";
+const SYNC_PENDING_KEY = "pb_sync_pending";
 let editingBillNumber = { car: null, cargo: null, reexport: null };
 
 // Performance optimization: Cache frequently accessed DOM elements
@@ -435,6 +437,24 @@ function readJsonStorage(key, fallback) {
     dbg.warn(`readJsonStorage(${key}) failed:`, e);
     return fallback;
   }
+}
+
+// Offline-write tracking: which cloud resources have local changes not yet
+// pushed to the Worker. Whole-state last-write-wins — no per-change op log,
+// each resource just gets re-PUT in full once connectivity returns.
+function getPending() {
+  return readJsonStorage(SYNC_PENDING_KEY, {});
+}
+function markPending(resource) {
+  const p = getPending();
+  p[resource] = true;
+  localStorage.setItem(SYNC_PENDING_KEY, JSON.stringify(p));
+}
+function clearPending(resource) {
+  const p = getPending();
+  if (!p[resource]) return;
+  delete p[resource];
+  localStorage.setItem(SYNC_PENDING_KEY, JSON.stringify(p));
 }
 const BILL_PREFIX_BY_TYPE = { cargo: "GCA", reexport: "RE", car: "CA" };
 function nextBillNumber(type) {
