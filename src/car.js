@@ -514,19 +514,22 @@ let _rotations = [];
 let _selectedRotation = null;
 let _collapsedYears = new Set();
 
-// Load rotations from Cloudflare Worker on startup
+// Load rotations from Cloudflare Worker on startup.
+// Cloud is source of truth; falls back to the last cached copy when offline
+// or on fetch failure, so the rotation dropdown/table isn't wiped blank.
 async function loadRotations() {
   try {
     const r = await fetch(PROXY_URL + "/rotations");
     if (!r.ok) throw new Error("HTTP " + r.status);
     const data = await r.json();
     _rotations = Array.isArray(data) ? data : [];
-    populateYearDropdown();
-    if (isAdmin) renderRotationTable();
+    localStorage.setItem(ROTATIONS_KEY, JSON.stringify(_rotations));
   } catch (e) {
-    dbg.warn("loadRotations failed:", e.message);
-    _rotations = [];
+    dbg.warn("loadRotations failed, using cached rotations:", e.message);
+    _rotations = readJsonStorage(ROTATIONS_KEY, []);
   }
+  populateYearDropdown();
+  if (isAdmin) renderRotationTable();
 }
 
 // Populate year dropdown from loaded rotations
@@ -684,6 +687,7 @@ async function addRotation() {
   var ok = await saveRotationsToWorker(updated);
   if (ok) {
     _rotations = updated;
+    localStorage.setItem(ROTATIONS_KEY, JSON.stringify(_rotations));
     if (yearEl) yearEl.value = "";
     if (numEl) numEl.value = "";
     if (cldEl) cldEl.value = "";
@@ -708,6 +712,7 @@ async function deleteRotation(id) {
   var ok = await saveRotationsToWorker(updated);
   if (ok) {
     _rotations = updated;
+    localStorage.setItem(ROTATIONS_KEY, JSON.stringify(_rotations));
     if (_selectedRotation && String(_selectedRotation.id) === String(id)) {
       _selectedRotation = null;
       var badge = document.getElementById("rotBadge");

@@ -1,4 +1,4 @@
-# Port Billing System — v3.11.0
+# Port Billing System — v3.12.0
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles, general cargo, and re-export (transhipment/re-shipment) bills with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -337,7 +337,17 @@ Single-column on mobile, two-column grid at ≥ 768 px. Optimised for screens fr
 
 The app ships a `manifest.json` and a service worker (`sw.js`). It can be installed to the home screen on Android and iOS, and works **fully offline** after the first load using a cache-first strategy. The service worker is updated on each reload via background network fetch.
 
-> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v13` → `portbill-v14`) so installed users receive updated files immediately. The current cache is `portbill-v13`.
+> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v15` → `portbill-v16`) so installed users receive updated files immediately. The current cache is `portbill-v16`.
+
+### Offline Sync & Resilience
+
+Cloud writes (rotations, saved bills, admin rate config) are proxied through the Cloudflare Worker, so a lost connection could previously mean a silently-failed save. The app now tracks and recovers from that:
+
+- **Sync status badge** — a pill in the header (hidden when everything is in sync) shows **Offline** (amber) while `navigator.onLine` is false, or **Syncing N…** (accent-colored) while N resources have local changes not yet pushed to the cloud.
+- **Pending-write tracking** — if a rotation, saved-bill, or config write fails (offline, network error, Worker down), the change is flagged locally instead of being dropped.
+- **Auto-flush on reconnect** — as soon as the browser fires its `online` event, every flagged resource is re-pushed in full (whole-state last-write-wins — no delta log to replay) and a toast confirms how many changes synced.
+- **Startup ordering protects unsaved work** — on page load, any pending offline changes are flushed to the cloud *before* the app pulls the cloud's copy of saved bills, so a bill saved while offline is never clobbered by a stale cloud read on the next load.
+- **Rotation cache fallback** — the vessel rotation registry is cached to `localStorage` on every successful cloud fetch; if a later fetch fails (offline, cold start with no signal), the cached copy is used instead of leaving the dropdown/table empty.
 
 ---
 
@@ -525,28 +535,33 @@ portbill/
 │   ├── core.js     — Shared kernel: calcVATmpa(), ceilTon(), RATE_DEFAULTS + rate
 │   │                 persistence, toast, field validation, admin session state +
 │   │                 SHA-256 crypto (AP_HASH), shared cross-module state, escHtml/
-│   │                 date/number utils, calcSlabs(), pre-calculate error collectors
+│   │                 date/number utils, calcSlabs(), pre-calculate error collectors,
+│   │                 offline-sync pending-write tracker (getPending()/markPending()/
+│   │                 clearPending())
 │   ├── admin.js    — switchModule(), admin auth (doLogin(), changeAdminPassword()),
-│   │                 cloud rate-config restore
+│   │                 cloud rate-config restore, flushSync() on successful login
 │   ├── car.js      — Car billing: carCompute() → calcSlabs() → buildCarBillTable()
-│   │                 → carCalculate(); plus the Rotation Number registry UI
+│   │                 → carCalculate(); plus the Rotation Number registry UI with a
+│   │                 localStorage cache fallback (loadRotations()) for offline/failed
+│   │                 fetches
 │   ├── cargo.js    — Cargo billing: cargoCompute() → calcCarBillingSdSlabs() →
 │   │                 buildCargoBillTable(); Part Billing (computePartBillingWharfrent())
 │   ├── reexport.js — Re-Export billing: reexportCompute() → calcReexportWharfRent()
 │   │                 → renderBillOfEntries() → reexportCalculate()
 │   └── platform.js — Cross-cutting services + app bootstrap (loads last): invoice/
 │                     print (buildInvoiceHtml(), openPrintPreview(), printBill()),
-│                     cloud sync (saveBillsToWorker(), loadBillsFromWorker()), draft
-│                     auto-save (saveDraft(), clearDraft(), restoreFormDraft()), usage
-│                     analytics (getDeviceId(), trackVisit(), loadStats()), saved
-│                     bills (renderSavedBills(), editSavedBill(), printSavedBill()),
-│                     rotation worker I/O, and the INIT block
+│                     cloud sync (saveBillsToWorker(), loadBillsFromWorker()), offline
+│                     sync resilience (updateSyncBadge(), flushSync(), online/offline
+│                     listeners), draft auto-save (saveDraft(), clearDraft(),
+│                     restoreFormDraft()), usage analytics (getDeviceId(), trackVisit(),
+│                     loadStats()), saved bills (renderSavedBills(), editSavedBill(),
+│                     printSavedBill()), rotation worker I/O, and the INIT block
 ├── worker.js      — Cloudflare Worker proxy: open GET endpoints (/config, /rotations,
 │                    /saved-bills); authenticated PUT via Bearer token whose SHA-256
 │                    matches WRITE_TOKEN_HASH Cloudflare secret; D1-backed usage
 │                    analytics (POST /track open, GET /stats bearer-guarded)
 ├── manifest.json  — PWA web app manifest (name, icons, display: standalone, theme_color)
-├── sw.js          — Service worker (cache: portbill-v13): cache-first with background
+├── sw.js          — Service worker (cache: portbill-v16): cache-first with background
 │                    network update; caches index.html, the six src/*.js files,
 │                    style.css, favicon.svg, manifest.json
 ├── favicon.svg    — Compass-rose emblem SVG (gold stroke #c09230); also apple-touch-icon
@@ -614,7 +629,16 @@ All generated bills carry the notice:
 
 ## Changelog
 
-### v3.11.0 — Current Release
+### v3.12.0 — Current Release
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | Offline sync | New pending-write tracking for cloud writes (rotations, saved bills, admin config): a failed `PUT` (offline, network error) flags the resource locally instead of silently dropping the change, and a header sync badge (`#syncBadge`) shows **Offline** or **Syncing N…** accordingly |
+| 2 | Offline sync | `flushSync()` re-pushes every pending resource in full as soon as the browser's `online` event fires (whole-state last-write-wins — no delta/op-log), and also runs on page load *before* the cloud saved-bills pull, so a bill saved while offline can never be overwritten by a stale cloud read on next load |
+| 3 | Rotation registry | `loadRotations()` now caches every successful fetch to `localStorage` (`pb_rotations_cache`) and falls back to that cache on fetch failure, so a network error no longer blanks the rotation dropdown/table |
+| 4 | PWA | Service worker cache bumped `portbill-v14` → `portbill-v16` to ship the above changes to installed/offline users |
+
+### v3.11.0
 
 | # | Area | Change |
 |---|------|--------|

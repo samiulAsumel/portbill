@@ -293,6 +293,21 @@ header::before {
   transition: background var(--t-base), border-color var(--t-base), color var(--t-base);
 }
 
+.sync-badge:not([hidden]) {
+  display: inline-flex;
+  align-items: center;
+}
+.sync-badge.sync-offline {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #f59e0b;
+}
+.sync-badge.sync-pending {
+  background: var(--accent-bg);
+  border-color: var(--accent-bdr);
+  color: var(--accent);
+}
+
 .admin-btn {
   display: flex; align-items: center; gap: 6px;
   background: var(--bg-card);
