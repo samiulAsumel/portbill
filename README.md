@@ -337,7 +337,7 @@ Single-column on mobile, two-column grid at ≥ 768 px. Optimised for screens fr
 
 The app ships a `manifest.json` and a service worker (`sw.js`). It can be installed to the home screen on Android and iOS, and works **fully offline** after the first load using a cache-first strategy. The service worker is updated on each reload via background network fetch.
 
-> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v15` → `portbill-v16`) so installed users receive updated files immediately. The current cache is `portbill-v16`.
+> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v16` → `portbill-v17`) so installed users receive updated files immediately. The current cache is `portbill-v17`.
 
 ### Offline Sync & Resilience
 
@@ -561,7 +561,7 @@ portbill/
 │                    matches WRITE_TOKEN_HASH Cloudflare secret; D1-backed usage
 │                    analytics (POST /track open, GET /stats bearer-guarded)
 ├── manifest.json  — PWA web app manifest (name, icons, display: standalone, theme_color)
-├── sw.js          — Service worker (cache: portbill-v16): cache-first with background
+├── sw.js          — Service worker (cache: portbill-v17): cache-first with background
 │                    network update; caches index.html, the six src/*.js files,
 │                    style.css, favicon.svg, manifest.json
 ├── favicon.svg    — Compass-rose emblem SVG (gold stroke #c09230); also apple-touch-icon
@@ -629,7 +629,14 @@ All generated bills carry the notice:
 
 ## Changelog
 
-### v3.12.0 — Current Release
+### v3.12.1 — Current Release
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | Offline sync (fix) | `addRotation()` / `deleteRotation()` were gating the local commit (`_rotations`, the `ROTATIONS_KEY` cache, and the UI) on the Cloudflare Worker `PUT` succeeding — offline, an add/delete reported "failed" and the change was discarded rather than queued, and the subsequent `flushSync()` would silently re-push the stale pre-change snapshot and clear the pending flag, permanently losing the edit. Both functions now commit locally **unconditionally** first, then push to the Worker as a best-effort follow-up (matching the `persistSavedBill()` / `changeAdminPassword()` pattern) — the status line now reads "…added/deleted — will sync when online" (new amber `.rot-reg-status.warn` state) instead of "failed" when offline |
+| 2 | PWA | Service worker cache bumped `portbill-v16` → `portbill-v17` to ship the above fix to installed/offline users |
+
+### v3.12.0
 
 | # | Area | Change |
 |---|------|--------|

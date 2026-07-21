@@ -683,20 +683,24 @@ async function addRotation() {
   var newRot = { id: Date.now().toString(), year: parseInt(year, 10), num: num, cld: cld };
   var updated = _rotations.concat([newRot]);
 
+  // Local state is the source of truth for the UI — commit it unconditionally
+  // so the rotation survives offline. The Worker push below is best-effort;
+  // saveRotationsToWorker() marks it pending and flushSync() retries later.
+  _rotations = updated;
+  localStorage.setItem(ROTATIONS_KEY, JSON.stringify(_rotations));
+  if (yearEl) yearEl.value = "";
+  if (numEl) numEl.value = "";
+  if (cldEl) cldEl.value = "";
+  renderRotationTable();
+  populateYearDropdown();
+
   setRotStatus(statusEl, "Saving...");
   var ok = await saveRotationsToWorker(updated);
-  if (ok) {
-    _rotations = updated;
-    localStorage.setItem(ROTATIONS_KEY, JSON.stringify(_rotations));
-    if (yearEl) yearEl.value = "";
-    if (numEl) numEl.value = "";
-    if (cldEl) cldEl.value = "";
-    setRotStatus(statusEl, "Rotation " + year + "/" + num + " added", "ok");
-    renderRotationTable();
-    populateYearDropdown();
-  } else {
-    setRotStatus(statusEl, "Save failed — check console", "err");
-  }
+  setRotStatus(
+    statusEl,
+    ok ? "Rotation " + year + "/" + num + " added" : "Rotation " + year + "/" + num + " added — will sync when online",
+    ok ? "ok" : "warn",
+  );
 }
 
 // Delete a rotation (admin only)
@@ -708,24 +712,29 @@ async function deleteRotation(id) {
   if (!confirmed) return;
   var statusEl = document.getElementById("rotRegStatus");
   var updated = _rotations.filter(function(r) { return String(r.id) !== String(id); });
+
+  // Local state is the source of truth for the UI — commit it unconditionally
+  // so the deletion survives offline. The Worker push below is best-effort;
+  // saveRotationsToWorker() marks it pending and flushSync() retries later.
+  _rotations = updated;
+  localStorage.setItem(ROTATIONS_KEY, JSON.stringify(_rotations));
+  if (_selectedRotation && String(_selectedRotation.id) === String(id)) {
+    _selectedRotation = null;
+    var badge = document.getElementById("rotBadge");
+    if (badge) badge.textContent = "";
+    var cldField = document.getElementById("cld");
+    if (cldField) { cldField.value = ""; carRefresh(); }
+  }
+  renderRotationTable();
+  populateYearDropdown();
+
   setRotStatus(statusEl, "Deleting...");
   var ok = await saveRotationsToWorker(updated);
-  if (ok) {
-    _rotations = updated;
-    localStorage.setItem(ROTATIONS_KEY, JSON.stringify(_rotations));
-    if (_selectedRotation && String(_selectedRotation.id) === String(id)) {
-      _selectedRotation = null;
-      var badge = document.getElementById("rotBadge");
-      if (badge) badge.textContent = "";
-      var cldField = document.getElementById("cld");
-      if (cldField) { cldField.value = ""; carRefresh(); }
-    }
-    setRotStatus(statusEl, "Rotation deleted", "ok");
-    renderRotationTable();
-    populateYearDropdown();
-  } else {
-    setRotStatus(statusEl, "Delete failed — check console", "err");
-  }
+  setRotStatus(
+    statusEl,
+    ok ? "Rotation deleted" : "Rotation deleted — will sync when online",
+    ok ? "ok" : "warn",
+  );
 }
 
 // Render the rotation registry table grouped by year (newest year first)

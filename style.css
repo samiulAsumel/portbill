@@ -3905,6 +3905,10 @@ input:focus:not([readonly]):not(.ro):not(.ton-inactive) {
      color: var(--red);
 }
 
+.rot-reg-status.warn {
+     color: var(--amber);
+}
+
 .rot-reg-table-wrap {
      overflow-x: auto;
      border-radius: var(--r-xs);
