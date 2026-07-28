@@ -792,7 +792,7 @@ function reportInputErrors(errors) {
 // ════════════════════════════════════════
 //  SHARED CONFIG (relocated from ROTATION section — used by car.js, platform.js)
 // ════════════════════════════════════════
-const PROXY_URL = "https://portbill-proxy.sa-sumel91.workers.dev";
+const PROXY_URL = "https://portbill-proxy.sasas.workers.dev";
 
 // ════════════════════════════════════════
 //  TONNAGE ROUNDING  (whole numbers only, rounded UP)
