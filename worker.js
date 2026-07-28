@@ -131,22 +131,46 @@ async function handleGithubPut(request, env, apiBase, ghHeaders, branch, filenam
     }
 
     const body = await request.text();
-    try { JSON.parse(body); } catch {
-        return jsonResp({ error: "Invalid JSON body" }, 400);
-    }
+        let parsedBody;
+        try { parsedBody = JSON.parse(body); } catch {
+                    return jsonResp({ error: "Invalid JSON body" }, 400);
+        }
 
-    // Get current SHA for update
-    const shaResp = await fetch(`${apiBase}?ref=${branch}`, { headers: ghHeaders });
-    let sha = null;
-    if (shaResp.ok) {
-        const shaData = await shaResp.json();
-        sha = shaData.sha;
-    } else if (shaResp.status !== 404) {
-        const errBody = await shaResp.text();
-        return jsonResp({ error: "GitHub SHA error", detail: errBody }, shaResp.status);
-    }
+        // Get current SHA for update
+        const shaResp = await fetch(`${apiBase}?ref=${branch}`, { headers: ghHeaders });
+        let sha = null;
+        let existingContent = null;
+        if (shaResp.ok) {
+                    const shaData = await shaResp.json();
+                    sha = shaData.sha;
+                    if (typeof shaData.content === "string") {
+                                    try {
+                                                        existingContent = JSON.parse(atob(shaData.content.replace(/\n/g, "")));
+                                    } catch {
+                                                        existingContent = null;
+                                    }
+                    }
+        } else if (shaResp.status !== 404) {
+                    const errBody = await shaResp.text();
+                    return jsonResp({ error: "GitHub SHA error", detail: errBody }, shaResp.status);
+        }
 
-    const encoded = btoa(unescape(encodeURIComponent(body)));
+        // Safety net for saved-bills.json: merge with existing remote data instead of a
+        // blind overwrite, so a stale/empty local client state can never silently delete
+        // bills that already exist in the cloud copy.
+        let finalBody = body;
+        if (filename === "saved-bills.json" && Array.isArray(existingContent) && Array.isArray(parsedBody)) {
+                    const merged = new Map();
+                    for (const bill of existingContent) {
+                                    if (bill && bill.billNumber) merged.set(bill.billNumber, bill);
+                    }
+                    for (const bill of parsedBody) {
+                                    if (bill && bill.billNumber) merged.set(bill.billNumber, bill);
+                    }
+                    finalBody = JSON.stringify([...merged.values()]);
+        }
+
+        const encoded = btoa(unescape(encodeURIComponent(finalBody)));
     const putPayload = {
         message: COMMIT_MESSAGES[filename] || `update ${filename}`,
         content: encoded,
