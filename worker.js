@@ -4,7 +4,7 @@
 
 const CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, PUT, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, PUT, POST, DELETE, OPTIONS",    
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
@@ -196,6 +196,78 @@ async function handleGithubPut(request, env, apiBase, ghHeaders, branch, filenam
     });
 }
 
+// DELETE /saved-bills - explicit single-bill deletion (admin-only, via isWriteAuthorized).
+// Bypasses the merge safety-net in handleGithubPut on purpose: this is a deliberate,
+// authenticated delete action (not a stale/blind client overwrite), so it must be able
+// to actually remove a bill from the stored array.
+async function handleDeleteBill(request, env, apiBase, ghHeaders, branch) {
+    if (!(await isWriteAuthorized(request, env))) {
+        return jsonResp({ error: "Unauthorized" }, 401);
+    }
+
+    let billNumber = "";
+    try {
+        const body = await request.json();
+        billNumber = String(body.billNumber || "");
+    } catch {
+        return jsonResp({ error: "Invalid JSON body" }, 400);
+    }
+    if (!billNumber) {
+        return jsonResp({ error: "billNumber is required" }, 400);
+    }
+
+    const shaResp = await fetch(`${apiBase}?ref=${branch}`, { headers: ghHeaders });
+    if (!shaResp.ok) {
+        const errBody = await shaResp.text();
+        return jsonResp({ error: "GitHub SHA error", detail: errBody }, shaResp.status);
+    }
+    const shaData = await shaResp.json();
+    const sha = shaData.sha;
+
+    let bills = [];
+    try {
+        bills = JSON.parse(atob(shaData.content.replace(/\n/g, "")));
+    } catch {
+        return jsonResp({ error: "Could not parse saved-bills.json" }, 500);
+    }
+    if (!Array.isArray(bills)) {
+        return jsonResp({ error: "saved-bills.json is not an array" }, 500);
+    }
+
+    const before = bills.length;
+    const filtered = bills.filter((b) => b && b.billNumber !== billNumber);
+    if (filtered.length === before) {
+        return jsonResp({ error: "Bill not found", billNumber }, 404);
+    }
+
+    const finalBody = JSON.stringify(filtered);
+    const encoded = btoa(unescape(encodeURIComponent(finalBody)));
+    const putResp = await fetch(apiBase, {
+        method: "PUT",
+        headers: { ...ghHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({
+            message: `fix(saved-bills): delete bill ${billNumber}`,
+            content: encoded,
+            branch,
+            sha,
+        }),
+    });
+    if (!putResp.ok) {
+        const errBody = await putResp.text();
+        return jsonResp({ error: "GitHub write error", detail: errBody }, putResp.status);
+    }
+
+    const putData = await putResp.json();
+    return jsonResp({
+        ok: true,
+        deleted: billNumber,
+        remaining: filtered.length,
+        sha: putData.content?.sha,
+        commit: putData.commit?.sha,
+    });
+}
+
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
@@ -242,6 +314,11 @@ export default {
         if (method === "PUT") {
             return handleGithubPut(request, env, apiBase, ghHeaders, BRANCH, filename);
         }
+
+        if (method === "DELETE" && path === "/saved-bills") {
+            return handleDeleteBill(request, env, apiBase, ghHeaders, BRANCH);
+        }
+        
 
         return jsonResp({ error: "Method not allowed" }, 405);
     },
