@@ -1744,6 +1744,27 @@ async function saveBillsToWorker(billsArr) {
   }
 }
 
+// Explicitly delete a single bill from the GitHub-stored saved-bills.json via the
+// Worker's DELETE /saved-bills endpoint. Admin-only: requires an active admin
+// session (isAdmin + _sessionWriteToken), same as the other cloud-write helpers.
+// This bypasses the PUT merge safety-net on purpose -- see deleteSavedBill().
+async function deleteBillFromWorker(billNumber) {
+  if (!isAdmin || !_sessionWriteToken) return false;
+  try {
+    const r = await fetch(PROXY_URL + "/saved-bills", {
+      method: "DELETE",
+      headers: putHeaders(),
+      body: JSON.stringify({ billNumber }),
+    });
+    if (!r.ok && r.status !== 404) throw new Error("HTTP " + r.status);
+    return true;
+  } catch (e) {
+    dbg.error("deleteBillFromWorker failed:", e.message);
+    return false;
+  }
+}
+
+
 // On failure the change is flagged pending and retried by flushSync() when back online.
 async function saveConfigToWorker(config) {
   if (!isAdmin || !_sessionWriteToken) return false;
@@ -2274,7 +2295,7 @@ function renderSavedBills() {
         <td>
           <button type="button" class="rot-reg-add-btn saved-edit-btn" onclick="editSavedBill(${bn})">Edit</button>
           <button type="button" class="saved-print-btn" onclick="printSavedBill(${bn})">Print</button>
-          <button type="button" class="rot-del-btn" onclick="deleteSavedBill(${bn})">Delete</button>
+          ${isAdmin ? `<button type="button" class="rot-del-btn" onclick="deleteSavedBill(${bn})">Delete</button>` : ""}
         </td>
       </tr>`;
     }).join("");
@@ -2337,6 +2358,8 @@ function editSavedBill(billNumber) {
 
 // Delete a saved bill and resequence numbers in its date group
 async function deleteSavedBill(billNumber) {
+  if (!isAdmin) { showToast("Admin login required to delete bills", "error"); return; }
+  
   const ok = await confirmModal(`Delete bill ${billNumber}? This cannot be undone.`);
   if (!ok) return;
 
@@ -2378,7 +2401,13 @@ async function deleteSavedBill(billNumber) {
 
   showToast(`Deleted ${billNumber}`, "success");
   renderSavedBills();
-  // Sync to GitHub (async, non-blocking)
+// Remove from GitHub explicitly first -- the merge safety-net in the Worker's
+  // PUT handler means a plain saveBillsToWorker() call can no longer delete a
+  // bill, so we call the dedicated DELETE endpoint for the removed bill, then
+  // push the (possibly resequenced) remaining bills as a follow-up sync.
+  deleteBillFromWorker(billNumber).then(delOk => {
+    if (!delOk) showToast("GitHub delete failed — removed locally only", "warning");
+  });
   saveBillsToWorker(getSavedBills()).then(ok => {
     if (!ok) showToast("GitHub sync failed — deleted locally only", "warning");
   });
