@@ -18,7 +18,7 @@
 .app-sidebar {
   flex: 0 0 var(--sidebar-w);
   width: var(--sidebar-w);
-  background: var(--bg-sidebar);
+  background: linear-gradient(180deg, var(--bg-sidebar), var(--bg-page) 85%);
   border-right: 1px solid var(--bdr-1);
   display: flex;
   flex-direction: column;
@@ -26,6 +26,7 @@
   position: sticky;
   top: 0;
   z-index: 200;
+  box-shadow: 4px 0 24px -8px rgba(0,0,0,0.4);
 }
 
 .sidebar-brand {
@@ -109,15 +110,15 @@
   white-space: nowrap;
 }
 .tab-btn:hover { background: var(--bg-hover); color: var(--tx-0); }
-.tab-btn .tab-icon { flex-shrink: 0; width: 16px; height: 16px; opacity: 0.85; }
+.tab-btn .tab-icon { flex-shrink: 0; width: 16px; height: 16px; opacity: 0.85; transition: opacity var(--t-fast); }
 
 .tab-btn.active {
-  background: var(--accent-bg);
+  background: linear-gradient(180deg, var(--accent-bg), rgba(var(--accent-rgb), 0.03));
   color: var(--accent-hi);
   font-weight: 600;
-  box-shadow: inset 2px 0 0 var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent-bdr), inset 2px 0 0 var(--accent);
 }
-.tab-btn.active .tab-icon { opacity: 1; }
+.tab-btn.active .tab-icon { opacity: 1; filter: drop-shadow(0 0 4px var(--accent-ring)); }
 
 .tab-btn[hidden] { display: none; }
 
@@ -187,9 +188,10 @@
   justify-content: space-between;
   gap: var(--sp-4);
   padding: 0 var(--sp-5);
-  background: rgba(10,14,23,0.92);
-  backdrop-filter: blur(10px);
+  background: rgba(10,14,23,0.85);
+  backdrop-filter: blur(14px) saturate(1.2);
   border-bottom: 1px solid var(--bdr-1);
+  box-shadow: 0 8px 24px -12px rgba(0,0,0,0.5);
 }
 .topbar-left { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
 .topbar-titles { min-width: 0; }
@@ -268,15 +270,16 @@
 
 .pgtitle {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(19px, 2.4vw, 24px);
-  font-weight: 700;
+  font-size: clamp(20px, 2.6vw, 26px);
+  font-weight: 800;
   color: var(--tx-0);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 .pgsub {
-  margin-top: 4px;
+  margin-top: 5px;
   color: var(--tx-1);
   font-size: 13px;
+  letter-spacing: 0.01em;
 }
 
 .weight-note, .cargo-note {

@@ -34,8 +34,9 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(1100px 620px at 8% -8%, rgba(var(--gold-rgb), 0.05), transparent 60%),
-    radial-gradient(900px 560px at 100% 0%, rgba(56,169,224,0.04), transparent 60%);
+    radial-gradient(1200px 700px at 10% -10%, rgba(var(--gold-rgb), 0.07), transparent 60%),
+    radial-gradient(1000px 620px at 100% 0%, rgba(56,169,224,0.05), transparent 60%),
+    radial-gradient(800px 500px at 50% 110%, rgba(19,184,138,0.03), transparent 60%);
 }
 
 h1, h2, h3, h4 { font-weight: 600; line-height: 1.2; }

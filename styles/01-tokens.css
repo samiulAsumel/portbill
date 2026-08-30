@@ -111,11 +111,18 @@
   --accent-ring: var(--gold-ring);
   --accent-rgb:  var(--gold-rgb);
 
-  /* ── Shadows ── */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.45);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.42);
-  --shadow-lg: 0 10px 26px rgba(0,0,0,0.48);
-  --shadow-xl: 0 20px 44px rgba(0,0,0,0.55);
+  /* ── Shadows — layered (tight contact + soft diffuse), the way real
+     elevation reads in dark UI. A single soft shadow looks flat; two
+     stacked shadows plus an inset top hairline is what makes a dark
+     card look like it's sitting above the page instead of painted on it. */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.35), 0 1px 1px rgba(0,0,0,0.25);
+  --shadow-md: 0 1px 2px rgba(0,0,0,0.30), 0 8px 20px -6px rgba(0,0,0,0.55);
+  --shadow-lg: 0 2px 4px rgba(0,0,0,0.28), 0 16px 40px -12px rgba(0,0,0,0.60);
+  --shadow-xl: 0 4px 8px rgba(0,0,0,0.30), 0 28px 70px -16px rgba(0,0,0,0.65);
+  --inset-hairline: inset 0 1px 0 rgba(255,255,255,0.045);
+  --shadow-card: var(--shadow-md), var(--inset-hairline);
+  --shadow-card-hover: var(--shadow-lg), var(--inset-hairline);
+  --shadow-accent-glow: 0 0 0 1px var(--accent-bdr), 0 8px 24px -8px var(--accent-ring);
 
   /* ── Radius ── */
   --r-xs: 4px;

@@ -59,10 +59,13 @@
 .ss { font-size: 10.5px; color: var(--tx-2); }
 
 /* ── SECTION LABELS ── */
-.slbl { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--tx-1); margin: var(--sp-5) 0 var(--sp-2); }
-.slbl::before { content: "▪"; color: var(--accent); font-size: 9px; }
-.slbl.sl-in::before, .slbl.sl-cin::before { color: var(--accent); }
-.slbl.sl-out::before, .slbl.sl-cout::before { color: var(--accent-lo); }
+/* The leading "▪ " is emitted by JS as plain text (car.js/cargo.js/reexport.js),
+   not a separate element — style it via ::first-letter rather than adding a
+   second ::before marker, which would double up the bullet. */
+.slbl { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--tx-1); margin: var(--sp-5) 0 var(--sp-2); }
+.slbl::first-letter { color: var(--accent); font-size: 15px; }
+.slbl.sl-in::first-letter, .slbl.sl-cin::first-letter { color: var(--accent); }
+.slbl.sl-out::first-letter, .slbl.sl-cout::first-letter { color: var(--accent-lo); }
 .section-sub { font-size: 11px; color: var(--tx-2); margin-bottom: var(--sp-2); }
 
 .warn, .split-warn {
@@ -105,30 +108,49 @@ table.bt { width: 100%; border-collapse: collapse; min-width: 480px; }
 /* ── GRAND TOTAL BOX (spec §16 "Amount Payable") ── */
 .gbox {
   position: relative;
-  padding: var(--sp-5);
-  background: linear-gradient(160deg, var(--accent-bg), transparent 60%), var(--bg-card);
+  padding: var(--sp-6) var(--sp-5);
+  background:
+    radial-gradient(120% 140% at 100% 0%, var(--accent-ring), transparent 55%),
+    linear-gradient(160deg, var(--accent-bg), transparent 65%),
+    var(--bg-card);
   border: 1px solid var(--accent-bdr);
   border-radius: var(--r-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-lg), var(--inset-hairline);
 }
-.gbox::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); }
+.gbox::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hi), var(--accent));
+  box-shadow: 0 0 16px 0 var(--accent-ring);
+}
 .ginn { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); margin-bottom: var(--sp-4); }
 @media (max-width: 480px) { .ginn { grid-template-columns: 1fr; } }
 .gfin { text-align: right; }
-.glbl { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tx-2); margin-bottom: 6px; }
-.gval { font-family: 'DM Mono', monospace; font-size: clamp(24px, 4vw, 34px); font-weight: 700; color: var(--accent-hi); line-height: 1.1; }
-.gsub { font-size: 11px; color: var(--tx-2); margin-top: 4px; }
+.glbl { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tx-2); margin-bottom: 8px; }
+.gval {
+  font-family: 'DM Mono', monospace;
+  font-size: clamp(27px, 4.4vw, 38px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--accent-hi);
+  line-height: 1.05;
+  text-shadow: 0 0 24px var(--accent-ring);
+}
+.gsub { font-size: 11px; color: var(--tx-2); margin-top: 6px; }
 .gbox.cargo-grand .gval { color: var(--sky-hi); }
 .gbox.just-calculated { animation: gboxPulse 700ms ease-out; }
-@keyframes gboxPulse { 0% { box-shadow: 0 0 0 0 var(--accent-ring); } 100% { box-shadow: 0 0 0 14px rgba(0,0,0,0); } }
+@keyframes gboxPulse { 0% { box-shadow: var(--shadow-lg), 0 0 0 0 var(--accent-ring); } 100% { box-shadow: var(--shadow-lg), 0 0 0 14px rgba(0,0,0,0); } }
 
 /* ── QUICK PREVIEW / BILLING SUMMARY RAIL ── */
 .sp {
-  background: var(--bg-card);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0) 40%), var(--bg-card);
   border: 1px solid var(--bdr-1);
+  border-top-color: var(--bdr-2);
   border-radius: var(--r-lg);
-  padding: clamp(14px, 2vw, 20px);
+  padding: clamp(16px, 2.2vw, 22px);
   margin-bottom: var(--sp-4);
+  box-shadow: var(--shadow-card);
 }
 .sp-live-badge {
   display: inline-flex; align-items: center; gap: 5px;
@@ -160,12 +182,18 @@ table.bt { width: 100%; border-collapse: collapse; min-width: 480px; }
 .sp-actions { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-4); }
 .car-gen-btn, .cargo-gen-btn {
   display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
-  height: 46px; border-radius: var(--r-sm); border: none;
-  background: var(--accent); color: #060911;
-  font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 700; cursor: pointer;
+  height: 48px; border-radius: var(--r-sm); border: 1px solid var(--accent-lo);
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  color: #060911;
+  font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 700; letter-spacing: 0.01em; cursor: pointer;
   position: relative; overflow: hidden;
+  box-shadow: var(--shadow-accent-glow), inset 0 1px 0 rgba(255,255,255,0.4);
+  transition: box-shadow var(--t-base), transform var(--t-fast), filter var(--t-fast);
 }
-.car-gen-btn:hover, .cargo-gen-btn:hover { background: var(--accent-hi); }
+.car-gen-btn:hover, .cargo-gen-btn:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 0 0 1px var(--accent-bdr), 0 10px 28px -8px var(--accent-ring), inset 0 1px 0 rgba(255,255,255,0.4);
+}
 .car-gen-btn:active, .cargo-gen-btn:active { transform: translateY(1px); }
 .cgb-arrow { transition: transform var(--t-fast); }
 .car-gen-btn:hover .cgb-arrow { transform: translateX(3px); }
