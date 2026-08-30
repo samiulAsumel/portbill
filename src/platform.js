@@ -706,7 +706,7 @@ tr.calc-row td{font-size:8.5pt;}
       <div>
         <div class="lh-logo">Port Authority</div>
         <div class="lh-rule"></div>
-        <div class="lh-sub">Wharfrent &amp; Payable Charge Computation System</div>
+        <div class="lh-sub">PortBill &mdash; Wharfrent &amp; Payable Charge Computation System</div>
       </div>
     </div>
     <div class="lh-right">
