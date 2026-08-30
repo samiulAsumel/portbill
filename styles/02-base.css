@@ -5,6 +5,15 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* The browser's own `hidden` attribute rule and an author class rule that
+   sets `display` (e.g. .hbadge/.tab-btn { display: inline-flex }) have
+   EQUAL CSS specificity — whichever comes later in source order wins. Every
+   component file in this app is authored after this one, so without this
+   override any `hidden`-attribute element that also carries a display-set
+   class silently keeps rendering (confirmed on #syncBadge: hidden=true but
+   computed display:flex). This keeps `hidden` authoritative everywhere. */
+[hidden] { display: none !important; }
+
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
