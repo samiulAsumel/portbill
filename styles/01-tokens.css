@@ -1,0 +1,197 @@
+/* ═══════════════════════════════════════════════════════════
+   PORTBILL — DESIGN TOKENS
+   Enterprise port billing operations platform — deep navy,
+   controlled accents, single source of truth for every value
+   consumed elsewhere in styles/*.css and (via literal hex
+   copies) the print document built in src/platform.js.
+═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Surfaces — deep navy scale ── */
+  --bg-page:     #060911;
+  --bg-surface:  #0a0e17;
+  --bg-card:     #0f1420;
+  --bg-elevated: #141b29;
+  --bg-hover:    #19212f;
+  --bg-input:    #0c111c;
+  --bg-sidebar:  #080b13;
+
+  /* ── Borders ── */
+  --bdr-0: rgba(148,163,184,0.05);
+  --bdr-1: rgba(148,163,184,0.10);
+  --bdr-2: rgba(148,163,184,0.16);
+  --bdr-3: rgba(148,163,184,0.26);
+
+  /* ── Text ── */
+  --tx-0: #e6ecf4;
+  --tx-1: #8695a8;
+  --tx-2: #4d5b6e;
+  --tx-3: #2c3543;
+
+  /* ── Module accents — each a 6-part shape: base/hi/lo/bg/border/ring ── */
+  /* Car — gold */
+  --gold:      #c9a832;
+  --gold-hi:   #dfc257;
+  --gold-lo:   #9c8025;
+  --gold-bg:   rgba(201,168,50,0.09);
+  --gold-bdr:  rgba(201,168,50,0.24);
+  --gold-ring: rgba(201,168,50,0.32);
+  --gold-rgb:  201,168,50;
+
+  /* Cargo — sky */
+  --sky:       #38a9e0;
+  --sky-hi:    #5fc1f0;
+  --sky-lo:    #2482b3;
+  --sky-bg:    rgba(56,169,224,0.09);
+  --sky-bdr:   rgba(56,169,224,0.24);
+  --sky-ring:  rgba(56,169,224,0.32);
+  --sky-rgb:   56,169,224;
+
+  /* Re-Export — teal */
+  --teal:      #13b88a;
+  --teal-hi:   #3ecfa5;
+  --teal-lo:   #0d8f6a;
+  --teal-bg:   rgba(19,184,138,0.09);
+  --teal-bdr:  rgba(19,184,138,0.24);
+  --teal-ring: rgba(19,184,138,0.32);
+  --teal-rgb:  19,184,138;
+
+  /* Rotation Registry — slate */
+  --slate:      #8b98ac;
+  --slate-hi:   #aab6c7;
+  --slate-lo:   #6b7688;
+  --slate-bg:   rgba(139,152,172,0.09);
+  --slate-bdr:  rgba(139,152,172,0.24);
+  --slate-ring: rgba(139,152,172,0.32);
+  --slate-rgb:  139,152,172;
+
+  /* Saved Bills — indigo */
+  --indigo:      #6875e0;
+  --indigo-hi:   #8c96ea;
+  --indigo-lo:   #4d59bd;
+  --indigo-bg:   rgba(104,117,224,0.09);
+  --indigo-bdr:  rgba(104,117,224,0.24);
+  --indigo-ring: rgba(104,117,224,0.32);
+  --indigo-rgb:  104,117,224;
+
+  /* Analytics — purple */
+  --purple-a:      #a855f7;
+  --purple-a-hi:   #c084fc;
+  --purple-a-lo:   #8b3cdb;
+  --purple-a-bg:   rgba(168,85,247,0.09);
+  --purple-a-bdr:  rgba(168,85,247,0.24);
+  --purple-a-ring: rgba(168,85,247,0.32);
+  --purple-a-rgb:  168,85,247;
+
+  /* ── Semantic ── */
+  --blue:   #4c8ef0;
+  --purple: #a855f7;
+  --green:  #22c55e;
+  --red:    #ef4a4a;
+  --amber:  #f0a020;
+
+  --green-bg:   rgba(34,197,94,0.09);
+  --green-bdr:  rgba(34,197,94,0.24);
+  --red-bg:     rgba(239,74,74,0.09);
+  --red-bdr:    rgba(239,74,74,0.28);
+  --blue-bg:    rgba(76,142,240,0.09);
+  --blue-bdr:   rgba(76,142,240,0.24);
+  --purple-bg:  rgba(168,85,247,0.09);
+  --purple-bdr: rgba(168,85,247,0.24);
+  --amber-bg:   rgba(240,160,32,0.10);
+  --amber-bdr:  rgba(240,160,32,0.28);
+
+  /* ── Per-module accent indirection — the single hook every
+     component routes through; body.mode-* overrides these ── */
+  --accent:      var(--gold);
+  --accent-hi:   var(--gold-hi);
+  --accent-lo:   var(--gold-lo);
+  --accent-bg:   var(--gold-bg);
+  --accent-bdr:  var(--gold-bdr);
+  --accent-ring: var(--gold-ring);
+  --accent-rgb:  var(--gold-rgb);
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.45);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.42);
+  --shadow-lg: 0 10px 26px rgba(0,0,0,0.48);
+  --shadow-xl: 0 20px 44px rgba(0,0,0,0.55);
+
+  /* ── Radius ── */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+
+  /* ── Spacing (4px base scale) ── */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-7: 32px; --sp-8: 40px;
+
+  /* ── Motion ── */
+  --t-fast:   150ms cubic-bezier(0.4,0,0.2,1);
+  --t-base:   200ms cubic-bezier(0.4,0,0.2,1);
+  --t-slow:   250ms cubic-bezier(0.4,0,0.2,1);
+  --t-bounce: 380ms cubic-bezier(0.34,1.56,0.64,1);
+
+  /* ── Shell metrics — referenced by 03-shell.css sticky offsets ── */
+  --topbar-h: 56px;
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 72px;
+
+  /* ═══ Legacy compatibility aliases ═══
+     Still consumed directly by src/*.js-emitted markup (stats module,
+     free-time strips, .pc-row inline --pc-color) — do not remove. */
+  --bg: var(--bg-page);
+  --bg-base: var(--bg-page);
+  --bg-mid: var(--bg-surface);
+  --bg-surface-var: var(--bg-surface);
+  --surface: var(--bg-surface);
+  --s2: var(--bg-card);
+  --border: var(--bdr-1);
+  --b2: var(--bdr-2);
+  --text: var(--tx-0);
+  --text-primary: var(--tx-0);
+  --text-secondary: var(--tx-1);
+  --text-muted: var(--tx-2);
+  --m1: var(--tx-1);
+  --m2: var(--tx-2);
+  --m3: var(--tx-3);
+  --cargo-accent: var(--sky);
+  --cargo-glow: var(--sky-ring);
+  --transition-fast: var(--t-fast);
+  --transition-base: var(--t-base);
+  --transition-slow: var(--t-slow);
+  --transition-bounce: var(--t-bounce);
+  --transition-luxury: var(--t-slow);
+}
+
+/* Module theming — the only place accent is reassigned. Every component
+   consumes --accent*, never --gold/--sky/--teal directly, so a new module
+   only needs one block here. */
+body.mode-cargo {
+  --accent: var(--sky); --accent-hi: var(--sky-hi); --accent-lo: var(--sky-lo);
+  --accent-bg: var(--sky-bg); --accent-bdr: var(--sky-bdr); --accent-ring: var(--sky-ring);
+  --accent-rgb: var(--sky-rgb);
+}
+body.mode-reexport {
+  --accent: var(--teal); --accent-hi: var(--teal-hi); --accent-lo: var(--teal-lo);
+  --accent-bg: var(--teal-bg); --accent-bdr: var(--teal-bdr); --accent-ring: var(--teal-ring);
+  --accent-rgb: var(--teal-rgb);
+}
+body.mode-rotation {
+  --accent: var(--slate); --accent-hi: var(--slate-hi); --accent-lo: var(--slate-lo);
+  --accent-bg: var(--slate-bg); --accent-bdr: var(--slate-bdr); --accent-ring: var(--slate-ring);
+  --accent-rgb: var(--slate-rgb);
+}
+body.mode-saved {
+  --accent: var(--indigo); --accent-hi: var(--indigo-hi); --accent-lo: var(--indigo-lo);
+  --accent-bg: var(--indigo-bg); --accent-bdr: var(--indigo-bdr); --accent-ring: var(--indigo-ring);
+  --accent-rgb: var(--indigo-rgb);
+}
+body.mode-stats {
+  --accent: var(--purple-a); --accent-hi: var(--purple-a-hi); --accent-lo: var(--purple-a-lo);
+  --accent-bg: var(--purple-a-bg); --accent-bdr: var(--purple-a-bdr); --accent-ring: var(--purple-a-ring);
+  --accent-rgb: var(--purple-a-rgb);
+}
+/* Dashboard reuses gold (it is the landing/overview page, not a billing module) */

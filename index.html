@@ -41,235 +41,323 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="styles/01-tokens.css" />
+    <link rel="stylesheet" href="styles/02-base.css" />
+    <link rel="stylesheet" href="styles/03-shell.css" />
+    <link rel="stylesheet" href="styles/04-components.css" />
+    <link rel="stylesheet" href="styles/05-billing.css" />
+    <link rel="stylesheet" href="styles/06-results.css" />
+    <link rel="stylesheet" href="styles/07-data.css" />
+    <link rel="stylesheet" href="styles/08-print.css" />
     <link rel="manifest" href="manifest.json" />
   </head>
   <body>
     <a href="#page-car" class="skip-nav">Skip to main content</a>
 
-    <!-- HEADER -->
-    <header>
-      <h1 class="logo">
-        <span class="logo-mark" aria-hidden="true">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 64 64"
-            width="28"
-            height="28"
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="32" cy="32" r="29.5" stroke-width="2.5" />
-            <circle cx="32" cy="12" r="3.8" stroke-width="2.2" />
-            <line x1="32" y1="15.8" x2="32" y2="50.5" stroke-width="2.8" />
-            <line x1="20" y1="21.5" x2="44" y2="21.5" stroke-width="2.8" />
-            <circle cx="20" cy="21.5" r="2.5" fill="currentColor" stroke="none" />
-            <circle cx="44" cy="21.5" r="2.5" fill="currentColor" stroke="none" />
-            <path d="M32,50.5 Q22,49 17,41" stroke-width="2.6" />
-            <polygon points="13.5,38 17.5,45 24,42" fill="currentColor" stroke="none" />
-            <path d="M32,50.5 Q42,49 47,41" stroke-width="2.6" />
-            <polygon points="50.5,38 46.5,45 40,42" fill="currentColor" stroke="none" />
-            <path d="M22,56 Q27,53 32,56 Q37,59 42,56" stroke-width="2" />
-          </svg>
-        </span>
-        PORT<span class="logo-sub"> / BILLING SYSTEM</span>
-      </h1>
-      <div class="hright">
-        <span class="hbadge sync-badge" id="syncBadge" hidden aria-live="polite"></span>
-        <div class="admin-pass-menu" id="adminPassMenu">
-          <button
-            type="button"
-            class="hbadge"
-            id="modeBadge"
-            title="Change admin password"
-            aria-controls="adminPassCard"
-            aria-expanded="false"
-            onclick="openAdminPasswordPanel()"
-            onkeydown="
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                openAdminPasswordPanel();
-              }
-            "
-          >
-            USER
-          </button>
-          <div class="admin-pass-dropdown" id="adminPassCard" hidden>
-            <div class="rot-reg-title" id="admin-password-title">CHANGE ADMIN PASSWORD</div>
-            <div class="admin-pass-form">
-              <label class="sr-only" for="adminCurrentPass">Current password</label>
-              <input
-                type="password"
-                id="adminCurrentPass"
-                class="rot-reg-input"
-                placeholder="Current password"
-                autocomplete="current-password"
-              />
-              <label class="sr-only" for="adminNewPass">New password</label>
-              <input
-                type="password"
-                id="adminNewPass"
-                class="rot-reg-input"
-                placeholder="New password"
-                autocomplete="new-password"
-              />
-              <label class="sr-only" for="adminConfirmPass">Confirm new password</label>
-              <input
-                type="password"
-                id="adminConfirmPass"
-                class="rot-reg-input"
-                placeholder="Confirm new password"
-                autocomplete="new-password"
-                onkeydown="if (event.key === 'Enter') changeAdminPassword();"
-              />
-              <button
-                type="button"
-                class="rot-reg-add-btn admin-pass-btn"
-                onclick="changeAdminPassword()"
-              >
-                UPDATE
-              </button>
-            </div>
-            <div class="rot-reg-status admin-pass-status" id="adminPassStatus"></div>
+    <!-- ICON SPRITE — hand-authored, one stroke-based family (24x24, matches the
+         existing compass-emblem stroke style). Referenced via <use> so it adds no
+         extra request and works offline in the PWA. -->
+    <svg aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden">
+      <defs>
+        <symbol id="ic-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="8" height="9" rx="1.5" /><rect x="13" y="3" width="8" height="5" rx="1.5" />
+          <rect x="13" y="12" width="8" height="9" rx="1.5" /><rect x="3" y="16" width="8" height="5" rx="1.5" />
+        </symbol>
+        <symbol id="ic-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1.5" y="7" width="12" height="9" rx="1" /><path d="M13.5 10h4l3 3v3h-7z" />
+          <circle cx="6" cy="18" r="1.8" /><circle cx="17" cy="18" r="1.8" />
+        </symbol>
+        <symbol id="ic-package" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3 3 7.5 12 12l9-4.5z" /><path d="M3 7.5v9L12 21l9-4.5v-9" /><path d="M12 12v9" />
+        </symbol>
+        <symbol id="ic-ship" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 16h18l-2 4H5z" /><path d="M6 16V9h12v7" /><path d="M12 9V3" /><path d="M12 3h4l-4 3.5" />
+        </symbol>
+        <symbol id="ic-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11a9 9 0 0 1 15.3-5.8L21 8" /><path d="M21 4v4h-4" />
+          <path d="M21 13a9 9 0 0 1-15.3 5.8L3 16" /><path d="M3 20v-4h4" />
+        </symbol>
+        <symbol id="ic-files" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 3h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" /><path d="M14 3v4h4" />
+          <path d="M9 12h6M9 16h6" />
+        </symbol>
+        <symbol id="ic-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 20V10M12 20V4M20 20v-7" />
+        </symbol>
+        <symbol id="ic-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </symbol>
+        <symbol id="ic-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M6 6l12 12M18 6L6 18" />
+        </symbol>
+      </defs>
+    </svg>
+
+    <div id="sidebarScrim" onclick="document.body.classList.remove('sidebar-open')"></div>
+
+    <div class="app-shell">
+      <!-- SIDEBAR — wraps the pre-existing .module-tabs/.tab-btn markup that
+           switchModule()/updateAdminNavigation() (admin.js) already operate on.
+           A single .module-tabs container is required: platform.js's arrow-key
+           handler attaches to the FIRST .module-tabs element only, so splitting
+           tabs across multiple containers would silently break keyboard nav for
+           every group after the first. Group labels are plain divs nested inside
+           this one container, which is safe. -->
+      <aside class="app-sidebar" id="appSidebar">
+        <div class="sidebar-brand">
+          <span class="logo-mark" aria-hidden="true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 64 64"
+              width="26"
+              height="26"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="32" cy="32" r="29.5" stroke-width="2.5" />
+              <circle cx="32" cy="12" r="3.8" stroke-width="2.2" />
+              <line x1="32" y1="15.8" x2="32" y2="50.5" stroke-width="2.8" />
+              <line x1="20" y1="21.5" x2="44" y2="21.5" stroke-width="2.8" />
+              <circle cx="20" cy="21.5" r="2.5" fill="currentColor" stroke="none" />
+              <circle cx="44" cy="21.5" r="2.5" fill="currentColor" stroke="none" />
+              <path d="M32,50.5 Q22,49 17,41" stroke-width="2.6" />
+              <polygon points="13.5,38 17.5,45 24,42" fill="currentColor" stroke="none" />
+              <path d="M32,50.5 Q42,49 47,41" stroke-width="2.6" />
+              <polygon points="50.5,38 46.5,45 40,42" fill="currentColor" stroke="none" />
+              <path d="M22,56 Q27,53 32,56 Q37,59 42,56" stroke-width="2" />
+            </svg>
+          </span>
+          <div class="sidebar-brand-text">
+            <span class="sidebar-brand-name">PORTBILL</span>
+            <span class="sidebar-brand-tag">Port Authority Billing Operations</span>
           </div>
         </div>
-        <button
-          class="admin-btn"
-          id="resetRatesBtn"
-          onclick="resetRatesToDefaults()"
-          style="display: none"
-        >
-          ↺ Reset Rates
-        </button>
-        <button class="admin-btn" id="adminBtn" onclick="toggleAdmin()" aria-label="Admin login">
-          <span class="adot" id="adot"></span>
-          <svg
-            id="adminIcon"
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.2"
-            aria-hidden="true"
-          >
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
-          <span id="adminTxt">Admin</span>
-        </button>
-      </div>
-    </header>
 
-    <!-- MODULE TABS -->
-    <div class="module-tabs" role="tablist" aria-label="Billing modules">
-      <button
-        class="tab-btn active"
-        id="tab-car"
-        role="tab"
-        aria-selected="true"
-        aria-controls="page-car"
-        onclick="switchModule('car')"
-      >
-        Car Billing
-      </button>
-      <button
-        class="tab-btn cargo"
-        id="tab-cargo"
-        role="tab"
-        aria-selected="false"
-        aria-controls="page-cargo"
-        onclick="switchModule('cargo')"
-      >
-        General Cargo Billing
-      </button>
-      <button
-        class="tab-btn reexport"
-        id="tab-reexport"
-        role="tab"
-        aria-selected="false"
-        aria-controls="page-reexport"
-        onclick="switchModule('reexport')"
-      >
-        Re-Export Bill
-      </button>
-      <button
-        class="tab-btn rotation"
-        id="tab-rotation"
-        role="tab"
-        aria-selected="false"
-        aria-controls="page-rotation"
-        onclick="switchModule('rotation')"
-        hidden
-      >
-        Rotation Registry
-      </button>
-      <button
-        class="tab-btn saved"
-        id="tab-saved"
-        role="tab"
-        aria-selected="false"
-        aria-controls="page-saved"
-        onclick="switchModule('saved')"
-        hidden
-      >
-        Saved Bills
-      </button>
-      <button
-        class="tab-btn stats"
-        id="tab-stats"
-        role="tab"
-        aria-selected="false"
-        aria-controls="page-stats"
-        onclick="switchModule('stats')"
-        hidden
-      >
-        Analytics
-      </button>
-    </div>
+        <nav class="sidebar-nav" aria-label="Primary">
+          <div class="module-tabs" role="tablist" aria-label="Billing modules">
+            <div class="sidebar-group-label">Main</div>
+            <button
+              class="tab-btn"
+              id="tab-dashboard"
+              role="tab"
+              aria-selected="false"
+              aria-controls="page-dashboard"
+              onclick="switchModule('dashboard'); if (typeof renderDashboard === 'function') renderDashboard();"
+            >
+              <svg class="tab-icon" aria-hidden="true"><use href="#ic-dashboard"></use></svg>
+              Dashboard
+            </button>
+            <button
+              class="tab-btn active"
+              id="tab-car"
+              role="tab"
+              aria-selected="true"
+              aria-controls="page-car"
+              onclick="switchModule('car')"
+            >
+              <svg class="tab-icon" aria-hidden="true"><use href="#ic-truck"></use></svg>
+              Car Billing
+            </button>
+            <button
+              class="tab-btn cargo"
+              id="tab-cargo"
+              role="tab"
+              aria-selected="false"
+              aria-controls="page-cargo"
+              onclick="switchModule('cargo')"
+            >
+              <svg class="tab-icon" aria-hidden="true"><use href="#ic-package"></use></svg>
+              General Cargo Billing
+            </button>
+            <button
+              class="tab-btn reexport"
+              id="tab-reexport"
+              role="tab"
+              aria-selected="false"
+              aria-controls="page-reexport"
+              onclick="switchModule('reexport')"
+            >
+              <svg class="tab-icon" aria-hidden="true"><use href="#ic-ship"></use></svg>
+              Re-Export Bill
+            </button>
+            <div class="sidebar-group-label">Operations</div>
+            <button
+              class="tab-btn rotation"
+              id="tab-rotation"
+              role="tab"
+              aria-selected="false"
+              aria-controls="page-rotation"
+              onclick="switchModule('rotation')"
+              hidden
+            >
+              <svg class="tab-icon" aria-hidden="true"><use href="#ic-refresh"></use></svg>
+              Rotation Registry
+            </button>
+            <button
+              class="tab-btn saved"
+              id="tab-saved"
+              role="tab"
+              aria-selected="false"
+              aria-controls="page-saved"
+              onclick="switchModule('saved')"
+              hidden
+            >
+              <svg class="tab-icon" aria-hidden="true"><use href="#ic-files"></use></svg>
+              Saved Bills
+            </button>
+            <div class="sidebar-group-label">Insights</div>
+            <button
+              class="tab-btn stats"
+              id="tab-stats"
+              role="tab"
+              aria-selected="false"
+              aria-controls="page-stats"
+              onclick="switchModule('stats')"
+              hidden
+            >
+              <svg class="tab-icon" aria-hidden="true"><use href="#ic-chart"></use></svg>
+              Analytics
+            </button>
+          </div>
+        </nav>
 
-    <!-- ADMIN MODAL -->
-    <dialog class="overlay" id="overlay" aria-labelledby="modal-heading">
-      <div class="modal">
-        <div class="modal-title" id="modal-heading">ADMIN LOGIN</div>
-        <div class="modal-sub">Enter credentials to unlock all fields</div>
-        <div class="merr" id="merr">Incorrect username or password.</div>
-        <div class="mfg">
-          <label class="mlbl" for="muser">Username</label>
-          <input
-            class="minput"
-            type="text"
-            id="muser"
-            placeholder="admin"
-            autocomplete="username"
-          />
+        <div class="sidebar-foot">
+          <span>PortBill</span>
+          <span id="sidebarVersion">v3.12.1</span>
         </div>
-        <div class="mfg">
-          <label class="mlbl" for="mpass">Password</label>
-          <input
-            class="minput"
-            type="password"
-            id="mpass"
-            placeholder="••••••••"
-            autocomplete="current-password"
-            onkeydown="if (event.key === 'Enter') doLogin();"
-          />
-        </div>
-        <div class="mbtns">
-          <button type="button" class="btn bsm" style="flex: 1" onclick="doLogin()">LOGIN</button>
-          <button class="btn bsm bg" style="flex: 1; margin-top: 0" onclick="closeModal()">
-            CANCEL
-          </button>
-        </div>
-      </div>
-    </dialog>
+      </aside>
+
+      <div class="app-main-col">
+        <!-- TOPBAR -->
+        <header class="app-topbar">
+          <div class="topbar-left">
+            <button id="sidebarToggle" onclick="document.body.classList.toggle('sidebar-open')" aria-label="Toggle navigation" aria-controls="appSidebar" aria-expanded="false">
+              <svg width="17" height="17" aria-hidden="true"><use href="#ic-menu"></use></svg>
+            </button>
+            <div class="topbar-titles">
+              <div class="breadcrumb" id="topbarBreadcrumb">PortBill / Billing</div>
+              <div class="topbar-title" id="topbarTitle">Car Billing</div>
+            </div>
+          </div>
+          <div class="hright">
+            <span class="hbadge sync-badge" id="syncBadge" hidden aria-live="polite"></span>
+            <div class="admin-pass-menu" id="adminPassMenu">
+              <button
+                type="button"
+                class="hbadge"
+                id="modeBadge"
+                title="Change admin password"
+                aria-controls="adminPassCard"
+                aria-expanded="false"
+                onclick="openAdminPasswordPanel()"
+                onkeydown="
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openAdminPasswordPanel();
+                  }
+                "
+              >
+                USER
+              </button>
+              <div class="admin-pass-dropdown" id="adminPassCard" hidden>
+                <div class="rot-reg-title" id="admin-password-title">CHANGE ADMIN PASSWORD</div>
+                <div class="admin-pass-form">
+                  <label class="sr-only" for="adminCurrentPass">Current password</label>
+                  <input
+                    type="password"
+                    id="adminCurrentPass"
+                    class="rot-reg-input"
+                    placeholder="Current password"
+                    autocomplete="current-password"
+                  />
+                  <label class="sr-only" for="adminNewPass">New password</label>
+                  <input
+                    type="password"
+                    id="adminNewPass"
+                    class="rot-reg-input"
+                    placeholder="New password"
+                    autocomplete="new-password"
+                  />
+                  <label class="sr-only" for="adminConfirmPass">Confirm new password</label>
+                  <input
+                    type="password"
+                    id="adminConfirmPass"
+                    class="rot-reg-input"
+                    placeholder="Confirm new password"
+                    autocomplete="new-password"
+                    onkeydown="if (event.key === 'Enter') changeAdminPassword();"
+                  />
+                  <button
+                    type="button"
+                    class="rot-reg-add-btn admin-pass-btn"
+                    onclick="changeAdminPassword()"
+                  >
+                    UPDATE
+                  </button>
+                </div>
+                <div class="rot-reg-status admin-pass-status" id="adminPassStatus"></div>
+              </div>
+            </div>
+            <button
+              class="admin-btn"
+              id="resetRatesBtn"
+              onclick="resetRatesToDefaults()"
+              style="display: none"
+            >
+              ↺ Reset Rates
+            </button>
+            <button class="admin-btn" id="adminBtn" onclick="toggleAdmin()" aria-label="Admin login">
+              <span class="adot" id="adot"></span>
+              <svg
+                id="adminIcon"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                aria-hidden="true"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <span id="adminTxt">Admin</span>
+            </button>
+          </div>
+        </header>
 
     <main id="app-main">
+    <!-- ════════════════════════════════════════
+         DASHBOARD — read-only overview, rendered by src/dashboard.js
+         from getSavedBills()/rotation cache/sync state. No new
+         calculation engine; Car remains the default landing page.
+    ════════════════════════════════════════ -->
+    <div id="page-dashboard" class="module-page" role="tabpanel" aria-labelledby="tab-dashboard" tabindex="0">
+      <div class="wrap">
+        <h2 class="pgtitle">Operations Dashboard</h2>
+        <div class="pgsub">Summary of billing activity across all modules</div>
+
+        <div class="dash-section" style="margin-top: 24px">
+          <div class="dash-grid" id="dash-summary"></div>
+        </div>
+
+        <div class="dash-section">
+          <div class="dash-section-title">Recent Activity</div>
+          <div class="card" id="dash-recent"></div>
+        </div>
+
+        <div class="dash-section">
+          <div class="dash-section-title">System Status</div>
+          <div class="card" id="dash-status"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- ════════════════════════════════════════
          CAR BILLING MODULE
     ════════════════════════════════════════ -->
@@ -2874,25 +2962,63 @@
     </div>
     </main>
 
-    <footer class="copyright-footer">
-      <div class="footer-top">
-        <div class="footer-brand">
-          <span class="footer-brand-dot" aria-hidden="true"></span>
-          PORT / BILLING SYSTEM
+        <footer class="copyright-footer">
+          <div class="footer-top">
+            <div class="footer-brand">
+              <span class="footer-brand-dot" aria-hidden="true"></span>
+              PORTBILL
+            </div>
+            <div class="footer-tagline">Port Authority Billing Operations</div>
+            <div class="footer-copy">
+              <span class="footer-ver">v3.12.1</span>
+              <span class="footer-sep" aria-hidden="true">·</span>
+              <span>&copy; <span id="year"></span> samiulAsumel</span>
+            </div>
+          </div>
+          <div class="footer-rule" aria-hidden="true"></div>
+          <div class="footer-disclaimer">
+            For <strong>informational and estimation purposes only</strong> — computations are
+            non-binding and do not constitute an official invoice or legal document.
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <!-- ADMIN MODAL -->
+    <dialog class="overlay" id="overlay" aria-labelledby="modal-heading">
+      <div class="modal">
+        <div class="modal-title" id="modal-heading">ADMIN LOGIN</div>
+        <div class="modal-sub">Enter credentials to unlock all fields</div>
+        <div class="merr" id="merr">Incorrect username or password.</div>
+        <div class="mfg">
+          <label class="mlbl" for="muser">Username</label>
+          <input
+            class="minput"
+            type="text"
+            id="muser"
+            placeholder="admin"
+            autocomplete="username"
+          />
         </div>
-        <div class="footer-tagline">Port Authority Wharfrent Calculator</div>
-        <div class="footer-copy">
-          <span class="footer-ver">v3.12.0</span>
-          <span class="footer-sep" aria-hidden="true">·</span>
-          <span>&copy; <span id="year"></span> samiulAsumel</span>
+        <div class="mfg">
+          <label class="mlbl" for="mpass">Password</label>
+          <input
+            class="minput"
+            type="password"
+            id="mpass"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            onkeydown="if (event.key === 'Enter') doLogin();"
+          />
+        </div>
+        <div class="mbtns">
+          <button type="button" class="btn bsm" style="flex: 1" onclick="doLogin()">LOGIN</button>
+          <button class="btn bsm bg" style="flex: 1; margin-top: 0" onclick="closeModal()">
+            CANCEL
+          </button>
         </div>
       </div>
-      <div class="footer-rule" aria-hidden="true"></div>
-      <div class="footer-disclaimer">
-        For <strong>informational and estimation purposes only</strong> — computations are
-        non-binding and do not constitute an official invoice or legal document.
-      </div>
-    </footer>
+    </dialog>
 
     <!-- PRINT PREVIEW DIALOG -->
     <dialog class="ppv-dialog" id="ppvDialog" aria-label="Print Preview">
@@ -3031,6 +3157,7 @@
     <script src="src/car.js" defer></script>
     <script src="src/cargo.js" defer></script>
     <script src="src/reexport.js" defer></script>
+    <script src="src/dashboard.js" defer></script>
     <script src="src/platform.js" defer></script>
     <script>
       if ('serviceWorker' in navigator) {

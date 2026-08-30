@@ -1,0 +1,327 @@
+/* ═══════════════════════════════════════════════════════════
+   PORTBILL — APPLICATION SHELL
+   Sidebar + topbar + content grid. The sidebar wraps the
+   EXISTING `.module-tabs` / `.tab-btn` markup unchanged — no
+   JS in switchModule()/updateAdminNavigation() is touched;
+   this file only restyles those same elements vertically.
+═══════════════════════════════════════════════════════════ */
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── SIDEBAR ── */
+.app-sidebar {
+  flex: 0 0 var(--sidebar-w);
+  width: var(--sidebar-w);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--bdr-1);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+  border-bottom: 1px solid var(--bdr-1);
+  flex-shrink: 0;
+}
+.sidebar-brand .logo-mark {
+  color: var(--gold);
+  flex-shrink: 0;
+  display: flex;
+}
+.sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sidebar-brand-name {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  color: var(--tx-0);
+}
+.sidebar-brand-tag {
+  font-size: 10.5px;
+  color: var(--tx-2);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-3) var(--sp-3) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.sidebar-group-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tx-2);
+  padding: 0 var(--sp-2);
+  margin-bottom: var(--sp-1);
+}
+
+/* Restyle the existing tabs container/buttons as a vertical nav list.
+   Selectors below intentionally target the unmodified .module-tabs /
+   .tab-btn classes emitted by index.html and toggled by admin.js. */
+.module-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  text-align: left;
+  padding: 9px var(--sp-3);
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--tx-1);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+  white-space: nowrap;
+}
+.tab-btn:hover { background: var(--bg-hover); color: var(--tx-0); }
+.tab-btn .tab-icon { flex-shrink: 0; width: 16px; height: 16px; opacity: 0.85; }
+
+.tab-btn.active {
+  background: var(--accent-bg);
+  color: var(--accent-hi);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.tab-btn.active .tab-icon { opacity: 1; }
+
+.tab-btn[hidden] { display: none; }
+
+.sidebar-foot {
+  flex-shrink: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--bdr-1);
+  font-size: 10.5px;
+  color: var(--tx-3);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Mobile: sidebar becomes an off-canvas drawer */
+#sidebarToggle { display: none; }
+#sidebarScrim { display: none; }
+
+@media (max-width: 960px) {
+  .app-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    transform: translateX(-100%);
+    transition: transform var(--t-base);
+    box-shadow: var(--shadow-xl);
+  }
+  body.sidebar-open .app-sidebar { transform: translateX(0); }
+  #sidebarToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px; height: 34px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--bdr-2);
+    background: var(--bg-elevated);
+    color: var(--tx-0);
+    cursor: pointer;
+  }
+  #sidebarScrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 199;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--t-base);
+  }
+  body.sidebar-open #sidebarScrim { opacity: 1; pointer-events: auto; }
+}
+
+/* ── MAIN COLUMN ── */
+.app-main-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOPBAR ── */
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 150;
+  height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-5);
+  background: rgba(10,14,23,0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--bdr-1);
+}
+.topbar-left { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
+.topbar-titles { min-width: 0; }
+.breadcrumb {
+  font-size: 10.5px;
+  color: var(--tx-2);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tx-0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hright {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+/* ── PAGE CONTENT ── */
+.wrap {
+  max-width: 1320px;
+  margin: 0 auto;
+  width: 100%;
+  padding: clamp(14px, 2vw, 28px) clamp(14px, 2.5vw, 28px) clamp(56px, 8vh, 80px);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(12px, 2vw, 20px);
+  align-items: start;
+}
+.layout > div { min-width: 0; }
+
+@media (min-width: 960px) {
+  .layout { grid-template-columns: 1fr 340px; }
+}
+@media (min-width: 1280px) {
+  .layout { grid-template-columns: 1fr 400px; }
+}
+@media (min-width: 1600px) {
+  .layout { grid-template-columns: 1fr 440px; }
+}
+
+/* Sticky right-column preview/summary rail */
+.layout > div:last-child {
+  position: sticky;
+  top: calc(var(--topbar-h) + var(--sp-4));
+  max-height: calc(100vh - var(--topbar-h) - 2 * var(--sp-4));
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.layout > div:last-child::-webkit-scrollbar { display: none; }
+
+@media (max-width: 959px) {
+  .layout > div:last-child { position: static; max-height: none; }
+}
+
+.module-page { display: none; }
+.module-page.active {
+  display: block;
+  animation: fadeUp var(--t-slow) both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pgtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(19px, 2.4vw, 24px);
+  font-weight: 700;
+  color: var(--tx-0);
+  letter-spacing: -0.01em;
+}
+.pgsub {
+  margin-top: 4px;
+  color: var(--tx-1);
+  font-size: 13px;
+}
+
+.weight-note, .cargo-note {
+  margin-top: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-bdr);
+  border-radius: var(--r-sm);
+  color: var(--tx-1);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.copyright-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--bdr-1);
+  padding: var(--sp-5) clamp(14px, 2.5vw, 28px);
+  font-size: 11.5px;
+  color: var(--tx-2);
+}
+.footer-top {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--sp-4);
+  align-items: center;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+@media (max-width: 600px) {
+  .footer-top { grid-template-columns: 1fr; text-align: center; }
+}
+.footer-brand { font-family: 'Inter', sans-serif; font-weight: 700; color: var(--tx-1); }
+
+/* ── STICKY BOTTOM ACTION BAR — mobile billing UX ── */
+.mobile-action-bar { display: none; }
+@media (max-width: 767px) {
+  .mobile-action-bar {
+    display: flex;
+    position: sticky;
+    bottom: 0;
+    z-index: 140;
+    gap: var(--sp-2);
+    padding: var(--sp-3);
+    background: rgba(10,14,23,0.96);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--bdr-2);
+  }
+}

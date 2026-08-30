@@ -1,0 +1,116 @@
+/* ═══════════════════════════════════════════════════════════
+   PORTBILL — DATA MANAGEMENT
+   Rotation Registry, Saved Bills, Analytics, Dashboard.
+   Enterprise tables: sticky header, right-aligned money,
+   status badges, hover row — spec §19–22.
+═══════════════════════════════════════════════════════════ */
+
+.rotation-page { max-width: 1100px; }
+.rotation-grid { display: grid; gap: var(--sp-4); }
+
+.rot-reg-form { display: flex; gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-4); }
+.rot-reg-form .rot-reg-input { flex: 1; min-width: 120px; }
+.rot-reg-cld { max-width: 160px; }
+.rot-reg-add-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 36px; padding: 0 16px;
+  border-radius: var(--r-sm); border: none;
+  background: var(--accent); color: #060911;
+  font-size: 12.5px; font-weight: 700; cursor: pointer;
+  white-space: nowrap;
+}
+.rot-reg-add-btn:hover { background: var(--accent-hi); }
+
+.rot-reg-table-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--bdr-1); }
+table.rot-reg-table { width: 100%; border-collapse: collapse; min-width: 480px; }
+.rot-reg-table thead th {
+  position: sticky; top: 0; z-index: 1;
+  text-align: left; padding: 10px 14px;
+  background: var(--bg-surface); color: var(--tx-2);
+  font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  border-bottom: 1px solid var(--bdr-1);
+}
+.rot-reg-table td {
+  padding: 10px 14px; font-size: 12.5px; color: var(--tx-1);
+  border-bottom: 1px solid var(--bdr-0);
+}
+.rot-reg-table tbody tr:hover { background: var(--bg-hover); }
+.rot-reg-table td:last-child, .rot-reg-table th:last-child { text-align: right; }
+.rot-del-btn, .saved-edit-btn, .saved-print-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: var(--r-xs);
+  border: 1px solid var(--bdr-2); background: transparent; color: var(--tx-1); cursor: pointer; margin-left: 4px;
+}
+.rot-del-btn:hover { color: var(--red); border-color: var(--red-bdr); background: var(--red-bg); }
+.saved-edit-btn:hover, .saved-print-btn:hover { color: var(--accent-hi); border-color: var(--accent-bdr); background: var(--accent-bg); }
+
+.rot-year-group td { background: var(--bg-surface); font-weight: 700; cursor: pointer; }
+.rot-year-chevron { display: inline-block; transition: transform var(--t-fast); margin-right: 6px; }
+.rot-year-group.collapsed .rot-year-chevron { transform: rotate(-90deg); }
+.rot-year-count { font-size: 10.5px; color: var(--tx-2); margin-left: 6px; }
+[data-year-row][style*="display: none"] { display: none; }
+
+/* ── SAVED BILLS ── */
+.saved-sub-tabs { display: flex; gap: 4px; margin-bottom: var(--sp-4); border-bottom: 1px solid var(--bdr-1); }
+.saved-sub-tab {
+  padding: 9px 16px; border: none; background: transparent; color: var(--tx-2);
+  font-size: 12.5px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent;
+}
+.saved-sub-tab:hover { color: var(--tx-0); }
+.saved-sub-tab.active { color: var(--accent-hi); border-bottom-color: var(--accent); }
+.sb-panel-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-4); flex-wrap: wrap; }
+.sb-search-wrap { flex: 1; max-width: 320px; }
+.sb-search { height: 36px; }
+table.saved-bills-table td:nth-child(6) { text-align: right; font-family: 'DM Mono', monospace; }
+@media (max-width: 480px) {
+  .sb-panel-head { flex-direction: column; align-items: stretch; }
+  .sb-search-wrap { max-width: none; }
+}
+
+/* ── ADMIN PASSWORD PANEL uses .rot-reg-* already styled in 04-components ── */
+
+/* ── ANALYTICS ── */
+.stats-msg { padding: var(--sp-4); text-align: center; color: var(--tx-2); font-size: 12.5px; }
+.stats-refresh-btn { margin-left: auto; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-5); }
+@media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 360px) { .stats-grid { grid-template-columns: 1fr; } }
+.stat-card { background: var(--bg-surface); border: 1px solid var(--bdr-1); border-radius: var(--r); padding: var(--sp-4); }
+.stat-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--tx-2); }
+.stat-num { font-family: 'DM Mono', monospace; font-size: 26px; font-weight: 700; color: var(--purple-a-hi); margin: 6px 0 2px; }
+.stat-sub { font-size: 10.5px; color: var(--tx-2); }
+.stats-legend { display: flex; gap: var(--sp-4); font-size: 11px; color: var(--tx-2); margin-bottom: var(--sp-3); }
+.stats-chart-wrap { background: var(--bg-surface); border: 1px solid var(--bdr-1); border-radius: var(--r); padding: var(--sp-4); }
+.stats-chart-title { font-size: 12px; font-weight: 700; color: var(--tx-1); margin-bottom: var(--sp-3); }
+.stats-chart { width: 100%; height: auto; }
+.sbar { fill: var(--purple-a); }
+.sbar-axis { stroke: var(--bdr-2); }
+.sbar-x { fill: var(--tx-2); font-size: 9px; font-family: 'DM Mono', monospace; }
+.stats-privacy { margin-top: var(--sp-4); font-size: 10.5px; color: var(--tx-3); text-align: center; }
+
+/* ── DASHBOARD (new, spec §8) — reads only existing saved-bill/rotation data ── */
+.dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); margin-bottom: var(--sp-5); }
+@media (max-width: 960px) { .dash-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .dash-grid { grid-template-columns: 1fr; } }
+.dash-card {
+  background: var(--bg-card); border: 1px solid var(--bdr-1); border-radius: var(--r-lg);
+  padding: var(--sp-4); border-top: 3px solid var(--dash-color, var(--accent));
+}
+.dash-card-lbl { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--tx-2); text-transform: uppercase; letter-spacing: 0.03em; }
+.dash-card-num { font-family: 'DM Mono', monospace; font-size: 30px; font-weight: 700; color: var(--tx-0); margin: 8px 0 2px; }
+.dash-card-sub { font-size: 11px; color: var(--tx-2); }
+.dash-section { margin-bottom: var(--sp-5); }
+.dash-section-title { font-size: 13px; font-weight: 700; color: var(--tx-0); margin-bottom: var(--sp-3); }
+.dash-recent-list { display: flex; flex-direction: column; gap: 1px; }
+.dash-recent-row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);
+  padding: 10px var(--sp-3); border-radius: var(--r-xs); font-size: 12.5px;
+}
+.dash-recent-row:hover { background: var(--bg-hover); }
+.dash-recent-meta { color: var(--tx-2); font-size: 11px; }
+.dash-recent-amt { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--tx-0); }
+.dash-status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--sp-3); }
+.dash-status-row { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3); background: var(--bg-surface); border-radius: var(--r-sm); font-size: 12px; color: var(--tx-1); }
+.dash-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.dash-status-dot.warn { background: var(--amber); }
+.dash-status-dot.bad { background: var(--red); }
