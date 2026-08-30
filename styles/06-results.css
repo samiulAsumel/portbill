@@ -5,35 +5,95 @@
    Statement" (screen presentation only; print is separate).
 ═══════════════════════════════════════════════════════════ */
 
-/* ── RESULTS HEADER ── */
-.rh { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; margin: var(--sp-6) 0 var(--sp-4); }
-.rtitle { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700; color: var(--tx-0); }
+/* ── BILL STATEMENT DOCUMENT FRAME ──
+   #results/#cargo-results/#reexport-results hold the whole on-screen
+   bill (info bar, stat row, charge tables, grand total) as direct
+   children already — no markup change needed to turn them into one
+   cohesive "document" instead of loose blocks on the page background.
+   Mirrors the letterhead treatment of the printed invoice (accent
+   band + masthead) adapted for the dark UI. */
+#results, #cargo-results, #reexport-results {
+  position: relative;
+  margin-top: var(--sp-7);
+  padding: var(--sp-6) clamp(16px, 3vw, 32px) clamp(20px, 3vw, 32px);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 30%),
+    var(--bg-surface);
+  border: 1px solid var(--bdr-1);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-xl), var(--inset-hairline);
+}
+#results::before, #cargo-results::before, #reexport-results::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--accent-hi), var(--accent), transparent);
+}
+/* The plain <hr> was a leftover flat-layout divider — the document
+   frame's own top band now plays that role. */
+#results > hr, #cargo-results > hr, #reexport-results > hr { display: none; }
+
+/* ── RESULTS HEADER / MASTHEAD ── */
+.rh {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: var(--sp-3); flex-wrap: wrap;
+  margin: 0 0 var(--sp-5);
+  padding-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--bdr-1);
+}
+.rtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px; font-weight: 800; letter-spacing: -0.015em;
+  color: var(--tx-0);
+  display: flex; flex-direction: column; gap: 3px;
+}
+.rtitle::before {
+  content: "PORT AUTHORITY — OFFICIAL COMPUTATION";
+  font-family: 'DM Mono', monospace;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.14em;
+  color: var(--accent-hi); text-transform: uppercase;
+  opacity: 0.85;
+}
 .bill-action-group { display: flex; gap: var(--sp-2); }
 .save-btn, .print-btn {
   display: inline-flex; align-items: center; gap: 6px;
-  height: 36px; padding: 0 14px;
+  height: 38px; padding: 0 16px;
   border-radius: var(--r-sm); border: 1px solid var(--bdr-2);
-  background: var(--bg-elevated); color: var(--tx-0); font-size: 12.5px; font-weight: 600; cursor: pointer;
+  background: linear-gradient(180deg, var(--bg-hover), var(--bg-elevated));
+  color: var(--tx-0); font-size: 12.5px; font-weight: 600; cursor: pointer;
+  box-shadow: var(--shadow-sm), var(--inset-hairline);
+  transition: box-shadow var(--t-fast), border-color var(--t-fast), filter var(--t-fast);
 }
-.print-btn { background: var(--accent); color: #060911; border-color: var(--accent); }
-.print-btn:hover { background: var(--accent-hi); }
-.save-btn:hover { border-color: var(--bdr-3); }
+.print-btn {
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  color: #060911; border-color: var(--accent-lo);
+  box-shadow: var(--shadow-accent-glow), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.print-btn:hover { filter: brightness(1.05); }
+.save-btn:hover { border-color: var(--bdr-3); box-shadow: var(--shadow-md), var(--inset-hairline); }
 .print-opts-group { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
 .print-opt-toggle { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--tx-1); }
 .payables-label { white-space: nowrap; }
 
 /* ── INFO BAR ── */
+/* core.js:572 inserts the bill-number badge into ".ibar > div" (a required
+   wrapper — the JS-rendered .ii items live one level inside .ibar, not as
+   its direct children), so the grid must apply to that inner div, not to
+   .ibar itself, or every .ii item collapses into a single stacked column. */
 .ibar {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: var(--sp-3);
   padding: var(--sp-4);
   background: var(--bg-surface);
   border: 1px solid var(--bdr-1);
   border-radius: var(--r-lg);
   margin-bottom: var(--sp-4);
+  box-shadow: var(--inset-hairline);
 }
-@media (min-width: 1200px) { .ibar { grid-template-columns: repeat(4, 1fr); } }
+.ibar > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--sp-3);
+}
+@media (min-width: 1200px) { .ibar > div { grid-template-columns: repeat(4, 1fr); } }
 .ii { display: flex; flex-direction: column; gap: 3px; }
 .il { font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--tx-2); }
 .iv { font-size: 13px; font-weight: 600; color: var(--tx-0); }
