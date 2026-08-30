@@ -41,21 +41,42 @@
 .rot-bill-ii .rot-val { color: var(--accent-hi); }
 
 /* ── STAT ROW ── */
-.sr { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-4); }
+/* Quick-glance stat row (Grand/Inside/Outside) shown above the detailed
+   tables — same "real elevation + color story per card" treatment as
+   .gbox below it, just more compact since it's a preview, not the final
+   figure. Each variant gets its own tinted background + glow, not just
+   a thin left bar, so the row reads as three distinct callouts. */
+.sr { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-5); }
 @media (max-width: 640px) { .sr { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 380px) { .sr { grid-template-columns: 1fr; } }
 .sc {
-  padding: var(--sp-3);
-  background: var(--bg-card);
-  border: 1px solid var(--bdr-1);
-  border-left: 3px solid var(--tx-3);
-  border-radius: var(--r-sm);
+  position: relative;
+  padding: var(--sp-4);
+  background:
+    linear-gradient(160deg, var(--sc-bg, var(--accent-bg)), transparent 65%),
+    var(--bg-card);
+  border: 1px solid var(--sc-bdr, var(--bdr-1));
+  border-radius: var(--r);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: box-shadow var(--t-base), transform var(--t-base);
 }
-.sc.cg { border-left-color: var(--accent); }
-.sc.cb { border-left-color: var(--blue); }
-.sc.cp { border-left-color: var(--purple); }
-.sl { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--tx-2); }
-.sv { font-size: 15px; font-weight: 700; color: var(--tx-0); margin: 3px 0; }
+.sc::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--sc-color, var(--tx-3)), transparent);
+}
+@media (pointer: fine) { .sc:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-1px); } }
+.sc.cg { --sc-color: var(--accent); --sc-bg: var(--accent-bg); --sc-bdr: var(--accent-bdr); }
+.sc.cb { --sc-color: var(--blue); --sc-bg: var(--blue-bg); --sc-bdr: var(--blue-bdr); }
+.sc.cp { --sc-color: var(--purple); --sc-bg: var(--purple-bg); --sc-bdr: var(--purple-bdr); }
+.sl { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tx-2); }
+.sv {
+  font-family: 'DM Mono', monospace;
+  font-size: 21px; font-weight: 700; letter-spacing: -0.01em;
+  color: var(--sc-color, var(--tx-0)); margin: 7px 0 3px;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--sc-color, transparent) 35%, transparent);
+}
 .ss { font-size: 10.5px; color: var(--tx-2); }
 
 /* ── SECTION LABELS ── */
