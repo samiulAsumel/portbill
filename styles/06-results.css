@@ -1,0 +1,294 @@
+/* ═══════════════════════════════════════════════════════════
+   PORTBILL — RESULTS & LIVE PREVIEW
+   Quick-preview rail, info bar, stat row, bill tables, grand
+   total — spec §14 "Live Calculation Panel" + §17 "Bill
+   Statement" (screen presentation only; print is separate).
+═══════════════════════════════════════════════════════════ */
+
+/* ── BILL STATEMENT DOCUMENT FRAME ──
+   #results/#cargo-results/#reexport-results hold the whole on-screen
+   bill (info bar, stat row, charge tables, grand total) as direct
+   children already — no markup change needed to turn them into one
+   cohesive "document" instead of loose blocks on the page background.
+   Mirrors the letterhead treatment of the printed invoice (accent
+   band + masthead) adapted for the dark UI. */
+#results, #cargo-results, #reexport-results {
+  position: relative;
+  margin-top: var(--sp-7);
+  padding: var(--sp-6) clamp(16px, 3vw, 32px) clamp(20px, 3vw, 32px);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 30%),
+    var(--bg-surface);
+  border: 1px solid var(--bdr-1);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-xl), var(--inset-hairline);
+}
+#results::before, #cargo-results::before, #reexport-results::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--accent-hi), var(--accent), transparent);
+}
+/* The plain <hr> was a leftover flat-layout divider — the document
+   frame's own top band now plays that role. */
+#results > hr, #cargo-results > hr, #reexport-results > hr { display: none; }
+
+/* ── RESULTS HEADER / MASTHEAD ── */
+.rh {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: var(--sp-3); flex-wrap: wrap;
+  margin: 0 0 var(--sp-5);
+  padding-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--bdr-1);
+}
+.rtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px; font-weight: 800; letter-spacing: -0.015em;
+  color: var(--tx-0);
+  display: flex; flex-direction: column; gap: 3px;
+}
+.rtitle::before {
+  content: "PORT AUTHORITY — OFFICIAL COMPUTATION";
+  font-family: 'DM Mono', monospace;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.14em;
+  color: var(--accent-hi); text-transform: uppercase;
+  opacity: 0.85;
+}
+.bill-action-group { display: flex; gap: var(--sp-2); }
+.save-btn, .print-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 38px; padding: 0 16px;
+  border-radius: var(--r-sm); border: 1px solid var(--bdr-2);
+  background: linear-gradient(180deg, var(--bg-hover), var(--bg-elevated));
+  color: var(--tx-0); font-size: 12.5px; font-weight: 600; cursor: pointer;
+  box-shadow: var(--shadow-sm), var(--inset-hairline);
+  transition: box-shadow var(--t-fast), border-color var(--t-fast), filter var(--t-fast);
+}
+.print-btn {
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  color: #060911; border-color: var(--accent-lo);
+  box-shadow: var(--shadow-accent-glow), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.print-btn:hover { filter: brightness(1.05); }
+.save-btn:hover { border-color: var(--bdr-3); box-shadow: var(--shadow-md), var(--inset-hairline); }
+.print-opts-group { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
+.print-opt-toggle { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--tx-1); }
+.payables-label { white-space: nowrap; }
+
+/* ── INFO BAR ── */
+/* core.js:572 inserts the bill-number badge into ".ibar > div" (a required
+   wrapper — the JS-rendered .ii items live one level inside .ibar, not as
+   its direct children), so the grid must apply to that inner div, not to
+   .ibar itself, or every .ii item collapses into a single stacked column. */
+.ibar {
+  padding: var(--sp-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--bdr-1);
+  border-radius: var(--r-lg);
+  margin-bottom: var(--sp-4);
+  box-shadow: var(--inset-hairline);
+}
+.ibar > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--sp-3);
+}
+@media (min-width: 1200px) { .ibar > div { grid-template-columns: repeat(4, 1fr); } }
+.ii { display: flex; flex-direction: column; gap: 3px; }
+.il { font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--tx-2); }
+.iv { font-size: 13px; font-weight: 600; color: var(--tx-0); }
+.bill-no-ii .iv, .bill-no-val { color: var(--accent-hi); }
+.rot-bill-ii .rot-val { color: var(--accent-hi); }
+
+/* ── STAT ROW ── */
+/* Quick-glance stat row (Grand/Inside/Outside) shown above the detailed
+   tables — same "real elevation + color story per card" treatment as
+   the grand-total row below it, just more compact since it's a preview,
+   not the final figure. Each variant gets its own tinted background +
+   glow, not just a thin left bar, so the row reads as three distinct
+   callouts. */
+.sr { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-5); }
+@media (max-width: 640px) { .sr { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 380px) { .sr { grid-template-columns: 1fr; } }
+.sc {
+  position: relative;
+  padding: var(--sp-4);
+  background:
+    linear-gradient(160deg, var(--sc-bg, var(--accent-bg)), transparent 65%),
+    var(--bg-card);
+  border: 1px solid var(--sc-bdr, var(--bdr-1));
+  border-radius: var(--r);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: box-shadow var(--t-base), transform var(--t-base);
+}
+.sc::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--sc-color, var(--tx-3)), transparent);
+}
+@media (pointer: fine) { .sc:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-1px); } }
+.sc.cg { --sc-color: var(--accent); --sc-bg: var(--accent-bg); --sc-bdr: var(--accent-bdr); }
+.sc.cb { --sc-color: var(--blue); --sc-bg: var(--blue-bg); --sc-bdr: var(--blue-bdr); }
+.sc.cp { --sc-color: var(--purple); --sc-bg: var(--purple-bg); --sc-bdr: var(--purple-bdr); }
+.sl { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tx-2); }
+.sv {
+  font-family: 'DM Mono', monospace;
+  font-size: 21px; font-weight: 700; letter-spacing: -0.01em;
+  color: var(--sc-color, var(--tx-0)); margin: 7px 0 3px;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--sc-color, transparent) 35%, transparent);
+}
+.ss { font-size: 10.5px; color: var(--tx-2); }
+
+/* ── SECTION LABELS ── */
+/* The leading "▪ " is emitted by JS as plain text (car.js/cargo.js/reexport.js),
+   not a separate element — style it via ::first-letter rather than adding a
+   second ::before marker, which would double up the bullet. */
+.slbl { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--tx-1); margin: var(--sp-5) 0 var(--sp-2); }
+.slbl::first-letter { color: var(--accent); font-size: 15px; }
+.slbl.sl-in::first-letter, .slbl.sl-cin::first-letter { color: var(--accent); }
+.slbl.sl-out::first-letter, .slbl.sl-cout::first-letter { color: var(--accent-lo); }
+.section-sub { font-size: 11px; color: var(--tx-2); margin-bottom: var(--sp-2); }
+
+.warn, .split-warn {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--amber-bg); border: 1px solid var(--amber-bdr); border-radius: var(--r-sm);
+  color: var(--amber); font-size: 11.5px; font-weight: 600; margin-bottom: var(--sp-3);
+}
+.no-stor-note, .cargo-split-info { font-size: 11px; color: var(--tx-2); margin-bottom: var(--sp-2); }
+
+/* ── BILL TABLE ── */
+.btw { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--bdr-1); margin-bottom: var(--sp-4); }
+table.bt { width: 100%; border-collapse: collapse; min-width: 480px; }
+.bt th {
+  text-align: left;
+  padding: 9px 12px;
+  background: var(--bg-surface);
+  color: var(--tx-2);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--bdr-1);
+}
+.bt th:last-child, .bt td:last-child { text-align: right; }
+.bt td {
+  padding: 9px 12px;
+  font-size: 12.5px;
+  color: var(--tx-1);
+  border-bottom: 1px solid var(--bdr-0);
+}
+.bt tr:last-child td { border-bottom: none; }
+.bt tr.sep td { padding-top: var(--sp-3); font-size: 10.5px; font-weight: 700; color: var(--accent-hi); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: none; background: var(--accent-bg); }
+.bt tr.sub td, .bt tr.tot td { font-weight: 700; color: var(--tx-0); background: var(--bg-surface); }
+.bt tr.vrow td, .bt tr.lrow td { color: var(--tx-1); font-style: italic; }
+.bt tr.grand td { font-weight: 700; color: var(--accent-hi); font-size: 13.5px; background: var(--accent-bg); }
+.bt tr.calc-row td { font-size: 11px; color: var(--tx-2); }
+.dp, .dpg { display: inline-block; padding: 1px 6px; border-radius: 999px; background: var(--bg-hover); font-size: 10.5px; }
+
+/* ── GRAND TOTAL ROW (spec §16 "Amount Payable") ── */
+/* Grand total sections (car/cargo/reexport -grandSec) render as a .sr row
+   of .sc cards — the identical recipe as the stat-row above the bill
+   breakdown — so the two sections read as one consistent card system
+   instead of two different visual languages. */
+/* "Just calculated" moment — the one instant the grand-total card should
+   feel alive: a soft scale-settle + glow bloom on the frame, a diagonal
+   light sweep across it, and the amount itself pops in, instead of a
+   single flat ring pulse. car.js/cargo.js/reexport.js already do
+   remove-class → reflow → add-class on every Generate Bill click, so
+   these animations re-trigger on each new calculation. */
+.sc.cg.just-calculated { animation: gboxPulse 900ms cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes gboxPulse {
+  0%   { transform: scale(0.99); box-shadow: var(--shadow-card), 0 0 0 0 var(--accent-ring), 0 0 0 0 var(--accent-ring); }
+  35%  { transform: scale(1.006); box-shadow: var(--shadow-card), 0 0 0 3px var(--accent-ring), 0 0 46px 6px var(--accent-ring); }
+  100% { transform: scale(1); box-shadow: var(--shadow-card), 0 0 0 20px rgba(0,0,0,0), 0 0 0 0 rgba(0,0,0,0); }
+}
+.sc.cg.just-calculated::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(115deg,
+    transparent 35%, rgba(255,255,255,0.16) 46%,
+    rgba(255,255,255,0.30) 50%, rgba(255,255,255,0.16) 54%, transparent 65%);
+  background-size: 260% 100%;
+  background-position: 160% 0;
+  animation: gboxShimmer 900ms ease-out;
+  pointer-events: none;
+}
+@keyframes gboxShimmer { 0% { background-position: 160% 0; opacity: 1; } 100% { background-position: -60% 0; opacity: 0; } }
+.sc.cg.just-calculated .sv { animation: gvalPop 620ms cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: left center; }
+@keyframes gvalPop {
+  0%   { transform: scale(0.93); opacity: 0.5; }
+  55%  { transform: scale(1.035); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* ── QUICK PREVIEW / BILLING SUMMARY RAIL ── */
+.sp {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0) 40%), var(--bg-card);
+  border: 1px solid var(--bdr-1);
+  border-top-color: var(--bdr-2);
+  border-radius: var(--r-lg);
+  padding: clamp(16px, 2.2vw, 22px);
+  margin-bottom: var(--sp-4);
+  box-shadow: var(--shadow-card);
+}
+.sp-live-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700; color: var(--green);
+  margin-left: auto;
+}
+.sp-live-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: livePulse 1.6s ease-in-out infinite; }
+@keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+.sp-mod-label { font-size: 10.5px; color: var(--tx-2); margin: -8px 0 var(--sp-3); }
+.sp-idle { text-align: center; padding: var(--sp-6) var(--sp-3); color: var(--tx-3); font-size: 12px; }
+.pvr { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--bdr-0); font-size: 12.5px; }
+.pvr-lbl { color: var(--tx-2); }
+.pvr-val { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--tx-0); }
+.pvr-val.v-gold, .rspan.v-gold { color: var(--gold-hi); }
+.pvr-val.v-blue { color: var(--blue); }
+.pvr-val.v-purple { color: var(--purple); }
+.pvr-val.v-green { color: var(--green); }
+.pvr-val.v-cyan { color: var(--sky-hi); }
+.pvr-val.v-teal { color: var(--teal-hi); }
+.pvr.pvr-grand { border-bottom: none; margin-top: 6px; padding-top: var(--sp-3); border-top: 1px dashed var(--bdr-2); }
+.pvr.pvr-grand .pvr-lbl { font-weight: 700; color: var(--tx-0); }
+.pvr.pvr-grand .pvr-val { font-size: 16px; color: var(--accent-hi); }
+.pvr.pvr-grand-cargo .pvr-val { color: var(--sky-hi); }
+.rbadge { display: inline-flex; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.rbadge.rb-new { background: var(--green-bg); color: var(--green); }
+.rbadge.rb-old { background: rgba(148,163,184,0.10); color: var(--tx-2); }
+.rbadge.rb-split { background: var(--amber-bg); color: var(--amber); }
+
+.sp-actions { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-4); }
+.car-gen-btn, .cargo-gen-btn {
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  height: 48px; border-radius: var(--r-sm); border: 1px solid var(--accent-lo);
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  color: #060911;
+  font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 700; letter-spacing: 0.01em; cursor: pointer;
+  position: relative; overflow: hidden;
+  box-shadow: var(--shadow-accent-glow), inset 0 1px 0 rgba(255,255,255,0.4);
+  transition: box-shadow var(--t-base), transform var(--t-fast), filter var(--t-fast);
+}
+.car-gen-btn:hover, .cargo-gen-btn:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 0 0 1px var(--accent-bdr), 0 10px 28px -8px var(--accent-ring), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+.car-gen-btn:active, .cargo-gen-btn:active { transform: translateY(1px); }
+.cgb-arrow { transition: transform var(--t-fast); }
+.car-gen-btn:hover .cgb-arrow { transform: translateX(3px); }
+.car-reset-btn, .cargo-reset-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  height: 38px; border-radius: var(--r-sm); border: 1px solid var(--bdr-2);
+  background: transparent; color: var(--tx-1);
+  font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.car-reset-btn:hover, .cargo-reset-btn:hover { color: var(--tx-0); border-color: var(--bdr-3); background: var(--bg-hover); }
+
+/* ── BILLING RULES CARD (spec guide callouts) ── */
+.guide { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+@media (max-width: 480px) { .guide { grid-template-columns: 1fr; } }
+.guide > div { font-size: 11.5px; color: var(--tx-2); line-height: 1.5; padding-left: var(--sp-3); border-left: 2px solid var(--bdr-2); }
+.guide-note--sky { color: var(--sky); margin-top: 4px; }
+.guide-note--gold { color: var(--gold); margin-top: 4px; }

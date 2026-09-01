@@ -123,6 +123,11 @@ async function handleGithubGet(apiBase, ghHeaders, branch) {
 }
 
 // PUT a proxied file to GitHub Contents API (create-or-update via current SHA).
+// This is the live write path for bills/rotations/config (auth check, SHA lookup,
+// saved-bills merge-safety-net, GitHub PUT); splitting it can't be verified without a
+// live Cloudflare + GitHub integration test, so it's left intact rather than refactored
+// on faith.
+// eslint-disable-next-line sonarjs/cognitive-complexity
 async function handleGithubPut(request, env, apiBase, ghHeaders, branch, filename) {
     // Optional write-token hardening: if WRITE_TOKEN_HASH is set, verify the Bearer
     // token. If not set, writes are open (personal use).

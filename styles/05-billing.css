@@ -1,0 +1,170 @@
+/* ═══════════════════════════════════════════════════════════
+   PORTBILL — BILLING MODULE COMPONENTS
+   Payable-charge rows, rotation widget, part-billing timeline,
+   Bill-of-Entries rows, self-drive card. Shared by Car, Cargo,
+   Re-Export — spec §13 "Charge Component" + §9 module UX.
+═══════════════════════════════════════════════════════════ */
+
+.bill-meta-row { margin-bottom: var(--sp-4); }
+
+/* ── PAYABLE CHARGE ROW ── */
+.pc-list { display: flex; flex-direction: column; gap: 2px; }
+.pc-row {
+  display: grid;
+  grid-template-columns: auto 3px 1fr auto auto;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 10px var(--sp-2);
+  border-radius: var(--r-sm);
+  transition: background var(--t-fast);
+}
+.pc-row:hover { background: var(--bg-hover); }
+.pc-accent { width: 3px; height: 26px; border-radius: 2px; background: var(--pc-color, var(--accent)); }
+.pc-body { min-width: 0; }
+.pc-name { font-size: 13px; font-weight: 600; color: var(--tx-0); }
+.pc-note { font-size: 10.5px; color: var(--tx-2); margin-top: 1px; }
+.pc-rate-wrap { display: flex; align-items: center; gap: 5px; }
+.pc-rate-input {
+  width: 84px;
+  height: 32px;
+  padding: 0 8px;
+  text-align: right;
+  background: var(--bg-input);
+  border: 1px solid var(--bdr-2);
+  border-radius: var(--r-xs);
+  color: var(--tx-0);
+  font-size: 12.5px;
+}
+.pc-unit { font-size: 10.5px; color: var(--tx-2); white-space: nowrap; }
+.pc-vat {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 3px 7px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pc-vat-yes { background: var(--accent-bg); color: var(--accent-hi); }
+.pc-vat-no  { background: rgba(148,163,184,0.08); color: var(--tx-2); }
+@media (max-width: 480px) {
+  .pc-row { grid-template-columns: auto 3px 1fr; grid-template-areas: "toggle accent body" "rate rate rate" "vat vat vat"; row-gap: 6px; }
+  .pc-rate-wrap { grid-area: rate; justify-content: flex-end; }
+  .pc-vat { grid-area: vat; justify-self: start; }
+}
+
+/* ── FREE-TIME STRIP (JS writes text + inline color only) ── */
+.ft-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: var(--sp-2) 0 var(--sp-3); font-size: 11.5px; }
+.ft-strip--cargo { color: var(--sky); }
+
+/* ── INSIDE / OUTSIDE SPLIT (Cargo) ── */
+.inside-outside-row { margin-bottom: var(--sp-3); }
+.iorow-title { font-size: 12px; font-weight: 700; color: var(--tx-1); margin-bottom: var(--sp-2); }
+.iorow-note { font-size: 11px; color: var(--tx-2); margin-top: 6px; }
+.io-total-badge {
+  display: flex; align-items: center; justify-content: center;
+  height: 38px; border-radius: var(--r-sm);
+  font-size: 12px; font-weight: 700; font-family: 'DM Mono', monospace;
+}
+.io-total-badge.io-ok { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bdr); }
+.io-total-badge.io-err { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-bdr); }
+
+/* ── SELF DRIVE CARD ── */
+.sd-header { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.sd-icon { color: var(--gold); flex-shrink: 0; }
+.sd-title { font-size: 13.5px; font-weight: 700; color: var(--tx-0); }
+.sd-sub { font-size: 11px; color: var(--tx-2); }
+.sd-rows { display: flex; flex-direction: column; gap: var(--sp-3); }
+.sd-inp-fg { max-width: 140px; }
+.ton-err-msg { display: none; font-size: 10.5px; color: var(--red); margin-top: 4px; }
+.ton-err-msg.show { display: block; }
+
+/* ── ROTATION WIDGET (in-form, Car) ── */
+.rot-card { background: var(--bg-surface); border: 1px solid var(--bdr-1); border-radius: var(--r-sm); padding: var(--sp-3); margin-bottom: var(--sp-4); }
+.rot-card-head { display: flex; align-items: center; gap: 6px; margin-bottom: var(--sp-2); }
+.rot-card-title { font-size: 11px; font-weight: 700; color: var(--tx-1); text-transform: uppercase; letter-spacing: 0.04em; }
+.rot-anchor { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.rot-card-body { display: flex; align-items: center; gap: var(--sp-2); }
+.rot-seg { display: flex; gap: var(--sp-2); flex: 1; }
+.rot-sel { height: 34px; }
+.rot-badge { font-size: 10.5px; color: var(--tx-2); white-space: nowrap; }
+.cld-locked { background: var(--bg-surface); color: var(--tx-1); }
+
+/* ── PART-BILLING / BILL-OF-ENTRIES TIMELINE ── */
+.pbs-card-header { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.pbs-card-title { font-size: 13px; font-weight: 700; color: var(--tx-0); }
+.pbs-count-badge { font-size: 10.5px; font-weight: 700; color: var(--accent-hi); background: var(--accent-bg); padding: 2px 8px; border-radius: 999px; }
+.pbs-info-bar { font-size: 11.5px; color: var(--tx-2); margin-bottom: var(--sp-3); }
+
+.pb-mode-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+.pb-mode-title { font-size: 13px; font-weight: 700; color: var(--tx-0); }
+.pb-mode-hint { font-size: 11px; color: var(--tx-2); }
+
+.pbs-timeline { display: flex; flex-direction: column; }
+.pbs-row { display: grid; grid-template-columns: 24px 1fr; gap: var(--sp-3); padding-bottom: var(--sp-4); }
+.pbs-row-last { padding-bottom: 0; }
+.pbs-connector { display: flex; flex-direction: column; align-items: center; }
+.pbs-dot {
+  width: 18px; height: 18px; border-radius: 50%; background: var(--accent);
+  flex-shrink: 0; margin-top: 2px;
+  display: flex; align-items: center; justify-content: center;
+}
+.pbs-dot span { font-family: 'DM Mono', monospace; font-size: 9.5px; font-weight: 700; line-height: 1; color: var(--bg-page); }
+.pbs-line { flex: 1; width: 1px; background: var(--bdr-2); margin-top: 4px; }
+.pbs-body { background: var(--bg-surface); border: 1px solid var(--bdr-1); border-radius: var(--r-sm); padding: var(--sp-3); }
+.pbs-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-3); }
+.pbs-title { font-size: 12px; font-weight: 700; color: var(--tx-0); }
+.pbs-sub { font-size: 10.5px; color: var(--tx-2); }
+.pbs-del-btn {
+  width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-xs); border: 1px solid var(--bdr-2); background: transparent; color: var(--tx-2); cursor: pointer;
+}
+.pbs-del-btn:hover { color: var(--red); border-color: var(--red-bdr); background: var(--red-bg); }
+.pbs-fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.pbs-fields-3col { grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 580px) { .pbs-fields, .pbs-fields-3col { grid-template-columns: 1fr; } }
+
+.pbs-balance-wrap { margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px dashed var(--bdr-1); }
+.pbs-balance-title { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--tx-2); margin-bottom: var(--sp-2); }
+.pbs-balance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+@media (max-width: 360px) { .pbs-balance-grid { grid-template-columns: 1fr; } }
+.pbs-bal-lbl { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--tx-1); margin-bottom: 4px; }
+.pbs-bal-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.pbs-max-note { display: block; font-size: 10px; color: var(--tx-2); margin-top: 3px; }
+
+.pbs-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-top: var(--sp-4); padding-top: var(--sp-4); border-top: 1px dashed var(--bdr-1); flex-wrap: wrap; }
+.pbs-add-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 36px; padding: 0 14px;
+  border-radius: var(--r-sm); border: 1px dashed var(--accent-bdr);
+  background: var(--accent-bg); color: var(--accent-hi); font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.pbs-add-btn:hover { background: var(--accent-ring); }
+.pbs-uptodate { display: flex; align-items: center; gap: var(--sp-2); font-size: 11.5px; color: var(--tx-1); }
+
+/* ── RE-EXPORT: Bill of Entries CLD sub-rows ── */
+.re-cld-list { display: flex; flex-direction: column; gap: var(--sp-3); margin-top: var(--sp-3); }
+.re-cld-row { background: var(--bg-elevated); border: 1px solid var(--bdr-1); border-radius: var(--r-sm); padding: var(--sp-3); position: relative; }
+.re-cld-del-btn {
+  position: absolute; top: 8px; right: 8px;
+  width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-xs); border: none; background: transparent; color: var(--tx-2); cursor: pointer;
+}
+.re-cld-del-btn:hover { color: var(--red); }
+.re-cld-actions { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-top: var(--sp-3); padding-top: var(--sp-3); border-top: 1px dashed var(--bdr-1); flex-wrap: wrap; }
+.re-add-cld-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 32px; padding: 0 12px;
+  border-radius: var(--r-xs); border: 1px dashed var(--bdr-2);
+  background: transparent; color: var(--tx-1); font-size: 11.5px; font-weight: 600; cursor: pointer;
+}
+.re-add-cld-btn:hover { border-color: var(--accent-bdr); color: var(--accent-hi); }
+
+.cargo-tier-info {
+  margin: var(--sp-3) 0;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-surface);
+  border-radius: var(--r-xs);
+  font-size: 11.5px;
+  color: var(--tx-2);
+}

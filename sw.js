@@ -1,5 +1,5 @@
 // PortBill Service Worker — cache-first with network update
-const CACHE = 'portbill-v17';
+const CACHE = 'portbill-v21';
 const ASSETS = [
   './',
   './index.html',
@@ -8,8 +8,16 @@ const ASSETS = [
   './src/car.js',
   './src/cargo.js',
   './src/reexport.js',
+  './src/dashboard.js',
   './src/platform.js',
-  './style.css',
+  './styles/01-tokens.css',
+  './styles/02-base.css',
+  './styles/03-shell.css',
+  './styles/04-components.css',
+  './styles/05-billing.css',
+  './styles/06-results.css',
+  './styles/07-data.css',
+  './styles/08-print.css',
   './favicon.svg',
   './manifest.json',
 ];

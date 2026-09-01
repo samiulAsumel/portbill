@@ -1,0 +1,113 @@
+/* ═══════════════════════════════════════════════════════════
+   PORTBILL — BASE
+   Reset, typography scale, global focus/motion rules.
+═══════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* The browser's own `hidden` attribute rule and an author class rule that
+   sets `display` (e.g. .hbadge/.tab-btn { display: inline-flex }) have
+   EQUAL CSS specificity — whichever comes later in source order wins. Every
+   component file in this app is authored after this one, so without this
+   override any `hidden`-attribute element that also carries a display-set
+   class silently keeps rendering (confirmed on #syncBadge: hidden=true but
+   computed display:flex). This keeps `hidden` authoritative everywhere. */
+[hidden] { display: none !important; }
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+@media (max-width: 359px) { html { font-size: 14px; } }
+@media (min-width: 1920px) { html { font-size: 17px; } }
+@media (min-width: 2560px) { html { font-size: 18px; } }
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+  color: var(--tx-0);
+  font-family: 'Inter', 'DM Sans', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Subtle ambient depth — no particles, no mesh gradients: enterprise, not decorative */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 700px at 10% -10%, rgba(var(--gold-rgb), 0.07), transparent 60%),
+    radial-gradient(1000px 620px at 100% 0%, rgba(56,169,224,0.05), transparent 60%),
+    radial-gradient(800px 500px at 50% 110%, rgba(19,184,138,0.03), transparent 60%);
+}
+
+h1, h2, h3, h4 { font-weight: 600; line-height: 1.2; }
+
+/* Tabular figures everywhere money/tonnage appears */
+.mono, .rspan, .pc-rate-input, .pvr-val, .sv, .iv,
+input[type="number"], input.cyan-glow, input.cargo-glow, input.sd-glow,
+.bt td, .date-display {
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-nav {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 10000;
+  background: var(--accent);
+  color: #0a0e17;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 0 0 var(--r-sm) 0;
+}
+.skip-nav:focus {
+  left: 0;
+}
+
+/* Global focus ring — WCAG 2.2 AA visible focus, keyboard-only */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--accent-hi);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+
+/* Reduced motion — single authoritative block */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::selection {
+  background: var(--accent-bg);
+  color: var(--tx-0);
+}
+
+/* Thin, unobtrusive scrollbars (Chromium + Firefox) */
+* { scrollbar-width: thin; scrollbar-color: var(--bdr-3) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--bdr-3); border-radius: var(--r-xs); }
+*::-webkit-scrollbar-track { background: transparent; }
