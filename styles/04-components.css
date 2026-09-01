@@ -310,7 +310,13 @@ table.rt tr.rt-gh td { padding-top: var(--sp-3); font-size: 10.5px; font-weight:
   transition: color var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
 }
 .admin-btn:hover { color: var(--tx-0); border-color: var(--bdr-3); box-shadow: var(--shadow-md), var(--inset-hairline); }
+/* Hidden until admin login — access is Ctrl+Shift+Click anywhere (see the
+   mousedown listener in platform.js), which calls toggleAdmin() directly
+   without needing this button visible. Once logged in, applyAdmin() adds
+   .active, which is what reveals it as the logged-in status/logout button. */
+#adminBtn { display: none; }
 .admin-btn#adminBtn.active {
+  display: inline-flex;
   color: var(--green); border-color: var(--green-bdr);
   background: linear-gradient(180deg, var(--green-bg), var(--bg-elevated));
   box-shadow: 0 0 0 1px var(--green-bdr), 0 0 14px -4px rgba(34,197,94,0.5), var(--inset-hairline);
