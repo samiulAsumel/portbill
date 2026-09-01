@@ -27,7 +27,12 @@ function switchModule(mod) {
   document.body.classList.toggle("mode-saved", mod === "saved");
   document.body.classList.toggle("mode-stats", mod === "stats");
   if (mod === "saved") renderSavedBills();
-  if (mod === "stats") loadStats();
+  if (mod === "stats") {
+    loadStats();
+    startStatsAutoRefresh();
+  } else {
+    stopStatsAutoRefresh();
+  }
   document.body.classList.remove("sidebar-open"); // close mobile drawer after navigating
   globalThis.scrollTo({ top: 0, behavior: "smooth" });
 }

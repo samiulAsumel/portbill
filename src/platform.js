@@ -1906,26 +1906,113 @@ function statsDayKey(offsetDays) {
     .slice(0, 10);
 }
 
-async function loadStats() {
+// ─── Analytics: near-real-time polling with a cached, offline-first fallback ──
+const STATS_POLL_MS = 30000;
+const STATS_REQUEST_TIMEOUT_MS = 12000;
+const STATS_CACHE_KEY = "pb_stats_cache";
+let _statsTimer = null;
+let _statsInFlight = false;
+
+const STATS_LIVE_LABELS = { live: "LIVE", offline: "OFFLINE", error: "ERROR" };
+function setStatsLiveState(state) {
+  // state: "live" | "offline" | "error"
+  const badge = document.getElementById("statsLiveBadge");
+  if (badge) badge.className = "stats-live-badge stats-live-" + state;
+  const label = document.getElementById("statsLiveLabel");
+  if (label) label.textContent = STATS_LIVE_LABELS[state] || STATS_LIVE_LABELS.error;
+}
+
+function setStatsUpdatedNow() {
+  const el = document.getElementById("statsUpdated");
+  if (el) el.textContent = "Updated " + new Date().toLocaleTimeString("en-GB", { hour12: false });
+}
+
+function readStatsCache() {
+  return readJsonStorage(STATS_CACHE_KEY, null);
+}
+
+// Maps a loadStats() failure to a live-state badge + a user-facing reason.
+function classifyStatsError(e) {
+  if (e.status === 401) return { state: "error", reason: "Admin session expired — log in again to view analytics." };
+  if (e.status === 503) return { state: "error", reason: "Stats database is not configured on the Worker yet." };
+  if (!navigator.onLine || e.name === "AbortError") return { state: "offline", reason: "You are offline — showing the last known figures." };
+  return { state: "offline", reason: "Analytics temporarily unavailable — showing the last known figures." };
+}
+
+function handleStatsError(e, msg) {
+  dbg.warn("loadStats failed:", e.message);
+  const cached = readStatsCache();
+  if (cached) renderStats(cached);
+  else document.getElementById("statsGrid")?.classList.remove("stats-loading");
+  const { state, reason } = classifyStatsError(e);
+  msg.hidden = !!cached;
+  msg.textContent = cached ? "" : reason;
+  if (cached) showToast(reason, "warning");
+  setStatsLiveState(state);
+}
+
+// loadStats({ silent: true }) is used by the poller and visibility/online
+// listeners — it must never blank out numbers already on screen with a
+// "Loading…" message just because a background refresh is in flight.
+async function loadStats(opts) {
+  const silent = !!(opts && opts.silent);
   const msg = document.getElementById("statsMsg");
+  const refreshIcon = document.getElementById("statsRefreshIcon");
   if (!msg) return;
-  msg.hidden = false;
-  msg.textContent = "Loading usage data…";
+  if (_statsInFlight) return;
+  _statsInFlight = true;
+  if (refreshIcon) refreshIcon.classList.add("spinning");
+  if (!silent) {
+    document.getElementById("statsGrid")?.classList.add("stats-loading");
+    msg.hidden = false;
+    msg.textContent = "Loading usage data…";
+  }
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), STATS_REQUEST_TIMEOUT_MS) : null;
   try {
     const headers = {};
     if (_sessionWriteToken) headers["Authorization"] = "Bearer " + _sessionWriteToken;
-    const r = await fetch(PROXY_URL + "/stats?days=30", { headers });
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    renderStats(await r.json());
+    const r = await fetch(PROXY_URL + "/stats?days=30", { headers, signal: controller?.signal });
+    if (!r.ok) {
+      const err = new Error("HTTP " + r.status);
+      err.status = r.status;
+      throw err;
+    }
+    const data = await r.json();
+    renderStats(data);
+    try { localStorage.setItem(STATS_CACHE_KEY, JSON.stringify(data)); } catch { /* storage unavailable */ }
     msg.hidden = true;
+    setStatsLiveState("live");
+    setStatsUpdatedNow();
   } catch (e) {
-    dbg.warn("loadStats failed:", e.message);
-    msg.textContent =
-      "Analytics unavailable — you are offline, or the Worker stats database is not configured yet.";
+    handleStatsError(e, msg);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+    _statsInFlight = false;
+    if (refreshIcon) refreshIcon.classList.remove("spinning");
   }
 }
 
+function _onStatsVisibilityChange() {
+  if (document.visibilityState === "visible" && currentModule === "stats") loadStats({ silent: true });
+}
+
+function startStatsAutoRefresh() {
+  stopStatsAutoRefresh();
+  document.addEventListener("visibilitychange", _onStatsVisibilityChange);
+  _statsTimer = setInterval(() => {
+    if (document.visibilityState === "visible" && navigator.onLine) loadStats({ silent: true });
+  }, STATS_POLL_MS);
+}
+
+function stopStatsAutoRefresh() {
+  if (_statsTimer) clearInterval(_statsTimer);
+  _statsTimer = null;
+  document.removeEventListener("visibilitychange", _onStatsVisibilityChange);
+}
+
 function renderStats(s) {
+  document.getElementById("statsGrid")?.classList.remove("stats-loading");
   const setNum = (id, v) => {
     const el = document.getElementById(id);
     if (el) el.textContent = Number(v || 0).toLocaleString("en-US");
@@ -1978,7 +2065,9 @@ function renderStats(s) {
   });
   chart.innerHTML =
     `<svg viewBox="0 0 ${W} ${H}" width="100%" role="presentation" focusable="false">` +
+    `<line x1="${PAD}" y1="${((H - LBL) / 2).toFixed(1)}" x2="${W - PAD}" y2="${((H - LBL) / 2).toFixed(1)}" class="sbar-grid"/>` +
     `<line x1="${PAD}" y1="${H - LBL - 0.5}" x2="${W - PAD}" y2="${H - LBL - 0.5}" class="sbar-axis"/>` +
+    `<text x="${W - PAD}" y="10" class="sbar-max" text-anchor="end">peak ${max}</text>` +
     bars +
     `</svg>`;
 }
@@ -2069,11 +2158,25 @@ function printSavedBill(billNumber) {
 let _sbCarSearch = '';
 let _sbCargoSearch = '';
 let _sbReexportSearch = '';
+let _sbSearchTimer = null;
 
 function sbSearch(type, q) {
   if (type === 'cargo') _sbCargoSearch = q.trim().toLowerCase();
   else if (type === 'reexport') _sbReexportSearch = q.trim().toLowerCase();
   else _sbCarSearch = q.trim().toLowerCase();
+  clearTimeout(_sbSearchTimer);
+  _sbSearchTimer = setTimeout(renderSavedBills, 120);
+}
+
+// Clears one saved-bills search box (the ✕ button next to it) and re-renders immediately.
+function sbClearSearch(type) {
+  const ids = { car: 'sbCarSearch', cargo: 'sbCargoSearch', reexport: 'sbReexportSearch' };
+  const input = document.getElementById(ids[type]);
+  if (input) { input.value = ''; input.focus(); }
+  clearTimeout(_sbSearchTimer);
+  if (type === 'cargo') _sbCargoSearch = '';
+  else if (type === 'reexport') _sbReexportSearch = '';
+  else _sbCarSearch = '';
   renderSavedBills();
 }
 
@@ -2168,6 +2271,7 @@ function restoreFormDraft(type) {
 window.addEventListener('online', function() {
   updateSyncBadge();
   flushSync();
+  if (currentModule === 'stats') loadStats({ silent: true });
 });
 window.addEventListener('offline', updateSyncBadge);
 
@@ -2281,8 +2385,15 @@ function renderSavedBills() {
   const cargoBills = all.filter((b) => b.type === "cargo").sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
   const reexportBills = all.filter((b) => b.type === "reexport").sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
 
-  function buildRows(bills, searchQ) {
+  function setSbCount(id, visible, total, hasQuery) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = hasQuery && total ? `${visible} of ${total}` : '';
+  }
+
+  function buildRows(countId, bills, searchQ) {
     const visible = searchQ ? bills.filter((b) => matchesBillSearch(b, searchQ)) : bills;
+    setSbCount(countId, visible.length, bills.length, !!searchQ);
     if (!bills.length) {
       return '<tr><td colspan="8" style="text-align:center;color:var(--tx-2);padding:14px;">No saved bills yet</td></tr>';
     }
@@ -2313,9 +2424,9 @@ function renderSavedBills() {
     }).join("");
   }
 
-  carTbody.innerHTML = buildRows(carBills, _sbCarSearch);
-  cargoTbody.innerHTML = buildRows(cargoBills, _sbCargoSearch);
-  reexportTbody.innerHTML = buildRows(reexportBills, _sbReexportSearch);
+  carTbody.innerHTML = buildRows('sbCarCount', carBills, _sbCarSearch);
+  cargoTbody.innerHTML = buildRows('sbCargoCount', cargoBills, _sbCargoSearch);
+  reexportTbody.innerHTML = buildRows('sbReexportCount', reexportBills, _sbReexportSearch);
 }
 
 // Load a saved bill back into the Car/GC/Re-Export form for editing

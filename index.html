@@ -346,20 +346,48 @@
     ════════════════════════════════════════ -->
     <div id="page-dashboard" class="module-page" role="tabpanel" aria-labelledby="tab-dashboard" tabindex="0">
       <div class="wrap">
-        <h2 class="pgtitle">Operations Dashboard</h2>
-        <div class="pgsub">Summary of billing activity across all modules</div>
+        <div class="dash-header">
+          <div>
+            <h2 class="pgtitle">Operations Dashboard</h2>
+            <div class="pgsub">Summary of billing activity across all modules</div>
+          </div>
+          <div class="dash-date" id="dash-date"></div>
+        </div>
 
         <div class="dash-section" style="margin-top: 24px">
           <div class="dash-grid" id="dash-summary"></div>
         </div>
 
         <div class="dash-section">
-          <div class="dash-section-title">Recent Activity</div>
+          <div class="dash-section-head">
+            <svg class="dash-section-icon" aria-hidden="true"><use href="#ic-chart"></use></svg>
+            <div class="dash-section-title">Billing Activity — Last 30 Days</div>
+          </div>
+          <div class="card" id="dash-activity"></div>
+        </div>
+
+        <div class="dash-section">
+          <div class="dash-section-head">
+            <svg class="dash-section-icon" aria-hidden="true"><use href="#ic-dashboard"></use></svg>
+            <div class="dash-section-title">Quick Actions</div>
+          </div>
+          <div class="dash-quick" id="dash-quick"></div>
+        </div>
+
+        <div class="dash-section">
+          <div class="dash-section-head">
+            <svg class="dash-section-icon" aria-hidden="true"><use href="#ic-files"></use></svg>
+            <div class="dash-section-title">Recent Activity</div>
+            <div class="dash-section-action" id="dash-recent-action"></div>
+          </div>
           <div class="card" id="dash-recent"></div>
         </div>
 
         <div class="dash-section">
-          <div class="dash-section-title">System Status</div>
+          <div class="dash-section-head">
+            <svg class="dash-section-icon" aria-hidden="true"><use href="#ic-info"></use></svg>
+            <div class="dash-section-title">System Status</div>
+          </div>
           <div class="card" id="dash-status"></div>
         </div>
       </div>
@@ -2770,38 +2798,72 @@
             aria-labelledby="rotation-registry-title"
           >
             <div class="rot-reg-title" id="rotation-registry-title">ADD ROTATION</div>
+
+            <div class="rot-reg-summary" id="rotRegSummary" aria-live="polite"></div>
+
             <div class="rot-reg-form">
-              <label class="sr-only" for="rotRegYear">Rotation year</label>
-              <input
-                type="text"
-                id="rotRegYear"
-                class="rot-reg-input"
-                placeholder="Year e.g. 2026"
-                maxlength="4"
-                inputmode="numeric"
-              />
-              <label class="sr-only" for="rotRegNum">Rotation number</label>
-              <input
-                type="text"
-                id="rotRegNum"
-                class="rot-reg-input"
-                placeholder="No. e.g. 400"
-                maxlength="6"
-                inputmode="numeric"
-              />
-              <label class="sr-only" for="rotRegCld">Common landing day</label>
-              <input
-                type="text"
-                id="rotRegCld"
-                class="rot-reg-input rot-reg-cld"
-                placeholder="CLD DD/MM/YYYY"
-                maxlength="10"
-                inputmode="numeric"
-                oninput="formatDate(this)"
-              />
-              <button type="button" class="rot-reg-add-btn" onclick="addRotation()">+ ADD</button>
+              <div class="fg">
+                <label class="lbl" for="rotRegYear">Year</label>
+                <input
+                  type="text"
+                  id="rotRegYear"
+                  class="rot-reg-input"
+                  placeholder="e.g. 2026"
+                  maxlength="4"
+                  inputmode="numeric"
+                />
+              </div>
+              <div class="fg">
+                <label class="lbl" for="rotRegNum">Rotation No.</label>
+                <input
+                  type="text"
+                  id="rotRegNum"
+                  class="rot-reg-input"
+                  placeholder="e.g. 400"
+                  maxlength="6"
+                  inputmode="numeric"
+                />
+              </div>
+              <div class="fg rot-reg-fg-cld">
+                <label class="lbl" for="rotRegCld">Common Landing Day</label>
+                <div class="date-field-wrap">
+                  <input
+                    type="text"
+                    id="rotRegCld"
+                    class="rot-reg-input rot-reg-cld"
+                    placeholder="DD/MM/YYYY"
+                    maxlength="10"
+                    inputmode="numeric"
+                    oninput="formatDate(this)"
+                  />
+                  <span class="cal" aria-hidden="true"></span>
+                </div>
+              </div>
+              <button type="button" class="rot-reg-add-btn" onclick="addRotation()">+ ADD ROTATION</button>
             </div>
             <div class="rot-reg-status" id="rotRegStatus"></div>
+
+            <div class="rot-reg-toolbar">
+              <div class="pb-search-wrap">
+                <label class="sr-only" for="rotRegSearch">Search rotations</label>
+                <input
+                  type="search"
+                  id="rotRegSearch"
+                  class="pb-search"
+                  placeholder="Search rotation no., CLD, year…"
+                  oninput="rotSearch(this.value)"
+                  autocomplete="off"
+                />
+                <button type="button" class="pb-search-clear" onclick="rotClearSearch()" aria-label="Clear search">
+                  <svg aria-hidden="true"><use href="#ic-x"></use></svg>
+                </button>
+              </div>
+              <div class="rot-reg-toolbar-actions">
+                <button type="button" class="sb-action-btn" onclick="setAllYearGroups(false)">Expand all</button>
+                <button type="button" class="sb-action-btn" onclick="setAllYearGroups(true)">Collapse all</button>
+              </div>
+            </div>
+
             <div class="rot-reg-table-wrap">
               <table class="rot-reg-table" id="rotRegTable">
                 <thead>
@@ -2867,16 +2929,22 @@
         <section id="saved-car-panel" class="card rot-registry" aria-labelledby="saved-car-title">
           <div class="sb-panel-head">
             <div class="rot-reg-title" id="saved-car-title">CAR SAVED BILLS</div>
-            <div class="sb-search-wrap">
-              <label class="sr-only" for="sbCarSearch">Search saved car bills</label>
-              <input
-                type="search"
-                id="sbCarSearch"
-                class="sb-search"
-                placeholder="Search bill no., BL, C&amp;F, CLD…"
-                oninput="sbSearch('car', this.value)"
-                autocomplete="off"
-              />
+            <div class="sb-panel-head-search">
+              <span class="pb-search-count" id="sbCarCount"></span>
+              <div class="pb-search-wrap">
+                <label class="sr-only" for="sbCarSearch">Search saved car bills</label>
+                <input
+                  type="search"
+                  id="sbCarSearch"
+                  class="pb-search"
+                  placeholder="Search bill no., BL, C&amp;F, CLD…"
+                  oninput="sbSearch('car', this.value)"
+                  autocomplete="off"
+                />
+                <button type="button" class="pb-search-clear" onclick="sbClearSearch('car')" aria-label="Clear search">
+                  <svg aria-hidden="true"><use href="#ic-x"></use></svg>
+                </button>
+              </div>
             </div>
           </div>
           <div class="rot-reg-table-wrap">
@@ -2907,16 +2975,22 @@
         >
           <div class="sb-panel-head">
             <div class="rot-reg-title" id="saved-cargo-title">GENERAL CARGO SAVED BILLS</div>
-            <div class="sb-search-wrap">
-              <label class="sr-only" for="sbCargoSearch">Search saved cargo bills</label>
-              <input
-                type="search"
-                id="sbCargoSearch"
-                class="sb-search"
-                placeholder="Search bill no., BL, C&amp;F, CLD…"
-                oninput="sbSearch('cargo', this.value)"
-                autocomplete="off"
-              />
+            <div class="sb-panel-head-search">
+              <span class="pb-search-count" id="sbCargoCount"></span>
+              <div class="pb-search-wrap">
+                <label class="sr-only" for="sbCargoSearch">Search saved cargo bills</label>
+                <input
+                  type="search"
+                  id="sbCargoSearch"
+                  class="pb-search"
+                  placeholder="Search bill no., BL, C&amp;F, CLD…"
+                  oninput="sbSearch('cargo', this.value)"
+                  autocomplete="off"
+                />
+                <button type="button" class="pb-search-clear" onclick="sbClearSearch('cargo')" aria-label="Clear search">
+                  <svg aria-hidden="true"><use href="#ic-x"></use></svg>
+                </button>
+              </div>
             </div>
           </div>
           <div class="rot-reg-table-wrap">
@@ -2947,16 +3021,22 @@
         >
           <div class="sb-panel-head">
             <div class="rot-reg-title" id="saved-reexport-title">RE-EXPORT SAVED BILLS</div>
-            <div class="sb-search-wrap">
-              <label class="sr-only" for="sbReexportSearch">Search saved re-export bills</label>
-              <input
-                type="search"
-                id="sbReexportSearch"
-                class="sb-search"
-                placeholder="Search bill no., BL, C&amp;F, CLD…"
-                oninput="sbSearch('reexport', this.value)"
-                autocomplete="off"
-              />
+            <div class="sb-panel-head-search">
+              <span class="pb-search-count" id="sbReexportCount"></span>
+              <div class="pb-search-wrap">
+                <label class="sr-only" for="sbReexportSearch">Search saved re-export bills</label>
+                <input
+                  type="search"
+                  id="sbReexportSearch"
+                  class="pb-search"
+                  placeholder="Search bill no., BL, C&amp;F, CLD…"
+                  oninput="sbSearch('reexport', this.value)"
+                  autocomplete="off"
+                />
+                <button type="button" class="pb-search-clear" onclick="sbClearSearch('reexport')" aria-label="Clear search">
+                  <svg aria-hidden="true"><use href="#ic-x"></use></svg>
+                </button>
+              </div>
             </div>
           </div>
           <div class="rot-reg-table-wrap">
@@ -2991,9 +3071,16 @@
         <section class="card rot-registry stats-panel" aria-labelledby="stats-panel-title">
           <div class="sb-panel-head">
             <div class="rot-reg-title" id="stats-panel-title">APP USAGE</div>
-            <button type="button" class="rot-reg-add-btn stats-refresh-btn" onclick="loadStats()">
-              &#8635; Refresh
-            </button>
+            <div class="stats-head-right">
+              <span class="stats-live-badge stats-live-live" id="statsLiveBadge">
+                <span id="statsLiveLabel">LIVE</span>
+              </span>
+              <span class="stats-updated" id="statsUpdated"></span>
+              <button type="button" class="rot-reg-add-btn stats-refresh-btn" onclick="loadStats()">
+                <svg class="stats-refresh-icon" id="statsRefreshIcon" aria-hidden="true"><use href="#ic-refresh"></use></svg>
+                Refresh
+              </button>
+            </div>
           </div>
           <div class="stats-msg" id="statsMsg" hidden></div>
           <div class="stats-grid" id="statsGrid">
@@ -3061,7 +3148,7 @@
     <!-- ADMIN MODAL -->
     <dialog class="overlay" id="overlay" aria-labelledby="modal-heading">
       <div class="modal">
-        <div class="modal-title" id="modal-heading">ADMIN LOGIN</div>
+        <div class="modal-title" id="modal-heading"><span class="lck" aria-hidden="true"></span> ADMIN LOGIN</div>
         <div class="modal-sub">Enter credentials to unlock all fields</div>
         <div class="merr" id="merr">Incorrect username or password.</div>
         <div class="mfg">
@@ -3086,10 +3173,8 @@
           />
         </div>
         <div class="mbtns">
-          <button type="button" class="btn bsm" style="flex: 1" onclick="doLogin()">LOGIN</button>
-          <button class="btn bsm bg" style="flex: 1; margin-top: 0" onclick="closeModal()">
-            CANCEL
-          </button>
+          <button type="button" class="btn bsm" onclick="doLogin()">LOGIN</button>
+          <button class="btn bsm bg" onclick="closeModal()">CANCEL</button>
         </div>
       </div>
     </dialog>

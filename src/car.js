@@ -511,6 +511,8 @@ function carReset() {
 let _rotations = [];
 let _selectedRotation = null;
 let _collapsedYears = new Set();
+let _rotSearch = "";
+let _rotSearchTimer = null;
 
 // Load rotations from Cloudflare Worker on startup.
 // Cloud is source of truth; falls back to the last cached copy when offline
@@ -735,22 +737,92 @@ async function deleteRotation(id) {
   );
 }
 
+function parseDMY(s) {
+  if (!s) return 0;
+  var p = s.split("/");
+  return new Date(+p[2], +p[1] - 1, +p[0]).getTime();
+}
+
+// Renders the "N rotations · N years · Latest CLD dd/mm/yyyy" strip above the add form.
+function renderRotationSummary() {
+  var el = document.getElementById("rotRegSummary");
+  if (!el) return;
+  if (_rotations.length === 0) { el.innerHTML = ""; return; }
+  var years = new Set(_rotations.map(function(r) { return String(r.year); }));
+  var latest = _rotations.slice().sort(function(a, b) { return parseDMY(b.cld) - parseDMY(a.cld); })[0];
+  var parts = [
+    '<span class="rot-reg-summary-item"><strong>' + _rotations.length + '</strong> rotation' + (_rotations.length === 1 ? '' : 's') + '</span>',
+    '<span class="rot-reg-summary-sep">&middot;</span>',
+    '<span class="rot-reg-summary-item"><strong>' + years.size + '</strong> year' + (years.size === 1 ? '' : 's') + '</span>',
+  ];
+  if (latest && latest.cld) {
+    parts.push('<span class="rot-reg-summary-sep">&middot;</span>');
+    parts.push('<span class="rot-reg-summary-item">Latest CLD <strong>' + escHtml(latest.cld) + '</strong></span>');
+  }
+  el.innerHTML = parts.join('');
+}
+
+// Debounced live-search over rotation no./year/CLD (wired to #rotRegSearch oninput).
+function rotSearch(q) {
+  clearTimeout(_rotSearchTimer);
+  _rotSearchTimer = setTimeout(function() {
+    _rotSearch = q.trim().toLowerCase();
+    renderRotationTable();
+  }, 120);
+}
+
+// Clears the rotation search box (the ✕ button next to it) and re-renders immediately.
+function rotClearSearch() {
+  var input = document.getElementById("rotRegSearch");
+  if (input) { input.value = ""; input.focus(); }
+  clearTimeout(_rotSearchTimer);
+  _rotSearch = "";
+  renderRotationTable();
+}
+
+function matchesRotation(r, q) {
+  if (!q) return true;
+  var haystack = (String(r.year) + "/" + String(r.num) + " " + String(r.cld || "")).toLowerCase();
+  return haystack.indexOf(q) !== -1;
+}
+
+// Expand-all / Collapse-all toolbar buttons.
+function setAllYearGroups(collapsed) {
+  if (collapsed) {
+    _rotations.forEach(function(r) { _collapsedYears.add(String(r.year)); });
+  } else {
+    _collapsedYears.clear();
+  }
+  renderRotationTable();
+}
+
+function rotEmptyRow(title, sub) {
+  return '<tr><td colspan="3"><div class="bill-empty-state">' +
+    '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>' +
+    '<div class="bes-title">' + escHtml(title) + '</div>' +
+    '<div class="bes-sub">' + escHtml(sub) + '</div>' +
+    '</div></td></tr>';
+}
+
 // Render the rotation registry table grouped by year (newest year first)
 function renderRotationTable() {
+  renderRotationSummary();
   var tbody = document.getElementById("rotRegTbody");
   if (!tbody) return;
   if (_rotations.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--m2);padding:12px;">No rotations added yet</td></tr>';
+    tbody.innerHTML = rotEmptyRow("No rotations added yet", "Add a rotation number and CLD above to get started.");
     return;
   }
-  function parseDMY(s) {
-    if (!s) return 0;
-    var p = s.split("/");
-    return new Date(+p[2], +p[1] - 1, +p[0]).getTime();
+  var q = _rotSearch;
+  var filtered = q ? _rotations.filter(function(r) { return matchesRotation(r, q); }) : _rotations;
+  if (q && filtered.length === 0) {
+    tbody.innerHTML = rotEmptyRow("No rotations match your search", "Try a different rotation number, year, or CLD date.");
+    return;
   }
   // Group by year
   var byYear = {};
-  _rotations.forEach(function(r) {
+  filtered.forEach(function(r) {
     var y = String(r.year);
     if (!byYear[y]) byYear[y] = [];
     byYear[y].push(r);
@@ -759,14 +831,16 @@ function renderRotationTable() {
   var years = Object.keys(byYear).sort(function(a, b) { return +b - +a; });
   var html = '';
   years.forEach(function(year) {
-    var collapsed = _collapsedYears.has(year);
+    // While searching, matching groups are always shown expanded regardless of saved collapse state.
+    var collapsed = !q && _collapsedYears.has(year);
     var group = byYear[year].slice().sort(function(a, b) { return parseDMY(b.cld) - parseDMY(a.cld); });
     html += '<tr class="rot-year-group' + (collapsed ? ' collapsed' : '') + '" data-year-hdr="' + escHtml(year) + '" onclick="toggleYearGroup(\'' + escHtml(year) + '\')">' +
-      '<td colspan="3"><span class="rot-year-chevron"></span>' + escHtml(year) + ' <span class="rot-year-count">(' + group.length + ')</span></td></tr>';
+      '<td colspan="3"><span class="rot-year-chevron"></span>' + escHtml(year) + '<span class="rot-year-count">' + group.length + '</span></td></tr>';
     group.forEach(function(r) {
       html += '<tr' + (collapsed ? ' style="display:none"' : '') + ' data-year-row="' + escHtml(year) + '">' +
-        '<td>' + escHtml(year) + '/' + escHtml(String(r.num)) + '</td><td>' + escHtml(String(r.cld || '')) + '</td>' +
-        '<td><button class="rot-del-btn" onclick="event.stopPropagation();deleteRotation(\'' + r.id + '\')">✕</button></td></tr>';
+        '<td><span class="rot-num-chip">' + escHtml(year) + '/' + escHtml(String(r.num)) + '</span></td>' +
+        '<td><span class="rot-cld-cell"><span class="rot-cld-ico" aria-hidden="true"></span>' + escHtml(String(r.cld || '')) + '</span></td>' +
+        '<td><button class="rot-del-btn" onclick="event.stopPropagation();deleteRotation(\'' + r.id + '\')" aria-label="Delete rotation">✕</button></td></tr>';
     });
   });
   tbody.innerHTML = html;
