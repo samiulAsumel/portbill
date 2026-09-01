@@ -2305,9 +2305,9 @@ function renderSavedBills() {
         <td style="font-variant-numeric:tabular-nums lining-nums">${escHtml(b.totalFormatted || "—")}</td>
         <td>${savedDate}</td>
         <td>
-          <button type="button" class="rot-reg-add-btn saved-edit-btn" onclick="editSavedBill(${bn})">Edit</button>
-          <button type="button" class="saved-print-btn" onclick="printSavedBill(${bn})">Print</button>
-          ${isAdmin ? `<button type="button" class="rot-del-btn" onclick="deleteSavedBill(${bn})">Delete</button>` : ""}
+          <div class="sb-actions"><button type="button" class="sb-action-btn sb-edit-btn" onclick="editSavedBill(${bn})">Edit</button>
+          <button type="button" class="sb-action-btn sb-print-btn" onclick="printSavedBill(${bn})">Print</button>
+          ${isAdmin ? `<button type="button" class="sb-action-btn sb-del-btn" onclick="deleteSavedBill(${bn})">Delete</button>` : ""}</div>
         </td>
       </tr>`;
     }).join("");
