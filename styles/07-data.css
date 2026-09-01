@@ -36,13 +36,13 @@ table.rot-reg-table { width: 100%; border-collapse: collapse; min-width: 480px; 
 }
 .rot-reg-table tbody tr:hover { background: var(--bg-hover); }
 .rot-reg-table td:last-child, .rot-reg-table th:last-child { text-align: right; }
-.rot-del-btn, .saved-edit-btn, .saved-print-btn {
+.rot-del-btn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 30px; height: 30px; border-radius: var(--r-xs);
   border: 1px solid var(--bdr-2); background: transparent; color: var(--tx-1); cursor: pointer; margin-left: 4px;
 }
 .rot-del-btn:hover { color: var(--red); border-color: var(--red-bdr); background: var(--red-bg); }
-.saved-edit-btn:hover, .saved-print-btn:hover { color: var(--accent-hi); border-color: var(--accent-bdr); background: var(--accent-bg); }
+
 
 .rot-year-group td { background: var(--bg-surface); font-weight: 700; cursor: pointer; }
 .rot-year-chevron { display: inline-block; transition: transform var(--t-fast); margin-right: 6px; }
@@ -61,7 +61,7 @@ table.rot-reg-table { width: 100%; border-collapse: collapse; min-width: 480px; 
 .sb-panel-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-4); flex-wrap: wrap; }
 .sb-search-wrap { flex: 1; max-width: 320px; }
 .sb-search { height: 36px; }
-table.saved-bills-table td:nth-child(6) { text-align: right; font-family: 'DM Mono', monospace; }
+table.saved-bills-table td:nth-child(6) { text-align: right; font-family: 'DM Mono', monospace; } table.saved-bills-table td:last-child { white-space: nowrap; } .sb-actions { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; } .sb-action-btn { display: inline-flex; align-items: center; justify-content: center; height: 30px; padding: 0 12px; border-radius: var(--r-xs); border: 1px solid var(--bdr-2); background: transparent; color: var(--tx-1); font-size: 11.5px; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; cursor: pointer; transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast); } .sb-action-btn:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 1px; } .sb-edit-btn:hover { color: var(--accent-hi); border-color: var(--accent-bdr); background: var(--accent-bg); } .sb-print-btn:hover { color: var(--tx-0); border-color: var(--bdr-3); background: var(--bg-hover); } .sb-del-btn:hover { color: var(--red); border-color: var(--red-bdr); background: var(--red-bg); }
 @media (max-width: 480px) {
   .sb-panel-head { flex-direction: column; align-items: stretch; }
   .sb-search-wrap { max-width: none; }
