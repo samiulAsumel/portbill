@@ -99,9 +99,13 @@
       </defs>
     </svg>
 
-    <div id="sidebarScrim" onclick="document.body.classList.remove('sidebar-open')"></div>
-
     <div class="app-shell">
+      <!-- Scrim MUST be inside .app-shell (not a sibling): .app-shell creates its
+           own stacking context (position:relative + z-index:1), which caps
+           .app-sidebar's z-index:200 to that context. A sibling scrim compares
+           its z-index:199 against .app-shell's z-index:1 in the ROOT context and
+           wins, silently swallowing every tap on the sidebar underneath it. -->
+      <div id="sidebarScrim" onclick="document.body.classList.remove('sidebar-open')"></div>
       <!-- SIDEBAR — wraps the pre-existing .module-tabs/.tab-btn markup that
            switchModule()/updateAdminNavigation() (admin.js) already operate on.
            A single .module-tabs container is required: platform.js's arrow-key
