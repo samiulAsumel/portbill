@@ -433,9 +433,13 @@ function carCalculate() {
       : "";
     document.getElementById("car-ibar").innerHTML =
       `<div class="ibar"><div>${billNoHtml}${cnfHtml}${blHtml}${beNoHtml}${beDateHtml}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Car Wharfrent Starts</div><div class="iv">${wharfrentStarts}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Weight</div><div class="iv">${b.weight} ton(s)</div></div><div class="ii"><div class="il">Car Wharfrent Days</div><div class="iv" style="color:var(--gold)">${wharfrentDaysText}</div></div><div class="ii"><div class="il">Rate Mode</div><div class="iv" style="color:${rateModeColor}">${rateModeText}</div></div></div></div>`;
+    const grand = b.hasWharfrent ? b.iTotal + b.oTotal : b.nTotal;
+    const carSrowEl = document.getElementById("car-srow");
+    carSrowEl.style.gridTemplateColumns = b.hasWharfrent ? "" : "repeat(2, 1fr)";
+    carSrowEl.innerHTML = b.hasWharfrent
+      ? `<div class="sc cg"><div class="sl">Car Grand Total</div><div class="sv">${fmtN(grand)}</div><div class="ss">Inside + Outside · incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Total (Full Rate)</div><div class="sv">${fmtN(b.iTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div><div class="sc cp"><div class="sl">Outside Total (½ Rate)</div><div class="sv">${fmtN(b.oTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div>`
+      : `<div class="sc cg"><div class="sl">Car Grand Total</div><div class="sv">${fmtN(grand)}</div><div class="ss">Delivery within free time</div></div><div class="sc cb"><div class="sl">Payable Charges Only</div><div class="sv">${fmtN(b.nBase)}</div><div class="ss">Base before VAT &amp; Levy</div></div>`;
     if (b.hasWharfrent) {
-      document.getElementById("car-srow").innerHTML =
-        `<div class="sc cg"><div class="sl">Car Grand Total</div><div class="sv">${fmtN(b.iTotal + b.oTotal)}</div><div class="ss">Inside + Outside · incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Total (Full Rate)</div><div class="sv">${fmtN(b.iTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div><div class="sc cp"><div class="sl">Outside Total (½ Rate)</div><div class="sv">${fmtN(b.oTotal)}</div><div class="ss">Incl. VAT &amp; Levy</div></div>`;
       document.getElementById("car-insideSec").innerHTML =
         `<div style="margin-bottom:20px;">${b.isSplit ? '<div class="warn">⚡ Split Billing — Old rates applied up to 22/07/2024 · New rates from 23/07/2024</div>' : ""}<div class="slbl sl-in">▪ Inside Car Wharfrent</div><div class="card" style="padding:0;overflow:hidden;">${buildCarBillTable(b, "inside")}</div></div>`;
       document.getElementById("car-outsideSec").innerHTML =
@@ -446,17 +450,11 @@ function carCalculate() {
       document.getElementById("car-outsideSec").innerHTML =
         `<div style="margin-bottom:20px;"><div class="slbl sl-payable">▪ Payable Charges — Inside &amp; Outside</div><div class="card" style="padding:0;overflow:hidden;">${buildCarBillTable(b, "noWharfrent")}</div></div>`;
     }
-    const grand = b.hasWharfrent ? b.iTotal + b.oTotal : b.nTotal;
-    const carGrandSplitHtml = b.hasWharfrent
-      ? `<div><div class="glbl">Inside Total</div><div class="gval" style="color:var(--blue)">${fmt(b.iTotal)}</div><div class="gsub">Incl. VAT &amp; Levy</div></div><div><div class="glbl">Outside Total</div><div class="gval" style="color:var(--purple)">${fmt(b.oTotal)}</div><div class="gsub">Incl. VAT &amp; Levy</div></div>`
-      : `<div><div class="glbl">Payable Charges Only</div><div class="gval" style="color:var(--green)">${fmt(b.nBase)}</div><div class="gsub">Delivery within free time</div></div><div></div>`;
-    document.getElementById("car-grandSec").innerHTML =
-      `<div class="gbox"><div class="ginn">${carGrandSplitHtml}<div class="gfin"><div class="glbl">CAR GRAND TOTAL</div><div class="gval">${fmt(grand)}</div><div class="gsub">Tk — VAT &amp; Levy incl.</div></div></div></div>`;
     const carEmpty = document.getElementById("car-empty");
     if (carEmpty) carEmpty.style.display = "none";
-    const carGbox = document.querySelector("#car-grandSec .gbox");
+    const carGrandCg = carSrowEl.querySelector(".cg");
     // eslint-disable-next-line sonarjs/void-use -- void forces the offsetWidth read (reflow) that restarts the gboxPulse CSS animation
-    if (carGbox) { carGbox.classList.remove("just-calculated"); void carGbox.offsetWidth; carGbox.classList.add("just-calculated"); }
+    if (carGrandCg) { carGrandCg.classList.remove("just-calculated"); void carGrandCg.offsetWidth; carGrandCg.classList.add("just-calculated"); }
     if (!isInitialLoad) {
       setTimeout(
         () =>

@@ -103,9 +103,10 @@
 /* ── STAT ROW ── */
 /* Quick-glance stat row (Grand/Inside/Outside) shown above the detailed
    tables — same "real elevation + color story per card" treatment as
-   .gbox below it, just more compact since it's a preview, not the final
-   figure. Each variant gets its own tinted background + glow, not just
-   a thin left bar, so the row reads as three distinct callouts. */
+   the grand-total row below it, just more compact since it's a preview,
+   not the final figure. Each variant gets its own tinted background +
+   glow, not just a thin left bar, so the row reads as three distinct
+   callouts. */
 .sr { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-5); }
 @media (max-width: 640px) { .sr { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 380px) { .sr { grid-template-columns: 1fr; } }
@@ -186,57 +187,24 @@ table.bt { width: 100%; border-collapse: collapse; min-width: 480px; }
 .bt tr.calc-row td { font-size: 11px; color: var(--tx-2); }
 .dp, .dpg { display: inline-block; padding: 1px 6px; border-radius: 999px; background: var(--bg-hover); font-size: 10.5px; }
 
-/* ── GRAND TOTAL BOX (spec §16 "Amount Payable") ── */
-/* Same card recipe as .sc (the stat-row cards above it) — background
-   gradient formula, border, radius, shadow, hover lift — so the grand
-   total reads as one consistent card language with the row above it
-   instead of a separate bespoke "hero" component. */
-.gbox {
-  position: relative;
-  padding: var(--sp-5);
-  background:
-    linear-gradient(160deg, var(--accent-bg), transparent 65%),
-    var(--bg-card);
-  border: 1px solid var(--accent-bdr);
-  border-radius: var(--r);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-  transition: box-shadow var(--t-base), transform var(--t-base);
-}
-@media (pointer: fine) { .gbox:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-1px); } }
-.gbox::before {
-  content: "";
-  position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, var(--accent), transparent);
-}
-.ginn { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); margin-bottom: var(--sp-4); }
-@media (max-width: 480px) { .ginn { grid-template-columns: 1fr; } }
-.gfin { text-align: right; }
-.glbl { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tx-2); margin-bottom: 8px; }
-.gval {
-  font-family: 'DM Mono', monospace;
-  font-size: clamp(27px, 4.4vw, 38px);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--accent-hi);
-  line-height: 1.05;
-  text-shadow: 0 0 24px var(--accent-ring);
-}
-.gsub { font-size: 11px; color: var(--tx-2); margin-top: 6px; }
-.gbox.cargo-grand .gval { color: var(--sky-hi); }
-/* "Just calculated" moment — the one instant this box should feel alive:
-   a soft scale-settle + glow bloom on the frame, a diagonal light sweep
-   across it, and the amount itself pops in, instead of a single flat
-   ring pulse. car.js/cargo.js/reexport.js already do remove-class →
-   reflow → add-class on every Generate Bill click, so all three
-   animations below simply re-trigger on each new calculation. */
-.gbox.just-calculated { animation: gboxPulse 900ms cubic-bezier(0.16, 1, 0.3, 1); }
+/* ── GRAND TOTAL ROW (spec §16 "Amount Payable") ── */
+/* Grand total sections (car/cargo/reexport -grandSec) render as a .sr row
+   of .sc cards — the identical recipe as the stat-row above the bill
+   breakdown — so the two sections read as one consistent card system
+   instead of two different visual languages. */
+/* "Just calculated" moment — the one instant the grand-total card should
+   feel alive: a soft scale-settle + glow bloom on the frame, a diagonal
+   light sweep across it, and the amount itself pops in, instead of a
+   single flat ring pulse. car.js/cargo.js/reexport.js already do
+   remove-class → reflow → add-class on every Generate Bill click, so
+   these animations re-trigger on each new calculation. */
+.sc.cg.just-calculated { animation: gboxPulse 900ms cubic-bezier(0.16, 1, 0.3, 1); }
 @keyframes gboxPulse {
   0%   { transform: scale(0.99); box-shadow: var(--shadow-card), 0 0 0 0 var(--accent-ring), 0 0 0 0 var(--accent-ring); }
   35%  { transform: scale(1.006); box-shadow: var(--shadow-card), 0 0 0 3px var(--accent-ring), 0 0 46px 6px var(--accent-ring); }
   100% { transform: scale(1); box-shadow: var(--shadow-card), 0 0 0 20px rgba(0,0,0,0), 0 0 0 0 rgba(0,0,0,0); }
 }
-.gbox.just-calculated::after {
+.sc.cg.just-calculated::after {
   content: "";
   position: absolute; inset: 0;
   background: linear-gradient(115deg,
@@ -248,7 +216,7 @@ table.bt { width: 100%; border-collapse: collapse; min-width: 480px; }
   pointer-events: none;
 }
 @keyframes gboxShimmer { 0% { background-position: 160% 0; opacity: 1; } 100% { background-position: -60% 0; opacity: 0; } }
-.gbox.just-calculated .gval { animation: gvalPop 620ms cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: right center; }
+.sc.cg.just-calculated .sv { animation: gvalPop 620ms cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: left center; }
 @keyframes gvalPop {
   0%   { transform: scale(0.93); opacity: 0.5; }
   55%  { transform: scale(1.035); opacity: 1; }

@@ -2150,17 +2150,21 @@ function cargoCalculate() {
     const grand =
       b.hasWharfrent || b.isPartBilling ? b.gTotal : b.nTotal;
     const pbSuffix = b.isPartBilling ? " — Part Billing" : "";
-    const cargoGrandSplitHtml =
+    const stageCount = (b.pbPeriods || []).filter((p) => !p.invalid || p.freeTimeDelivery).length;
+    const daysSuffix = b.isPartBilling ? ` · ${b.totalDays} days` : "";
+    const cargoGrandLabel = b.isPartBilling ? "Grand Total — Part Billing" : "General Cargo Grand Total";
+    const cargoGrandSub = b.isPartBilling ? `${stageCount} stages · incl. VAT &amp; Levy` : "incl. VAT &amp; Levy";
+    const cargoGrandCardsHtml =
       b.hasWharfrent || b.isPartBilling
-        ? `<div><div class="glbl">Inside Sub-Total${pbSuffix}</div><div class="gval" style="color:var(--blue)">${fmt(b.iBase)}</div><div class="gsub">Full rate · before VAT</div></div><div><div class="glbl">Outside Sub-Total${pbSuffix}</div><div class="gval" style="color:var(--purple)">${fmt(b.oBase)}</div><div class="gsub">½ rate · before VAT</div></div>`
-        : `<div><div class="glbl">Payable Charges</div><div class="gval" style="color:var(--green)">${fmt(b.nBase)}</div><div class="gsub">No wharfrent — payable charges only</div></div><div></div>`;
+        ? `<div class="sc cg"><div class="sl">${cargoGrandLabel}</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(grand)}</div><div class="ss">${cargoGrandSub}</div></div><div class="sc cb"><div class="sl">Inside Sub-Total${pbSuffix}</div><div class="sv">${fmtN(b.iBase)}</div><div class="ss">Full rate · before VAT${daysSuffix}</div></div><div class="sc cp"><div class="sl">Outside Sub-Total${pbSuffix}</div><div class="sv">${fmtN(b.oBase)}</div><div class="ss">½ rate · before VAT${daysSuffix}</div></div>`
+        : `<div class="sc cg"><div class="sl">General Cargo Grand Total</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(grand)}</div><div class="ss">Delivery within free time</div></div><div class="sc cb"><div class="sl">Payable Charges Only</div><div class="sv">${fmtN(b.nBase)}</div><div class="ss">Base before VAT &amp; Levy</div></div>`;
     document.getElementById("cargo-grandSec").innerHTML =
-      `<div class="gbox cargo-grand"><div class="ginn">${cargoGrandSplitHtml}<div class="gfin"><div class="glbl">GENERAL CARGO GRAND TOTAL</div><div class="gval" style="color:var(--cargo-accent)">${fmt(grand)}</div><div class="gsub">Tk — All inclusive</div></div></div></div>`;
+      `<div class="sr gr"${(b.hasWharfrent || b.isPartBilling) ? "" : ' style="grid-template-columns:repeat(2,1fr)"'}>${cargoGrandCardsHtml}</div>`;
     const cargoEmpty = document.getElementById("cargo-empty");
     if (cargoEmpty) cargoEmpty.style.display = "none";
-    const cargoGbox = document.querySelector("#cargo-grandSec .gbox");
+    const cargoGrandCg = document.querySelector("#cargo-grandSec .cg");
     // eslint-disable-next-line sonarjs/void-use -- void forces the offsetWidth read (reflow) that restarts the gboxPulse CSS animation
-    if (cargoGbox) { cargoGbox.classList.remove("just-calculated"); void cargoGbox.offsetWidth; cargoGbox.classList.add("just-calculated"); }
+    if (cargoGrandCg) { cargoGrandCg.classList.remove("just-calculated"); void cargoGrandCg.offsetWidth; cargoGrandCg.classList.add("just-calculated"); }
 
     if (!isInitialLoad) {
       setTimeout(

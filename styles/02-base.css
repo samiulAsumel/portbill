@@ -51,7 +51,7 @@ body::before {
 h1, h2, h3, h4 { font-weight: 600; line-height: 1.2; }
 
 /* Tabular figures everywhere money/tonnage appears */
-.mono, .rspan, .pc-rate-input, .gval, .pvr-val, .sv, .iv,
+.mono, .rspan, .pc-rate-input, .pvr-val, .sv, .iv,
 input[type="number"], input.cyan-glow, input.cargo-glow, input.sd-glow,
 .bt td, .date-display {
   font-family: 'DM Mono', ui-monospace, monospace;
