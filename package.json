@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint .",
     "lint:css": "stylelint \"styles/*.css\"",
-    "test": "node tests/vat.test.js"
+    "test": "node tests/run-all.js"
   },
   "devDependencies": {
     "eslint": "^9.0.0",
