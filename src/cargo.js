@@ -2099,8 +2099,6 @@ function cargoCalculate() {
       const lastDel = vp.length > 0 ? fd(vp[vp.length - 1].deliveryDate) : "—";
       document.getElementById("cargo-ibar").innerHTML =
         `<div class="ibar"><div>${billNoHtml}${cnfHtml}${blHtml}${beNoHtml}${beDateHtml}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${fd(b.storStart)}</div></div><div class="ii"><div class="il">First Delivery</div><div class="iv">${firstDel}</div></div><div class="ii"><div class="il">Last Delivery</div><div class="iv">${lastDel}</div></div><div class="ii"><div class="il">Delivery Stages</div><div class="iv" style="color:var(--cargo-accent)">${vp.length} stages</div></div><div class="ii"><div class="il">Initial Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Total Wharfrent Days</div><div class="iv" style="color:var(--gold)">${b.totalDays} days</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
-      document.getElementById("cargo-srow").innerHTML =
-        `<div class="sc cg"><div class="sl">Grand Total — Part Billing</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(b.gTotal)}</div><div class="ss">${vp.length} stages · incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Sub-Total</div><div class="sv">${fmtN(b.iBase)}</div><div class="ss">Before VAT &amp; Levy · ${b.totalDays} days</div></div><div class="sc cp"><div class="sl">Outside Sub-Total</div><div class="sv">${fmtN(b.oBase)}</div><div class="ss">Before VAT &amp; Levy · ${b.totalDays} days</div></div>`;
       const pbInDesc =
         b.wharfSdInside > 0
           ? `${fmtN(b.insideNormalW)}t Normal + ${fmtN(b.wharfSdInside)}t SD`
@@ -2120,8 +2118,6 @@ function cargoCalculate() {
       document.getElementById("cargo-ibar").innerHTML =
         `<div class="ibar"><div>${billNoHtml}${cnfHtml}${blHtml}${beNoHtml}${beDateHtml}<div class="ii"><div class="il">CLD</div><div class="iv">${fd(b.cld)}</div></div><div class="ii"><div class="il">Free Time Ends</div><div class="iv">${fd(b.freeEnd)}</div></div><div class="ii"><div class="il">Wharfrent Starts</div><div class="iv">${wharfrentStarts}</div></div><div class="ii"><div class="il">Delivery</div><div class="iv">${fd(b.delivery)}</div></div><div class="ii"><div class="il">Total Weight</div><div class="iv">${fmtN(b.totalWeight)} ton(s)</div></div><div class="ii"><div class="il">Inside / Outside</div><div class="iv" style="color:var(--cargo-accent)">${fmtN(b.insideW)}t / ${fmtN(b.outsideW)}t</div></div><div class="ii"><div class="il">Wharfrent Days</div><div class="iv" style="color:var(--gold)">${wharfrentDaysText}</div></div><div class="ii"><div class="il">Landing Tier</div><div class="iv" style="color:var(--cargo-accent)">${getCargoTierLabel(b.totalWeight)}</div></div></div></div>`;
       if (b.hasWharfrent) {
-        document.getElementById("cargo-srow").innerHTML =
-          `<div class="sc cg"><div class="sl">General Cargo Grand Total</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(b.gTotal)}</div><div class="ss">incl. VAT &amp; Levy</div></div><div class="sc cb"><div class="sl">Inside Sub-Total</div><div class="sv">${fmtN(b.iBase)}</div><div class="ss">Full rate · before VAT</div></div><div class="sc cp"><div class="sl">Outside Sub-Total</div><div class="sv">${fmtN(b.oBase)}</div><div class="ss">½ rate · before VAT</div></div>`;
         const inTonDesc =
           b.wharfSdInside > 0
             ? `${fmtN(b.insideNormalW)}t Normal + ${fmtN(b.wharfSdInside)}t SD`
@@ -2154,15 +2150,15 @@ function cargoCalculate() {
     const daysSuffix = b.isPartBilling ? ` · ${b.totalDays} days` : "";
     const cargoGrandLabel = b.isPartBilling ? "Grand Total — Part Billing" : "General Cargo Grand Total";
     const cargoGrandSub = b.isPartBilling ? `${stageCount} stages · incl. VAT &amp; Levy` : "incl. VAT &amp; Levy";
-    const cargoGrandCardsHtml =
+    const cargoSrowEl = document.getElementById("cargo-srow");
+    cargoSrowEl.style.gridTemplateColumns = (b.hasWharfrent || b.isPartBilling) ? "" : "repeat(2, 1fr)";
+    cargoSrowEl.innerHTML =
       b.hasWharfrent || b.isPartBilling
         ? `<div class="sc cg"><div class="sl">${cargoGrandLabel}</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(grand)}</div><div class="ss">${cargoGrandSub}</div></div><div class="sc cb"><div class="sl">Inside Sub-Total${pbSuffix}</div><div class="sv">${fmtN(b.iBase)}</div><div class="ss">Full rate · before VAT${daysSuffix}</div></div><div class="sc cp"><div class="sl">Outside Sub-Total${pbSuffix}</div><div class="sv">${fmtN(b.oBase)}</div><div class="ss">½ rate · before VAT${daysSuffix}</div></div>`
         : `<div class="sc cg"><div class="sl">General Cargo Grand Total</div><div class="sv" style="color:var(--cargo-accent)">${fmtN(grand)}</div><div class="ss">Delivery within free time</div></div><div class="sc cb"><div class="sl">Payable Charges Only</div><div class="sv">${fmtN(b.nBase)}</div><div class="ss">Base before VAT &amp; Levy</div></div>`;
-    document.getElementById("cargo-grandSec").innerHTML =
-      `<div class="sr gr"${(b.hasWharfrent || b.isPartBilling) ? "" : ' style="grid-template-columns:repeat(2,1fr)"'}>${cargoGrandCardsHtml}</div>`;
     const cargoEmpty = document.getElementById("cargo-empty");
     if (cargoEmpty) cargoEmpty.style.display = "none";
-    const cargoGrandCg = document.querySelector("#cargo-grandSec .cg");
+    const cargoGrandCg = cargoSrowEl.querySelector(".cg");
     // eslint-disable-next-line sonarjs/void-use -- void forces the offsetWidth read (reflow) that restarts the gboxPulse CSS animation
     if (cargoGrandCg) { cargoGrandCg.classList.remove("just-calculated"); void cargoGrandCg.offsetWidth; cargoGrandCg.classList.add("just-calculated"); }
 

@@ -558,8 +558,6 @@ function reexportCalculate() {
       : "";
     document.getElementById("reexport-ibar").innerHTML =
       `<div class="ibar"><div>${billNoHtml}${cnfHtml}${blHtml}<div class="ii"><div class="il">Re-Export Date</div><div class="iv">${fd(b.reexportDate)}</div></div><div class="ii"><div class="il">Re-Export Type</div><div class="iv" style="color:${typeColor}">${typeText}</div></div><div class="ii"><div class="il">Wharf Type</div><div class="iv">${wharfText}</div></div><div class="ii"><div class="il">Bill of Entries</div><div class="iv" style="color:var(--accent)">${b.beResults.length}</div></div><div class="ii"><div class="il">River Dues</div><div class="iv">${fmtN(nn("re-rRiver"))} Tk/ton</div></div><div class="ii"><div class="il">Total Wharf Rent Days</div><div class="iv" style="color:var(--gold)">${b.isOverside ? "—" : totalWharfDays + " days"}</div></div></div></div>`;
-    document.getElementById("reexport-srow").innerHTML =
-      `<div class="sc cg"><div class="sl">Total Amount Payable</div><div class="sv" style="color:var(--accent)">${fmtN(b.grandTotal)}</div><div class="ss">Incl. VAT${b.levyTotal > 0 ? " &amp; Levy" : ""}</div></div><div class="sc cb"><div class="sl">Sub Total (Base for VAT)</div><div class="sv">${fmtN(b.vatBaseTotal)}</div><div class="ss">${b.beResults.length} Bill${b.beResults.length !== 1 ? "s" : ""} of Entry combined</div></div><div class="sc cp"><div class="sl">VAT @ ${(b.vatRate * 100).toFixed(2)}%</div><div class="sv">${fmtN(b.vatAmount)}</div><div class="ss">On combined base</div></div>`;
     document.getElementById("reexport-beSec").innerHTML = b.beResults
       .map((be) => {
         const beLabel = be.beNumber || `#${be.idx + 1}`;
@@ -567,11 +565,12 @@ function reexportCalculate() {
         return `<div style="margin-bottom:20px;"><div class="slbl sl-in">▪ Bill of Entry ${beLabel}${beDateSuffix} <span style="color:var(--m2);font-weight:400;">(${fmtN(be.totalTon)} ton(s))</span></div><div class="cargo-split-info">Landing Rate: <strong>${fmtN(be.landingRate)} Tk/ton</strong> — Tier: ${getReexportLandingTierLabel(be.totalTon)}</div><div class="card" style="padding:0;overflow:hidden;">${buildReexportBETable(be, b)}</div></div>`;
       })
       .join("");
-    document.getElementById("reexport-grandSec").innerHTML =
-      `<div class="sr gr"><div class="sc cg"><div class="sl">Total Amount Payable</div><div class="sv" style="color:var(--accent)">${fmtN(b.grandTotal)}</div><div class="ss">Incl. VAT${b.levyTotal > 0 ? " &amp; Levy" : ""}</div></div><div class="sc cb"><div class="sl">Sub Total (Base for VAT)</div><div class="sv">${fmtN(b.vatBaseTotal)}</div><div class="ss">${b.beResults.length} Bill${b.beResults.length !== 1 ? "s" : ""} of Entry combined</div></div><div class="sc cp"><div class="sl">VAT${b.levyTotal > 0 ? " + Levy" : ""}</div><div class="sv">${fmtN(b.vatAmount + b.levyTotal)}</div><div class="ss">${b.levyTotal > 0 ? "VAT + Levy (No VAT on Levy)" : "VAT only"}</div></div></div>`;
+    const reexportSrowEl = document.getElementById("reexport-srow");
+    reexportSrowEl.innerHTML =
+      `<div class="sc cg"><div class="sl">Total Amount Payable</div><div class="sv" style="color:var(--accent)">${fmtN(b.grandTotal)}</div><div class="ss">Incl. VAT${b.levyTotal > 0 ? " &amp; Levy" : ""}</div></div><div class="sc cb"><div class="sl">Sub Total (Base for VAT)</div><div class="sv">${fmtN(b.vatBaseTotal)}</div><div class="ss">${b.beResults.length} Bill${b.beResults.length !== 1 ? "s" : ""} of Entry combined</div></div><div class="sc cp"><div class="sl">VAT${b.levyTotal > 0 ? " + Levy" : ""}</div><div class="sv">${fmtN(b.vatAmount + b.levyTotal)}</div><div class="ss">${b.levyTotal > 0 ? "VAT + Levy (No VAT on Levy)" : "VAT only"}</div></div>`;
     const reexportEmpty = document.getElementById("reexport-empty");
     if (reexportEmpty) reexportEmpty.style.display = "none";
-    const reexportGrandCg = document.querySelector("#reexport-grandSec .cg");
+    const reexportGrandCg = reexportSrowEl.querySelector(".cg");
     // eslint-disable-next-line sonarjs/void-use -- void forces the offsetWidth read (reflow) that restarts the gboxPulse CSS animation
     if (reexportGrandCg) { reexportGrandCg.classList.remove("just-calculated"); void reexportGrandCg.offsetWidth; reexportGrandCg.classList.add("just-calculated"); }
     if (!isInitialLoad) {
