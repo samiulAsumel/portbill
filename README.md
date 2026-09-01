@@ -337,7 +337,7 @@ Single-column on mobile, two-column grid at ≥ 768 px. Optimised for screens fr
 
 The app ships a `manifest.json` and a service worker (`sw.js`). It can be installed to the home screen on Android and iOS, and works **fully offline** after the first load using a cache-first strategy. The service worker is updated on each reload via background network fetch.
 
-> **Deployment note:** when pushing a new version, increment the cache name in `sw.js` (e.g. `portbill-v16` → `portbill-v17`) so installed users receive updated files immediately. The current cache is `portbill-v17`.
+> **Deployment note:** when pushing a new version, increment the `CACHE` constant at the top of `sw.js` so installed users receive updated files immediately.
 
 ### Offline Sync & Resilience
 
@@ -400,7 +400,7 @@ const r2 = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0;
 Row.TotalVATBDT = Math.Round((Row.TotalBillBDT ?? 0) * Tariff.VATPercent / 100m, 2);
 ```
 
-C# `Math.Round` defaults to **half-to-even (banker's) rounding**, so `calcVATmpa()` replicates that: the bill is converted to integer poysha (no float64 drift), multiplied exactly, and rounded half-to-even in a single final step (e.g. 15.70 × 15% = 2.355 → **2.36**; 117.50 × 15% = 17.625 → **17.62**). This eliminated the occasional 1-poysha VAT differences against printed Port Authority bills. A 12-case parity suite lives in `tests/vat.test.js` (`node tests/vat.test.js`).
+C# `Math.Round` defaults to **half-to-even (banker's) rounding**, so `calcVATmpa()` replicates that: the bill is converted to integer poysha (no float64 drift), multiplied exactly, and rounded half-to-even in a single final step (e.g. 15.70 × 15% = 2.355 → **2.36**; 117.50 × 15% = 17.625 → **17.62**). This eliminated the occasional 1-poysha VAT differences against printed Port Authority bills. A 12-case parity suite lives in `tests/vat.test.js`, run along with the rest of the test suite via `npm test`.
 
 **Single-rounding of VAT** — In General Cargo, VAT is rounded **once** on the combined Inside + Outside base; Re-Export applies the same rule across N Bills of Entry, rounding once on the combined `vatBaseTotal`. Rounding per portion/BE and summing double-rounds: when multiple pieces sit on a half-cent boundary the grand total drifts a cent. The Car module bills each section independently, so its per-section VAT is correct by construction.
 
@@ -435,12 +435,20 @@ python3 -m http.server 8080
 
 ```
 index.html
-style.css
+styles/01-tokens.css
+styles/02-base.css
+styles/03-shell.css
+styles/04-components.css
+styles/05-billing.css
+styles/06-results.css
+styles/07-data.css
+styles/08-print.css
 src/core.js
 src/admin.js
 src/car.js
 src/cargo.js
 src/reexport.js
+src/dashboard.js
 src/platform.js
 favicon.svg
 manifest.json
@@ -521,15 +529,17 @@ Until the binding exists both routes return 503 and the app is unaffected — pi
 ```
 portbill/
 ├── index.html     — Markup: header, module tabs, admin dialog, print-preview dialog,
-│                    Car page (#page-car), Cargo page (#page-cargo), Re-Export page
-│                    (#page-reexport), Rotation page (#page-rotation), Saved Bills page
-│                    (#page-saved), Analytics page (#page-stats)
-├── style.css      — All styles (~4870 lines): design tokens, accent variable system
-│                    (gold/sky/teal), component styles, date-field-wrap / .cal icon,
-│                    in-unit-wrap / .in-unit tonnage-suffix, segmented pill controls
-│                    (.seg/.seg-btn), toast, inline validation, rotation card, saved
-│                    bills, search bar, responsive polish 320px → 4K, print rules
-├── src/            — All logic (~7030 lines total), split into six classic <script defer>
+│                    Dashboard page (#page-dashboard), Car page (#page-car), Cargo page
+│                    (#page-cargo), Re-Export page (#page-reexport), Rotation page
+│                    (#page-rotation), Saved Bills page (#page-saved), Analytics page
+│                    (#page-stats)
+├── styles/        — All styles (~1810 lines total), split into 8 numbered files loaded
+│                    in that fixed order: design tokens + accent variable system
+│                    (01-tokens.css), base/reset (02-base.css), shell/nav (03-shell.css),
+│                    shared components (04-components.css), billing forms (05-billing.css),
+│                    results/stat-cards (06-results.css), data tables (07-data.css), and
+│                    @media print rules (08-print.css)
+├── src/            — All logic (~7430 lines total), split into seven classic <script defer>
 │                    files sharing one global scope (no bundler; core.js loads first,
 │                    platform.js loads last):
 │   ├── core.js     — Shared kernel: calcVATmpa(), ceilTon(), RATE_DEFAULTS + rate
@@ -548,6 +558,9 @@ portbill/
 │   │                 buildCargoBillTable(); Part Billing (computePartBillingWharfrent())
 │   ├── reexport.js — Re-Export billing: reexportCompute() → calcReexportWharfRent()
 │   │                 → renderBillOfEntries() → reexportCalculate()
+│   ├── dashboard.js — Read-only Operations overview: renderDashboardSummary() /
+│   │                  renderDashboardRecent() over data the app already owns
+│   │                  (getSavedBills(), rotation cache, sync-pending state)
 │   └── platform.js — Cross-cutting services + app bootstrap (loads last): invoice/
 │                     print (buildInvoiceHtml(), openPrintPreview(), printBill()),
 │                     cloud sync (saveBillsToWorker(), loadBillsFromWorker()), offline
@@ -561,15 +574,26 @@ portbill/
 │                    matches WRITE_TOKEN_HASH Cloudflare secret; D1-backed usage
 │                    analytics (POST /track open, GET /stats bearer-guarded)
 ├── manifest.json  — PWA web app manifest (name, icons, display: standalone, theme_color)
-├── sw.js          — Service worker (cache: portbill-v17): cache-first with background
-│                    network update; caches index.html, the six src/*.js files,
-│                    style.css, favicon.svg, manifest.json
+├── sw.js          — Service worker (cache name bumped each deploy — check the `CACHE`
+│                    constant in the file for the current version): cache-first with
+│                    background network update; caches index.html, the seven src/*.js
+│                    files, the eight styles/*.css files, favicon.svg, manifest.json
 ├── favicon.svg    — Compass-rose emblem SVG (gold stroke #c09230); also apple-touch-icon
 ├── wrangler.toml  — Worker deploy config: pins `name`, `main`, and the D1 `[[d1_databases]]`
 │                    binding (`DB` → `portbill-stats`) so `wrangler deploy` is reproducible
-└── tests/
-    └── vat.test.js — VAT MPA-parity suite (12 cases, banker's-rounding midpoints,
-                      null safety); run with `node tests/vat.test.js`
+└── tests/         — Four suites, run together via `npm test` (tests/run-all.js spawns
+                     each as its own process); every suite extracts the real function
+                     from the shipped src/*.js at runtime, not a copy:
+    ├── vat.test.js      — VAT MPA-parity (12 cases, banker's-rounding midpoints, null
+    │                      safety) against calcVATmpa()
+    ├── tonnage.test.js  — ceilTon() rounding (fractional-always-up, negative/non-finite
+    │                      clamp to 0, string parsing)
+    ├── slabs.test.js    — calcSlabs() wharfrent-slab progression, incl. the daysOffset
+    │                      split-billing continuation case
+    ├── rounding.test.js — scans src/*.js for every r2/rp2/_rp money-rounding declaration,
+    │                      asserts they're all textually identical, then checks the
+    │                      formula against documented half-down cases
+    └── run-all.js       — test runner: spawns every *.test.js, fails if any one fails
 ```
 
 ---
@@ -595,7 +619,7 @@ el.dispatchEvent(new Event("change", { bubbles: true }));
 
 ### Module-Aware Accent System
 
-`style.css` defines `--accent` (and `--accent-hi/lo/bg/bdr/ring/rgb`) defaulting to gold (Car module). `switchModule()` adds `body.mode-cargo` (sky blue) or `body.mode-reexport` (teal) which override every `--accent-*` variable. All UI elements derive their color from `var(--accent)` without duplicate rules. The printed invoice inlines literal hex values per module (`"car"`/`"cargo"`/`"reexport"`) since the `<iframe>` has no access to parent CSS variables.
+`styles/01-tokens.css` defines `--accent` (and `--accent-hi/lo/bg/bdr/ring/rgb`) defaulting to gold (Car module). `switchModule()` adds `body.mode-cargo` (sky blue) or `body.mode-reexport` (teal) which override every `--accent-*` variable. All UI elements derive their color from `var(--accent)` without duplicate rules. The printed invoice inlines literal hex values per module (`"car"`/`"cargo"`/`"reexport"`) since the `<iframe>` has no access to parent CSS variables.
 
 ### Lock Icon (`.lck`)
 
@@ -607,7 +631,7 @@ User-supplied free text is escaped with `escHtml()` before being interpolated in
 
 ### Grand Total Pulse Animation
 
-After each calculation, a CSS pulse fires on the grand total box:
+After each calculation, a CSS pulse fires on the grand-total card (the `.cg` stat card inside that module's `-srow` element):
 
 ```js
 el.classList.remove("just-calculated");
@@ -628,6 +652,17 @@ All generated bills carry the notice:
 ---
 
 ## Changelog
+
+### Unreleased — `feature/enterprise-redesign` branch
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | UI | Grand-total display in Car, Cargo, and Re-Export migrated from the bespoke `.gbox` component to the `.sr`/`.sc` stat-card recipe already used by the quick-preview row, so both read as one consistent card system |
+| 2 | UI (fix) | Cargo and Re-Export were rendering the grand-total figures **twice** — once in a top preview row, again in a bottom "final" row with near-duplicate content. Collapsed into a single row per module, positioned like Car's, right after the info bar |
+| 3 | Repo hygiene | Removed the orphaned root-level `style.css` (148 KB, unreferenced since the `styles/` split) and brought `CLAUDE.md`/`README.md` back in sync with the actual file layout (`styles/` 8-file split, `src/dashboard.js`, current test suite) |
+| 4 | Tests | Added `tonnage.test.js`, `slabs.test.js`, and `rounding.test.js` alongside the existing `vat.test.js`, plus a `run-all.js` runner wired to `npm test` — covers `ceilTon()`, `calcSlabs()` split-billing progression, and cross-file consistency of the duplicated `r2` rounding formula |
+| 5 | CI | `check-encoding.yml` updated to scan the current file set (`styles/*.css` instead of the removed `style.css`, plus `worker.js`/`sw.js`) |
+| 6 | CI | Added `ci.yml` — runs `npm run lint`, `npm run lint:css`, and `npm test` on every push/PR to `main`. Previously only the encoding check ran, so a broken `calcVATmpa()` or `calcSlabs()` change could merge clean |
 
 ### v3.12.1 — Current Release
 

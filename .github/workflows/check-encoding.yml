@@ -23,7 +23,7 @@ jobs:
           # We use grep -P to search for the pattern in files declared as UTF-8.
           
           FAILED=0
-          for FILE in index.html style.css src/*.js; do
+          for FILE in index.html styles/*.css src/*.js worker.js sw.js; do
             [ -f "$FILE" ] || continue
             
             # Count sequences: byte 0xC2-0xEF followed by 0x80-0xBF  
