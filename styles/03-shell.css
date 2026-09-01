@@ -283,16 +283,59 @@
   text-transform: uppercase;
 }
 
+/* Info/disclaimer note (Car "Hoisting Charge", Cargo "General Cargo Module",
+   Re-Export "Hoisting Charge") — an icon-badge + two-tier text card instead
+   of a flat bordered paragraph: a left accent bar and gradient wash give it
+   real depth, and the disclaimer sentence is visually demoted (smaller,
+   muted, divider) so it reads as a footnote rather than competing with the
+   operational note above it. */
 .weight-note, .cargo-note {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
   margin-top: var(--sp-3);
   padding: var(--sp-3) var(--sp-4);
-  background: var(--amber-bg);
+  background:
+    linear-gradient(160deg, var(--amber-bg), transparent 65%),
+    var(--bg-card);
   border: 1px solid var(--amber-bdr);
   border-radius: var(--r-sm);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.03);
+}
+.weight-note::before, .cargo-note::before {
+  content: "";
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, var(--amber), rgba(240,160,32,0.35));
+}
+.weight-note .note-icon, .cargo-note .note-icon {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-bdr);
+  color: var(--amber);
+}
+.weight-note .note-body, .cargo-note .note-body {
+  flex: 1;
+  min-width: 0;
   color: var(--tx-1);
   font-size: 12.5px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
+.weight-note .note-body p, .cargo-note .note-body p { margin: 0; }
+.weight-note .note-body strong, .cargo-note .note-body strong { color: var(--tx-0); font-weight: 700; }
+.weight-note .note-body .note-disclaimer, .cargo-note .note-body .note-disclaimer {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px dashed var(--bdr-2);
+  font-size: 11px;
+  color: var(--tx-2);
+}
+.weight-note .note-disclaimer strong, .cargo-note .note-disclaimer strong { color: var(--tx-1); font-weight: 600; }
 
 .copyright-footer {
   margin-top: auto;
