@@ -47,7 +47,7 @@ function renderDashboardSummary(bills) {
     totalValue += Number(b.total) || 0;
   });
   const delta = dashMonthDelta(bills);
-  const deltaFor = (type) => dashMonthDelta(bills.filter((b) => (type === "all" ? true : b.type === type)));
+  const deltaFor = (type) => dashMonthDelta(bills.filter((b) => b.type === type));
   const cards = [
     { lbl: "Total Bills", num: bills.length, sub: bills.length ? fmt(totalValue) + " billed" : "All modules combined", color: "var(--accent)", icon: "ic-files", delta: delta.thisMonth },
     { lbl: "Car Bills", num: counts.car, sub: "Saved car wharfrent bills", color: "var(--gold)", icon: "ic-truck", delta: deltaFor("car").thisMonth },

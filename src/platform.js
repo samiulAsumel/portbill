@@ -1912,6 +1912,7 @@ const STATS_REQUEST_TIMEOUT_MS = 12000;
 const STATS_CACHE_KEY = "pb_stats_cache";
 let _statsTimer = null;
 let _statsInFlight = false;
+let _statsHasLoaded = false;
 
 const STATS_LIVE_LABELS = { live: "LIVE", offline: "OFFLINE", error: "ERROR" };
 function setStatsLiveState(state) {
@@ -1963,7 +1964,7 @@ async function loadStats(opts) {
   _statsInFlight = true;
   if (refreshIcon) refreshIcon.classList.add("spinning");
   if (!silent) {
-    document.getElementById("statsGrid")?.classList.add("stats-loading");
+    if (!_statsHasLoaded) document.getElementById("statsGrid")?.classList.add("stats-loading");
     msg.hidden = false;
     msg.textContent = "Loading usage data…";
   }
@@ -2012,6 +2013,7 @@ function stopStatsAutoRefresh() {
 }
 
 function renderStats(s) {
+  _statsHasLoaded = true;
   document.getElementById("statsGrid")?.classList.remove("stats-loading");
   const setNum = (id, v) => {
     const el = document.getElementById(id);
