@@ -269,17 +269,18 @@
 }
 
 .pgtitle {
-  font-family: 'Inter', sans-serif;
-  font-size: clamp(20px, 2.6vw, 26px);
-  font-weight: 800;
-  color: var(--tx-0);
-  letter-spacing: -0.02em;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(24px, 5vw, 52px);
+  color: var(--accent);
+  letter-spacing: 3.5px;
 }
 .pgsub {
   margin-top: 5px;
-  color: var(--tx-1);
-  font-size: 13px;
-  letter-spacing: 0.01em;
+  font-family: 'DM Mono', monospace;
+  color: var(--tx-2);
+  font-size: clamp(9px, 1.5vw, 11px);
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
 }
 
 .weight-note, .cargo-note {

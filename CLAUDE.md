@@ -139,7 +139,7 @@ Current classes that replace formerly-inline styles:
 
 CSS rules that replace formerly-inline module-specific overrides:
 
-- `.pgtitle` uses `color: var(--accent)` — automatically gold in car mode, sky blue in cargo mode (body.mode-cargo overrides `--accent`)
+- `.pgtitle` (the big page heading, e.g. "CAR WHARFRENT BILL") uses `font-family: 'Bebas Neue'` (loaded via the Google Fonts `<link>` in `index.html`, alongside Inter/DM Sans/DM Mono) and `color: var(--accent)` — automatically gold in car mode, sky blue in cargo mode, teal in re-export (body.mode-cargo/mode-reexport override `--accent`). `.pgsub` (the small caption beneath it) uses `font-family: 'DM Mono'`, uppercase, letter-spaced. Both match the production deployment's typography — verified against portbill.pages.dev, since a prior local-only change had drifted `.pgtitle` to plain Inter/`--tx-0` (white) before this was caught and reverted.
 - `body.mode-cargo .pgsub` — sets `color: var(--m1)` for the cargo subtitle (slightly lighter than the car default `--tx-2`)
 - `body.mode-cargo .card--rules` — sets `border-color: rgba(14,165,233,0.20)` for the sky-blue dashed border on the cargo billing rules card
 
