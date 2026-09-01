@@ -2002,11 +2002,17 @@ function applyRotationAccessState() {
   toggleRotationRegistry();
 }
 
-// Initialize rotation system and sync cloud data on page load
 // ── PWA install banner ────────────────────────────────────────────────────────
 (function () {
   // Don't show if already running as installed PWA
   if (window.matchMedia('(display-mode: standalone)').matches) return;
+
+  const DISMISS_KEY = 'pb_pwa_install_dismissed';
+  const DISMISS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+  const recentlyDismissed = () => {
+    const ts = Number.parseInt(localStorage.getItem(DISMISS_KEY), 10);
+    return Number.isFinite(ts) && Date.now() - ts < DISMISS_COOLDOWN_MS;
+  };
 
   let deferredPrompt = null;
   const banner = document.getElementById('pwaInstallBanner');
@@ -2016,7 +2022,11 @@ function applyRotationAccessState() {
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
     deferredPrompt = e;
-    if (banner) banner.hidden = false;
+    if (banner && !recentlyDismissed()) {
+      // Brief delay so the banner doesn't compete with the page's own
+      // entrance animations for attention on first paint.
+      setTimeout(() => { banner.hidden = false; }, 600);
+    }
   });
 
   if (installBtn) {
@@ -2033,6 +2043,7 @@ function applyRotationAccessState() {
   if (closeBtn) {
     closeBtn.addEventListener('click', function () {
       if (banner) banner.hidden = true;
+      try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch { /* storage unavailable — banner just re-shows next load */ }
     });
   }
 
@@ -2040,6 +2051,7 @@ function applyRotationAccessState() {
   window.addEventListener('appinstalled', function () {
     if (banner) banner.hidden = true;
     deferredPrompt = null;
+    try { localStorage.removeItem(DISMISS_KEY); } catch { /* no-op */ }
   });
 }());
 

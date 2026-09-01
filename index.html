@@ -3191,14 +3191,21 @@
     </noscript>
     <!-- PWA install banner — shown by JS when beforeinstallprompt fires and app is not standalone -->
     <header id="pwaInstallBanner" class="pwa-banner" aria-label="Install app" hidden>
-      <div class="pwa-banner-icon" aria-hidden="true"></div>
+      <img class="pwa-banner-icon" src="favicon.svg" alt="" aria-hidden="true" width="40" height="40" />
       <div class="pwa-banner-text">
         <strong>Install Port Billing</strong>
-        <span>Add to home screen for offline access</span>
+        <span>Works fully offline, one tap away</span>
       </div>
-      <button type="button" class="pwa-banner-install" id="pwaInstallBtn">Install</button>
+      <button type="button" class="pwa-banner-install" id="pwaInstallBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v13" />
+          <path d="M7 11l5 5 5-5" />
+          <path d="M5 21h14" />
+        </svg>
+        <span>Install</span>
+      </button>
       <button type="button" class="pwa-banner-close" id="pwaInstallClose" aria-label="Dismiss">
-        ✕
+        <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-x"></use></svg>
       </button>
     </header>
     <!-- Modular app scripts — classic scripts (no bundler), share one global

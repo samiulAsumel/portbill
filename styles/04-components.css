@@ -508,24 +508,85 @@ dialog.ppv-dialog { border: none; padding: 0; max-width: none; width: 100vw; hei
 .status-pill--error { background: var(--red-bg); color: var(--red); }
 
 /* ── PWA INSTALL BANNER ── */
+/* Same "real elevation + accent-tinted glow" recipe as the .sc stat cards
+   (see 06-results.css) — a top accent hairline, layered shadow, and an
+   accent-glow ring on the install button — so the prompt reads as part
+   of the product, not a generic browser toast bolted on. */
 .pwa-banner {
   position: fixed;
-  left: 50%; bottom: var(--sp-4);
+  left: 50%; bottom: var(--sp-5);
   transform: translateX(-50%);
   z-index: 9990;
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  padding: var(--sp-3) var(--sp-4);
-  background: var(--bg-elevated);
-  border: 1px solid var(--bdr-2);
+  width: min(92vw, 420px);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
+  background:
+    linear-gradient(160deg, var(--accent-bg), transparent 65%),
+    var(--bg-elevated);
+  border: 1px solid var(--accent-bdr);
   border-radius: var(--r);
-  box-shadow: var(--shadow-lg);
-  animation: pwaSlideDown var(--t-slow) both;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0,0,0,0.2);
+  animation: pwaSlideUp var(--t-slow) both;
+}
+.pwa-banner::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
 }
 .pwa-banner[hidden] { display: none; }
-@keyframes pwaSlideDown { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes pwaSlideUp {
+  from { opacity: 0; transform: translate(-50%, 24px) scale(0.98); }
+  to   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .pwa-banner { animation: none; } }
 @media print { .pwa-banner { display: none !important; } }
+
+.pwa-banner-icon {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  padding: 7px;
+  border-radius: var(--r-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--accent-bdr);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.pwa-banner-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pwa-banner-text strong { font-size: 13.5px; font-weight: 700; color: var(--tx-0); letter-spacing: -0.005em; }
+.pwa-banner-text span { font-size: 11.5px; color: var(--tx-2); line-height: 1.3; }
+.pwa-banner-install {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 14px;
+  border-radius: var(--r-sm); border: 1px solid var(--accent-lo);
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent));
+  color: #060911;
+  font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 700; letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: var(--shadow-accent-glow), inset 0 1px 0 rgba(255,255,255,0.4);
+  transition: box-shadow var(--t-base), filter var(--t-fast), transform var(--t-fast);
+}
+.pwa-banner-install:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 0 0 1px var(--accent-bdr), 0 8px 20px -6px var(--accent-ring), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+.pwa-banner-install:active { transform: translateY(1px); }
+.pwa-banner-close {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: 999px; border: none;
+  background: transparent; color: var(--tx-2);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.pwa-banner-close:hover { background: var(--bg-hover); color: var(--tx-0); }
+@media (max-width: 480px) {
+  .pwa-banner { width: calc(100vw - 24px); bottom: var(--sp-3); }
+  .pwa-banner-text span { display: none; }
+}
 
 /* ── SESSION RESTORE MODAL ── */
 .srs-index { font-family: 'DM Mono', monospace; }
