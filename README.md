@@ -1,4 +1,4 @@
-# Port Billing System — v3.12.0
+# Port Billing System — v3.13.0
 
 A zero-dependency, browser-native billing calculator for **Port Authority wharfrent and payable charges** — handling vehicles, general cargo, and re-export (transhipment/re-shipment) bills with slab-based rating, VAT computation, split-rate transitions, inside/outside port splits, and a print-ready invoice.
 
@@ -281,6 +281,16 @@ Clicking **Print Bill** opens a full-screen print preview dialog. Click **Print*
 - Three-column authorisation signature block
 - `NOT AN OFFICIAL DOCUMENT` footer disclaimer
 
+### Operations Dashboard
+
+The **Dashboard** tab (public, no admin gate) is an at-a-glance read-only overview built entirely from bills already saved on the device — it introduces no new figures and no new calculation engine:
+
+- **KPI cards** — Total Bills (with total value billed and a "+N this month" delta), plus a per-module count/delta for Car, General Cargo, and Re-Export.
+- **Billing Activity** — an inline 30-day bar chart of how many bills were saved per day, across all modules.
+- **Quick Actions** — one-click buttons straight into a new Car, Cargo, or Re-Export bill.
+- **Recent Activity** — the 6 most recently saved bills across all modules, with a "View all →" link into Saved Bills (shown only when logged in as Admin, since that module is admin-gated).
+- **System Status** — Billing Engine / Local Storage / Rotation Data / Cloud Sync, each shown as a status pill, with a "Last checked" timestamp.
+
 ### Saved Bills
 
 All calculated bills can be saved locally (and synced to GitHub via Cloudflare Worker) and viewed in the **Saved Bills** module tab.
@@ -291,7 +301,7 @@ All calculated bills can be saved locally (and synced to GitHub via Cloudflare W
 | **Edit**   | Restores entire form state and re-runs the calculation — next Save overwrites the same bill number |
 | **Print**  | Restores and immediately opens the print preview without staying in edit mode |
 | **Delete** | Requires confirmation via in-app confirm dialog; resequences bill numbers in the date group |
-| **Search** | Live filter by bill number, CLD, delivery date, C&F agent name, BL number, or total amount |
+| **Search** | Debounced live filter (per panel: Car / Cargo / Re-Export) by bill number, CLD, delivery date, C&F agent name, BL number, or total amount — shows a live "N of M" match count and a one-click clear (✕) button |
 
 Bill numbers are date-prefixed and auto-sequenced per day (e.g. `CA-20240626-001`).
 
@@ -304,6 +314,11 @@ Drafts are cleared when the user explicitly resets the form or saves a bill.
 ### Rotation Registry (Admin)
 
 Admin-only panel for registering vessel rotations (Rotation Year + Number + CLD). Used to look up the correct CLD by rotation reference. Synced to GitHub via the Cloudflare Worker.
+
+- **Summary strip** — total rotations registered, number of distinct years, and the latest CLD on file.
+- **Live search** — filter the table by rotation number, year, or CLD date; a match auto-expands its year group even if that group was previously collapsed.
+- **Expand all / Collapse all** — bulk-toggle every year group at once.
+- Rows show the rotation number as a mono chip and the CLD with a small calendar glyph; each row highlights with an accent edge on hover.
 
 ### Part Billing (Cargo)
 
@@ -489,6 +504,10 @@ The Worker URL is `https://portbill-proxy.sa-sumel91.workers.dev`. All `GET` end
 
 An admin-only **Analytics** module counts how many devices open the app per day, week, and month. It is deliberately privacy-first:
 
+- **Near-real-time**: auto-refreshes every 30 seconds while the tab is open and the browser tab is visible, pauses in the background, and refreshes instantly when the tab regains focus or the connection returns.
+- **Live status badge**: a `LIVE` / `OFFLINE` / `ERROR` pill and an "Updated HH:MM:SS" line show at a glance whether the figures on screen are current.
+- **Resilient**: on failure, shows a specific reason (admin session expired, stats database not configured, or offline) and falls back to the last successfully-fetched figures instead of leaving the page blank.
+
 - Each browser stores one random UUID (`localStorage.pb_device_id`) — **no names, no IPs, no cookies, no personal data**.
 - One "open" = one browser session (`sessionStorage` guard, so reloads don't inflate counts).
 - One device ≠ one person: the same user on phone and PC counts twice.
@@ -553,12 +572,14 @@ portbill/
 │   ├── car.js      — Car billing: carCompute() → calcSlabs() → buildCarBillTable()
 │   │                 → carCalculate(); plus the Rotation Number registry UI with a
 │   │                 localStorage cache fallback (loadRotations()) for offline/failed
-│   │                 fetches
+│   │                 fetches, live search (rotSearch()), and a summary strip
+│   │                 (renderRotationSummary())
 │   ├── cargo.js    — Cargo billing: cargoCompute() → calcCarBillingSdSlabs() →
 │   │                 buildCargoBillTable(); Part Billing (computePartBillingWharfrent())
 │   ├── reexport.js — Re-Export billing: reexportCompute() → calcReexportWharfRent()
 │   │                 → renderBillOfEntries() → reexportCalculate()
 │   ├── dashboard.js — Read-only Operations overview: renderDashboardSummary() /
+│   │                  renderDashboardActivity() / renderDashboardQuick() /
 │   │                  renderDashboardRecent() over data the app already owns
 │   │                  (getSavedBills(), rotation cache, sync-pending state)
 │   └── platform.js — Cross-cutting services + app bootstrap (loads last): invoice/
@@ -567,8 +588,9 @@ portbill/
 │                     sync resilience (updateSyncBadge(), flushSync(), online/offline
 │                     listeners), draft auto-save (saveDraft(), clearDraft(),
 │                     restoreFormDraft()), usage analytics (getDeviceId(), trackVisit(),
-│                     loadStats()), saved bills (renderSavedBills(), editSavedBill(),
-│                     printSavedBill()), rotation worker I/O, and the INIT block
+│                     loadStats() with 30s auto-refresh + cached fallback), saved bills
+│                     (renderSavedBills(), sbSearch(), editSavedBill(), printSavedBill()),
+│                     rotation worker I/O, and the INIT block
 ├── worker.js      — Cloudflare Worker proxy: open GET endpoints (/config, /rotations,
 │                    /saved-bills); authenticated PUT via Bearer token whose SHA-256
 │                    matches WRITE_TOKEN_HASH Cloudflare secret; D1-backed usage
@@ -652,6 +674,17 @@ All generated bills carry the notice:
 ---
 
 ## Changelog
+
+### v3.13.0 — Current Release
+
+| # | Area | Change |
+|---|------|--------|
+| 1 | UI (fix) | The admin login and confirm dialogs were rendering pinned to a viewport corner instead of centered — root-caused to the global `* { margin: 0 }` reset overriding the browser's own `dialog:modal { margin: auto }` (author-origin CSS always wins over user-agent styles, regardless of specificity). Restored centering and added the fade/scale enter-exit transition that was already being toggled in JS (`.is-open`) but had no matching CSS |
+| 2 | UI | New shared `.pb-search-wrap`/`.pb-search` component — icon, one-click clear button, and a live "N of M" match count — replacing the never-styled `input[type="search"]` on the three Saved Bills panels; search is now debounced instead of re-rendering all three tables on every keystroke |
+| 3 | Analytics | The Analytics module now auto-refreshes every 30 seconds while open and visible, pausing in the background and refreshing instantly on tab return or reconnect. Failures are classified into a specific reason (admin session expired, stats database not configured, offline) and fall back to the last cached figures instead of leaving the page blank. Adds a `LIVE`/`OFFLINE`/`ERROR` badge and an "Updated HH:MM:SS" line |
+| 4 | Rotation Registry | New summary strip (rotation/year counts, latest CLD), a debounced live search across rotation number/year/CLD, Expand-all/Collapse-all controls, and restyled rows (mono chip, calendar glyph, accent hover edge) with proper empty states for "no rotations" vs. "no search matches" |
+| 5 | Dashboard | KPI cards gain module icons and a "+N this month" delta; new 30-day billing-activity chart and a Quick Actions row into each billing module; System Status rows now use the shared status-pill component with a "Last checked" timestamp |
+| 6 | PWA | Service worker cache bumped to ship the above to installed/offline users |
 
 ### Unreleased — `feature/enterprise-redesign` branch
 
