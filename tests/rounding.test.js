@@ -20,10 +20,10 @@ const path = require('path');
 const SRC_DIR = path.join(__dirname, '..', 'src');
 const DECL_RE = /const (r2|rp2|_rp) = \(v\) => \(Math\.ceil\(v \* 100 - 0\.5\) \/ 100\) \|\| 0;/g;
 
-// As of this suite's writing there are 7 declarations across 4 files
-// (car.js, cargo.js x3, reexport.js, platform.js x2). If this count changes,
+// As of this suite's writing there are 8 declarations across 4 files
+// (car.js x2, cargo.js x3, print.js x2, reexport.js). If this count changes,
 // update it deliberately — don't just bump the number to silence the test.
-const EXPECTED_COUNT = 7;
+const EXPECTED_COUNT = 8;
 
 let allPass = true;
 let totalFound = 0;

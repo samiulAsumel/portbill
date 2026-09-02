@@ -2020,43 +2020,8 @@ function buildCargoBreakdownHtml(b) {
   </div>`;
 }
 
-function buildCargoBreakdownPrintHtml(b) {
-  const d = cargoBreakdownData(b);
-  const head = secHead("CHARGE COMPOSITION BREAKDOWN", "Wharfrent vs Payable");
-  const sub =
-    '<div class="section-sub">Inside + Outside + VAT + Levy attribution per charge type</div>';
-  if (!d.hasWharfrent) {
-    return `${head}${sub}<div class="no-break"><div style="overflow-x:auto;"><table>
-      <thead><tr>
-        <th style="width:35%">Charge Component</th>
-        <th style="text-align:right">Base Amount</th>
-        <th style="text-align:right">VAT (${d.vatPct}%)</th>
-        <th style="text-align:right">Levy</th>
-        <th style="text-align:right">Sub-Total</th>
-      </tr></thead>
-      <tbody>
-        <tr><td>Total Wharfrent Charge</td><td style="text-align:right;font-style:italic">Within Free Time</td><td style="text-align:right">${fmt(0)}</td><td style="text-align:right">${fmt(0)}</td><td style="text-align:right;font-weight:700">${fmt(0)}</td></tr>
-        <tr><td>Total Payable Charge</td><td style="text-align:right">${fmt(d.pBase)}</td><td style="text-align:right">${fmt(d.pVat)}</td><td style="text-align:right">${fmt(d.pLevy)}</td><td style="text-align:right;font-weight:700">${fmt(d.pTotal)}</td></tr>
-        <tr class="grand"><td>GRAND TOTAL</td><td style="text-align:right">${fmt(d.gBase)}</td><td style="text-align:right">${fmt(d.gVat)}</td><td style="text-align:right">${fmt(d.gLevy)}</td><td style="text-align:right">${fmt(d.gTotal)}</td></tr>
-      </tbody>
-    </table></div></div>`;
-  }
-  return `${head}${sub}<div class="no-break"><div style="overflow-x:auto;"><table>
-    <thead><tr>
-      <th style="width:28%">Charge Component</th>
-      <th style="text-align:right">Inside (${fmtN(b.insideW)}t)</th>
-      <th style="text-align:right">Outside (${fmtN(b.outsideW)}t)</th>
-      <th style="text-align:right">VAT (${d.vatPct}%)</th>
-      <th style="text-align:right">Levy</th>
-      <th style="text-align:right">Sub-Total</th>
-    </tr></thead>
-    <tbody>
-      <tr><td>Total Wharfrent Charge</td><td style="text-align:right">${fmt(d.wInside)}</td><td style="text-align:right">${fmt(d.wOutside)}</td><td style="text-align:right">${fmt(d.wVat)}</td><td style="text-align:right">${fmt(d.wLevy)}</td><td style="text-align:right;font-weight:700">${fmt(d.wTotal)}</td></tr>
-      <tr><td>Total Payable Charge</td><td style="text-align:right">${fmt(d.pInside)}</td><td style="text-align:right">${fmt(d.pOutside)}</td><td style="text-align:right">${fmt(d.pVat)}</td><td style="text-align:right">${fmt(d.pLevy)}</td><td style="text-align:right;font-weight:700">${fmt(d.pTotal)}</td></tr>
-      <tr class="grand"><td>GRAND TOTAL</td><td style="text-align:right">${fmt(d.gInside)}</td><td style="text-align:right">${fmt(d.gOutside)}</td><td style="text-align:right">${fmt(d.gVat)}</td><td style="text-align:right">${fmt(d.gLevy)}</td><td style="text-align:right">${fmt(d.gTotal)}</td></tr>
-    </tbody>
-  </table></div></div>`;
-}
+// buildCargoBreakdownPrintHtml (the printed CHARGE COMPOSITION BREAKDOWN table) lives in
+// print.js — it is a print-only HTML builder, consistent with the rest of that module.
 
 // Renders the on-screen Cargo bill (info bar, summary, part-billing/normal sections,
 // grand total); branches mirror cargoCompute's combined-VAT-base model documented in

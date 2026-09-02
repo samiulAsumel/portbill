@@ -416,6 +416,50 @@ const fmtN = (n) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
+// Amount-in-words for the printed invoice ("Taka ... Only" line), Bangladeshi/Indian
+// numbering (crore = 1,00,00,000 / lakh = 1,00,000), not the Western 3-digit grouping.
+// Splits taka/poysha via integer-scale math (Math.round(v*100)) — the same technique
+// calcVATmpa uses above — so float drift can't turn a 0.72 into a 0.71.
+function numToWordsBDT(amount) {
+  const ONES = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+  const TENS = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+  function twoDigits(n) {
+    if (n < 20) return ONES[n];
+    return TENS[Math.floor(n / 10)] + (n % 10 ? " " + ONES[n % 10] : "");
+  }
+  function threeDigits(n) {
+    const hundred = Math.floor(n / 100);
+    const rest = n % 100;
+    let s = hundred ? `${ONES[hundred]} Hundred` : "";
+    if (rest) s += (s ? " " : "") + twoDigits(rest);
+    return s;
+  }
+  function integerToWords(n) {
+    if (n === 0) return "Zero";
+    let rem = n;
+    const crore = Math.floor(rem / 10000000);
+    rem %= 10000000;
+    const lakh = Math.floor(rem / 100000);
+    rem %= 100000;
+    const thousand = Math.floor(rem / 1000);
+    rem %= 1000;
+    const parts = [];
+    if (crore) parts.push(`${threeDigits(crore)} Crore`);
+    if (lakh) parts.push(`${twoDigits(lakh)} Lakh`);
+    if (thousand) parts.push(`${twoDigits(thousand)} Thousand`);
+    if (rem) parts.push(threeDigits(rem));
+    return parts.join(" ");
+  }
+  const safeAmount = Number.isFinite(amount) ? Math.abs(amount) : 0;
+  const totalPoysha = Math.round(safeAmount * 100);
+  const taka = Math.floor(totalPoysha / 100);
+  const poysha = totalPoysha % 100;
+  let words = `Taka ${integerToWords(taka)}`;
+  if (poysha > 0) words += ` and ${integerToWords(poysha)} Poysha`;
+  return `${words} Only`;
+}
+
 function readTextValue(id) {
   return (document.getElementById(id)?.value || "").trim();
 }

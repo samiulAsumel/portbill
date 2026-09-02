@@ -209,6 +209,56 @@ function carCompute() {
   };
 }
 
+// Charge-composition data for the printed CHARGE COMPOSITION BREAKDOWN table
+// (print.js's buildCarBreakdownPrintHtml). Car's VAT is PER-SECTION — Inside and
+// Outside are each a complete bill (own VAT, own Levy; see CLAUDE.md's Car VAT/Levy
+// model) — so this derives the Wharfrent/Payable split per section instead of
+// reusing Cargo's combined-base arithmetic (cargoBreakdownData, cargo.js).
+function carBreakdownData(b) {
+  const r2 = (v) => (Math.ceil(v * 100 - 0.5) / 100) || 0;
+  const vatPct = (b.vatRate * 100).toFixed(2);
+  if (!b.hasWharfrent) {
+    return {
+      hasWharfrent: false,
+      vatPct,
+      pBase: b.paySub,
+      pVat: b.nVat,
+      pLevy: b.nLevy,
+      pTotal: b.nTotal,
+      gBase: b.nBase,
+      gVat: b.nVat,
+      gLevy: b.nLevy,
+      gTotal: b.nTotal,
+    };
+  }
+  const totalVat = b.iVat + b.oVat;
+  const wVat = calcVATmpa(b.insideStor, b.vatRate * 100) + calcVATmpa(b.outsideHalf, b.vatRate * 100);
+  const pVat = r2(totalVat - wVat);
+  const wLevy = 0;
+  const pLevy = b.iLevy + b.oLevy;
+  const wTotal = r2(b.insideStor + b.outsideHalf + wVat + wLevy);
+  const pTotal = r2(b.paySub * 2 + pVat + pLevy);
+  return {
+    hasWharfrent: true,
+    vatPct,
+    wInside: b.insideStor,
+    wOutside: b.outsideHalf,
+    wVat,
+    wLevy,
+    wTotal,
+    pInside: b.paySub,
+    pOutside: b.paySub,
+    pVat,
+    pLevy,
+    pTotal,
+    gInside: b.iBase,
+    gOutside: b.oBase,
+    gVat: totalVat,
+    gLevy: pLevy,
+    gTotal: r2(b.iTotal + b.oTotal),
+  };
+}
+
 // Live-preview renderer mirrors carCalculate's branching (wharfrent vs free-time); splitting
 // it risks the preview and the final bill silently drifting apart.
 // eslint-disable-next-line sonarjs/cognitive-complexity

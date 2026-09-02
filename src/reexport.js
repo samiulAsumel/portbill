@@ -389,6 +389,41 @@ function reexportCompute() {
   };
 }
 
+// Charge-composition data for the printed CHARGE COMPOSITION BREAKDOWN table
+// (print.js's buildReexportBreakdownPrintHtml) — one row per Bill of Entry. Columns
+// are reported via showCol so a simple bill (no hoisting, no removal) doesn't force
+// the printed table to carry empty columns.
+function reexportBreakdownData(b) {
+  const showCol = {
+    wharf: !b.isOverside,
+    river: true,
+    hoist: b.hoistOn,
+    reship: true,
+    removal: !b.isOverside && b.beResults.some((be) => be.removal > 0),
+    levy: b.levyOn,
+  };
+  const rows = b.beResults.map((be) => ({
+    label: be.beNumber || `#${be.idx + 1}`,
+    wharf: be.wharfTotal,
+    river: be.riverDues,
+    hoist: be.hoisting,
+    reship: be.reshipment,
+    removal: be.removal,
+    levy: be.levy,
+    vatBase: be.vatBase,
+  }));
+  const totals = {
+    wharf: rows.reduce((a, r) => a + r.wharf, 0),
+    river: rows.reduce((a, r) => a + r.river, 0),
+    hoist: rows.reduce((a, r) => a + r.hoist, 0),
+    reship: rows.reduce((a, r) => a + r.reship, 0),
+    removal: rows.reduce((a, r) => a + r.removal, 0),
+    levy: rows.reduce((a, r) => a + r.levy, 0),
+    vatBase: b.vatBaseTotal,
+  };
+  return { showCol, rows, totals };
+}
+
 // ── Live preview ──
 function reexportRefreshNow() {
   try {
