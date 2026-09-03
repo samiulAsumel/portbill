@@ -819,12 +819,19 @@ function renderSavedBills() {
   if (!carTbody || !cargoTbody || !reexportTbody) return;
 
   const all = getSavedBills();
-  // Sorted by bill number (serial order), not by last-saved time — see
-  // compareBillsBySerial() above for why. SL below is each row's position
-  // in this stable order.
-  const carBills = all.filter((b) => b.type !== "cargo" && b.type !== "reexport").sort(compareBillsBySerial);
-  const cargoBills = all.filter((b) => b.type === "cargo").sort(compareBillsBySerial);
-  const reexportBills = all.filter((b) => b.type === "reexport").sort(compareBillsBySerial);
+  // SL is each bill's stable creation-order rank (1 = oldest of that type/date
+  // group, keyed off the bill number itself via compareBillsBySerial() above —
+  // never off savedAt, and never off row position). withSl() computes that
+  // rank ascending, then the list is reversed so the table itself DISPLAYS
+  // most-recently-created bills first — SL 1 is the oldest bill and always
+  // sits at the bottom of the table, no matter how many times any bill here
+  // has been edited/re-saved since.
+  function withSl(list) {
+    return list.sort(compareBillsBySerial).map((b, i) => Object.assign({}, b, { _sl: i + 1 })).reverse();
+  }
+  const carBills = withSl(all.filter((b) => b.type !== "cargo" && b.type !== "reexport"));
+  const cargoBills = withSl(all.filter((b) => b.type === "cargo"));
+  const reexportBills = withSl(all.filter((b) => b.type === "reexport"));
 
   function setSbCount(id, visible, total, hasQuery) {
     const el = document.getElementById(id);
@@ -841,7 +848,7 @@ function renderSavedBills() {
     if (!visible.length) {
       return '<tr><td colspan="8" style="text-align:center;color:var(--tx-2);padding:14px;">No bills match your search</td></tr>';
     }
-    return visible.map((b, i) => {
+    return visible.map((b) => {
       const meta = b.metadata || {};
       const cnf = escHtml(meta.cnfName || "—");
       const bl = escHtml(meta.blNumber || "—");
@@ -849,7 +856,7 @@ function renderSavedBills() {
       const savedDate = b.savedAt ? new Date(b.savedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" }) : "—";
       const bn = escHtml(JSON.stringify(b.billNumber));
       return `<tr>
-        <td>${i + 1}</td>
+        <td>${b._sl}</td>
         <td style="font-variant-numeric:tabular-nums lining-nums;font-family:var(--font-mono)">${escHtml(b.billNumber || "")}</td>
         <td>${escHtml(b.cld || "—")}</td>
         <td>${escHtml(b.delivery || "—")}</td>
