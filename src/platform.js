@@ -793,6 +793,24 @@ function parseBillNumber(num) {
   return { prefix: m[1], datePart: m[2], seq: parseInt(m[3], 10) };
 }
 
+// Stable creation-order comparator for saved bills, keyed off the bill
+// number itself (date part, then sequence) rather than savedAt. billNumber
+// is assigned once at first-save and never changes on a later edit/re-save
+// (saveBill() reuses editingBillNumber[type]), so sorting by it — instead of
+// by the mutable savedAt timestamp — keeps each bill's SL/serial position
+// fixed no matter how many times it (or any other bill) gets edited and
+// saved again. Falls back to a plain string compare for any legacy/malformed
+// bill numbers that don't match the CA-/GCA-/RE- pattern.
+function compareBillsBySerial(a, b) {
+  const pa = parseBillNumber(a.billNumber);
+  const pb = parseBillNumber(b.billNumber);
+  if (pa && pb) {
+    if (pa.datePart !== pb.datePart) return pa.datePart < pb.datePart ? -1 : 1;
+    return pa.seq - pb.seq;
+  }
+  return String(a.billNumber || "").localeCompare(String(b.billNumber || ""));
+}
+
 // Re-render Car, GC, and Re-Export saved-bills tables
 function renderSavedBills() {
   const carTbody = document.getElementById("savedCarTbody");
@@ -801,9 +819,12 @@ function renderSavedBills() {
   if (!carTbody || !cargoTbody || !reexportTbody) return;
 
   const all = getSavedBills();
-  const carBills = all.filter((b) => b.type !== "cargo" && b.type !== "reexport").sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
-  const cargoBills = all.filter((b) => b.type === "cargo").sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
-  const reexportBills = all.filter((b) => b.type === "reexport").sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+  // Sorted by bill number (serial order), not by last-saved time — see
+  // compareBillsBySerial() above for why. SL below is each row's position
+  // in this stable order.
+  const carBills = all.filter((b) => b.type !== "cargo" && b.type !== "reexport").sort(compareBillsBySerial);
+  const cargoBills = all.filter((b) => b.type === "cargo").sort(compareBillsBySerial);
+  const reexportBills = all.filter((b) => b.type === "reexport").sort(compareBillsBySerial);
 
   function setSbCount(id, visible, total, hasQuery) {
     const el = document.getElementById(id);
@@ -919,12 +940,18 @@ async function deleteSavedBill(billNumber) {
   if (parsed) {
     // Resequence within the same date group for this type
     const dateKey = parsed.datePart;
+    // Order by each bill's existing sequence number, not by savedAt: an
+    // older bill that was later edited (and so re-saved more recently than
+    // its same-day siblings) must keep its original creation-order slot,
+    // not jump to the end just because it was touched last. See
+    // compareBillsBySerial() above for the same principle applied to the
+    // Saved Bills table's display order.
     const sameGroup = all
       .filter((b) => {
         const p = parseBillNumber(b.billNumber);
         return p && p.prefix === prefix && p.datePart === dateKey;
       })
-      .sort((a, b) => new Date(a.savedAt) - new Date(b.savedAt));
+      .sort((a, b) => parseBillNumber(a.billNumber).seq - parseBillNumber(b.billNumber).seq);
 
     sameGroup.forEach((b, idx) => {
       b.billNumber = `${prefix}-${dateKey}${String(idx + 1).padStart(6, "0")}`;
