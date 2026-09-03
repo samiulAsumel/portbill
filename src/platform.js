@@ -819,19 +819,16 @@ function renderSavedBills() {
   if (!carTbody || !cargoTbody || !reexportTbody) return;
 
   const all = getSavedBills();
-  // SL is each bill's stable creation-order rank (1 = oldest of that type/date
-  // group, keyed off the bill number itself via compareBillsBySerial() above —
-  // never off savedAt, and never off row position). withSl() computes that
-  // rank ascending, then the list is reversed so the table itself DISPLAYS
-  // most-recently-created bills first — SL 1 is the oldest bill and always
-  // sits at the bottom of the table, no matter how many times any bill here
-  // has been edited/re-saved since.
-  function withSl(list) {
-    return list.sort(compareBillsBySerial).map((b, i) => Object.assign({}, b, { _sl: i + 1 })).reverse();
-  }
-  const carBills = withSl(all.filter((b) => b.type !== "cargo" && b.type !== "reexport"));
-  const cargoBills = withSl(all.filter((b) => b.type === "cargo"));
-  const reexportBills = withSl(all.filter((b) => b.type === "reexport"));
+  // Most-recently-created bill first — SL 1 is always the newest bill of that
+  // type/date group. Ordered by the bill's own (immutable) bill number via
+  // compareBillsBySerial() above, never by savedAt, so re-saving an existing
+  // bill after an edit never moves it or renumbers anyone else; only actually
+  // creating a new bill shifts every later row's SL down by one, same as any
+  // ordinary "most recent first" list.
+  const byRecency = (a, b) => compareBillsBySerial(b, a);
+  const carBills = all.filter((b) => b.type !== "cargo" && b.type !== "reexport").sort(byRecency);
+  const cargoBills = all.filter((b) => b.type === "cargo").sort(byRecency);
+  const reexportBills = all.filter((b) => b.type === "reexport").sort(byRecency);
 
   function setSbCount(id, visible, total, hasQuery) {
     const el = document.getElementById(id);
@@ -843,24 +840,24 @@ function renderSavedBills() {
     const visible = searchQ ? bills.filter((b) => matchesBillSearch(b, searchQ)) : bills;
     setSbCount(countId, visible.length, bills.length, !!searchQ);
     if (!bills.length) {
-      return '<tr><td colspan="8" style="text-align:center;color:var(--tx-2);padding:14px;">No saved bills yet</td></tr>';
+      return '<tr><td colspan="9" style="text-align:center;color:var(--tx-2);padding:14px;">No saved bills yet</td></tr>';
     }
     if (!visible.length) {
-      return '<tr><td colspan="8" style="text-align:center;color:var(--tx-2);padding:14px;">No bills match your search</td></tr>';
+      return '<tr><td colspan="9" style="text-align:center;color:var(--tx-2);padding:14px;">No bills match your search</td></tr>';
     }
-    return visible.map((b) => {
+    return visible.map((b, i) => {
       const meta = b.metadata || {};
       const cnf = escHtml(meta.cnfName || "—");
       const bl = escHtml(meta.blNumber || "—");
-      const label = cnf !== "—" ? cnf : bl;
       const savedDate = b.savedAt ? new Date(b.savedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" }) : "—";
       const bn = escHtml(JSON.stringify(b.billNumber));
       return `<tr>
-        <td>${b._sl}</td>
+        <td>${i + 1}</td>
+        <td style="font-variant-numeric:tabular-nums lining-nums;font-family:var(--font-mono)">${bl}</td>
         <td style="font-variant-numeric:tabular-nums lining-nums;font-family:var(--font-mono)">${escHtml(b.billNumber || "")}</td>
         <td>${escHtml(b.cld || "—")}</td>
         <td>${escHtml(b.delivery || "—")}</td>
-        <td>${label}</td>
+        <td>${cnf}</td>
         <td style="font-variant-numeric:tabular-nums lining-nums">${escHtml(b.totalFormatted || "—")}</td>
         <td>${savedDate}</td>
         <td>
