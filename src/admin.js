@@ -11,6 +11,17 @@ function switchModule(mod) {
   const activeTab = document.getElementById("tab-" + mod);
   if (!page || !activeTab || activeTab.hidden) return;
   currentModule = mod;
+  // Keep the header breadcrumb/title/document.title (dashboard.js) in sync for
+  // EVERY switchModule() call, not just direct nav-tab clicks — this also
+  // covers editSavedBill()/printSavedBill() switching modules from Saved
+  // Bills, the Dashboard Quick Action buttons, its "View all" saved-bills
+  // link, and updateAdminNavigation()'s bounce-to-"car" on admin logout. All
+  // of those used to leave the topbar showing the module you navigated away
+  // from. updateTopbarForModule is defined in dashboard.js, which loads after
+  // this file, but by the time switchModule() is ever called (a click, or any
+  // other runtime trigger) every script has already run — hence the guard,
+  // not a load-order fix.
+  if (typeof updateTopbarForModule === "function") updateTopbarForModule(mod);
   document
     .querySelectorAll(".module-page")
     .forEach((p) => p.classList.remove("active"));

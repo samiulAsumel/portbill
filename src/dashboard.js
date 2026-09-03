@@ -227,7 +227,18 @@ function renderDashboard() {
   if (statusEl) statusEl.innerHTML = renderDashboardStatus();
 }
 
-// ── Topbar breadcrumb/title sync — purely additive, does not modify switchModule() ──
+// ── Topbar breadcrumb/title sync ────────────────────────────────────────────
+// updateTopbarForModule() is called directly from switchModule() (admin.js)
+// on every module switch, whatever triggered it — a nav-tab click, Saved
+// Bills' Edit/Print buttons, the Dashboard Quick Action buttons, its "View
+// all" link, or the admin-logout bounce-to-"car". It used to run only from a
+// separate click listener on .module-tabs here, which covered nav-tab clicks
+// alone (missing every other call site above) and — even for a tab click —
+// could show the wrong title if switchModule() internally redirected the
+// click (e.g. clicking the admin-only Saved Bills tab while logged out
+// bounces to Car, but the listener kept naming the tab you clicked, not the
+// page you landed on). Centralizing the call inside switchModule() with its
+// final, possibly-redirected `mod` fixes both.
 const DASH_TOPBAR_META = {
   dashboard: { group: "Overview", title: "Dashboard" },
   car: { group: "Billing", title: "Car Billing" },
@@ -245,14 +256,3 @@ function updateTopbarForModule(mod) {
   if (title) title.textContent = meta.title;
   document.title = `${meta.title} — PortBill`;
 }
-document.addEventListener("DOMContentLoaded", () => {
-  const nav = document.querySelector(".module-tabs");
-  if (!nav) return;
-  nav.addEventListener("click", (e) => {
-    const btn = e.target.closest(".tab-btn");
-    if (!btn) return;
-    const mod = btn.id.replace("tab-", "");
-    updateTopbarForModule(mod);
-    document.body.classList.remove("sidebar-open"); // close mobile drawer after navigating
-  });
-});
