@@ -1,5 +1,5 @@
 // PortBill Service Worker — cache-first with network update
-const CACHE = 'portbill-v26';
+const CACHE = 'portbill-v27';
 const ASSETS = [
   './',
   './index.html',
